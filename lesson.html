@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson — Umbrella5D</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page-lesson">
+
+  <!-- ══ TOP NAV ══ -->
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav-brand" href="index.html">
+        <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Umbrella5D
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="features.html">Features</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="dashboard.html" class="nav-signin">Dashboard</a>
+        <a href="login.html" class="btn btn--primary btn--sm">Get started free</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="lesson-main">
+
+    <div class="lesson-header">
+      <a href="dashboard.html" class="lesson-back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Dashboard
+      </a>
+      <p class="section-eyebrow" id="lesson-module-label">Module 1</p>
+      <h1 id="lesson-title">Lesson 1</h1>
+    </div>
+
+    <div class="lesson-body">
+
+      <!-- Video player (shown only for Module 1, Lesson 1) -->
+      <div id="lesson-video" class="lesson-video-wrap" hidden>
+        <div class="video-wrapper">
+          <iframe
+            src="https://player.vimeo.com/video/716223733"
+            title="Module 1 — Lesson 1 Video"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Placeholder for lessons without content yet -->
+      <div id="lesson-placeholder" class="lesson-placeholder" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true">
+          <polygon points="23 7 16 12 23 17 23 7"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+        <p>Content coming soon.</p>
+        <p class="lesson-placeholder-sub">Check back as the program rolls out.</p>
+      </div>
+
+      <!-- Complete button -->
+      <div class="lesson-complete-section">
+        <button id="complete-btn" class="btn btn--primary btn--lg lesson-complete-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="complete-btn-label">Mark Lesson Complete</span>
+        </button>
+      </div>
+
+    </div>
+    <!-- /lesson-body -->
+
+  </main>
+
+  <script>
+    (function () {
+      var params  = new URLSearchParams(window.location.search);
+      var m       = parseInt(params.get('m'), 10) || 1;
+      var l       = parseInt(params.get('l'), 10) || 1;
+      var lessonId = m + '-' + l;
+
+      var moduleNames = {
+        1: 'The Five Dimensions',
+        2: 'The Customer Paradigm',
+        3: 'The Umbrella Machine',
+        4: 'Implementation in Practice',
+        5: 'Revenue, Profits & Glory'
+      };
+
+      /* ── Set page metadata ── */
+      document.getElementById('lesson-module-label').textContent =
+        'Module ' + m + (moduleNames[m] ? ' \u2014 ' + moduleNames[m] : '');
+      document.getElementById('lesson-title').textContent = 'Lesson ' + l;
+      document.title = 'Module ' + m + ' \u2014 Lesson ' + l + ' \u2014 Umbrella5D';
+
+      /* ── Show video or placeholder ── */
+      if (m === 1 && l === 1) {
+        document.getElementById('lesson-video').hidden = false;
+        document.getElementById('lesson-placeholder').hidden = true;
+      } else {
+        document.getElementById('lesson-placeholder').hidden = false;
+      }
+
+      /* ── Completion state ── */
+      function getCompleted() {
+        try { return JSON.parse(localStorage.getItem('umbrella_lessons') || '{}'); }
+        catch (e) { return {}; }
+      }
+
+      function setCompleted(id, value) {
+        var data = getCompleted();
+        if (value) {
+          data[id] = true;
+        } else {
+          delete data[id];
+        }
+        localStorage.setItem('umbrella_lessons', JSON.stringify(data));
+      }
+
+      function renderButton(isDone) {
+        var btn   = document.getElementById('complete-btn');
+        var label = document.getElementById('complete-btn-label');
+
+        if (isDone) {
+          btn.classList.add('lesson-complete-btn--done');
+          label.textContent = 'Completed — Click to Undo';
+        } else {
+          btn.classList.remove('lesson-complete-btn--done');
+          label.textContent = 'Mark Lesson Complete';
+        }
+      }
+
+      /* Initial render */
+      renderButton(!!getCompleted()[lessonId]);
+
+      /* Toggle complete on click */
+      document.getElementById('complete-btn').addEventListener('click', function () {
+        var isDone = !!getCompleted()[lessonId];
+        setCompleted(lessonId, !isDone);
+        renderButton(!isDone);
+      });
+    })();
+  </script>
+
+</body>
+</html>

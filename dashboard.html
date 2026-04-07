@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progress Dashboard — Umbrella5D</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page-dashboard">
+
+  <!-- ══ TOP NAV (consistent with all pages) ══ -->
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav-brand" href="index.html">
+        <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Umbrella5D
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="features.html">Features</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="#" class="nav-signin">Sign in</a>
+        <a href="#" class="btn btn--primary btn--sm">Get started free</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ══ APP SHELL: sidebar + main ══ -->
+  <div class="app-shell">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="app-sidebar" aria-label="Dashboard navigation">
+
+      <!-- User block -->
+      <div class="sidebar-user">
+        <img class="sidebar-avatar" src="david_pfp.jpg" alt="David" />
+        <div class="sidebar-user-info">
+          <p class="sidebar-name">David</p>
+          <p class="sidebar-org">Clearwater Solutions</p>
+          <p class="sidebar-role">Active Learner</p>
+        </div>
+      </div>
+
+      <!-- Primary nav -->
+      <nav class="sidebar-nav">
+        <p class="sidebar-section-label">Menu</p>
+
+        <a href="dashboard.html" class="sidebar-link is-active" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="feed.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>Feed</span>
+          <span class="sidebar-notif-badge" aria-label="8 unread posts">8</span>
+        </a>
+
+        <a href="#" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          <span>Courses</span>
+        </a>
+
+        <a href="#" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <!-- Mini progress bar -->
+      <div class="sidebar-progress">
+        <div class="sidebar-progress__header">
+          <span>Course Progress</span>
+          <span id="sidebar-pct-label">0%</span>
+        </div>
+        <div class="sidebar-progress__track">
+          <div id="sidebar-fill" class="sidebar-progress__fill"></div>
+        </div>
+      </div>
+
+      <!-- Sidebar footer -->
+      <div class="sidebar-footer">
+        <a href="index.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+          <span>Back to site</span>
+        </a>
+      </div>
+
+    </aside>
+    <!-- /app-sidebar -->
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="app-main">
+
+      <!-- Dark page header -->
+      <div class="dash-header">
+        <p class="section-eyebrow">Your Learning Journey</p>
+        <h1>Hey David! Welcome to your dashboard.</h1>
+        <p class="dash-subtext">
+          Track your completion across all five core seminars.
+          Work through each lesson to complete the program.
+        </p>
+      </div>
+
+      <!-- Light content area -->
+      <div class="dash-content">
+        <div class="dash-layout">
+
+          <!-- ── Stat cards ── -->
+          <div class="dash-stats">
+
+            <div class="stat-card">
+              <div class="stat-card__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </div>
+              <p class="stat-card__value" id="stat-modules">0 / 5</p>
+              <p class="stat-card__label">Modules Completed</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <p class="stat-card__value" id="stat-completed">0 / 32</p>
+              <p class="stat-card__label">Lessons Completed</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6"  y1="20" x2="6"  y2="14"/>
+                </svg>
+              </div>
+              <p class="stat-card__value" id="stat-pct-card">0%</p>
+              <p class="stat-card__label">Overall Progress</p>
+            </div>
+
+          </div>
+          <!-- /dash-stats -->
+
+          <!-- ── Progress card ── -->
+          <div class="progress-card" role="region" aria-label="Overall progress">
+            <div class="progress-header">
+              <h2 class="progress-title">Overall Progress</h2>
+              <span id="progress-pct" class="progress-pct" aria-live="polite">0%</span>
+            </div>
+
+            <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-labelledby="progress-pct">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+
+            <p id="progress-count" class="progress-meta">0 of 32 lessons complete</p>
+          </div>
+
+          <!-- ── Module list ── -->
+          <div class="modules-header">
+            <h2>Course Modules</h2>
+            <p>Expand a module to see its lessons</p>
+          </div>
+
+          <div class="modules-list" role="list">
+
+            <!-- ── Module 1 ── -->
+            <div class="module-item" role="listitem">
+              <div class="module-card module-card--expanded" for="seminar-1">
+                <input type="checkbox" id="seminar-1" class="module-checkbox" />
+                <span class="check-visual" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="2,7 5.5,10.5 12,3.5"/>
+                  </svg>
+                </span>
+                <div class="module-info">
+                  <span class="module-number">Module 01</span>
+                  <h3>The Five Dimensions</h3>
+                  <p>The irrefutable laws of the business universe and why all five dimensions of your customer's benefit are equally essential.</p>
+                </div>
+                <span class="module-status" id="module-status-1">Not started</span>
+              </div>
+
+              <button
+                class="module-reveal-btn"
+                id="reveal-btn-1"
+                type="button"
+                aria-expanded="false"
+                aria-controls="module-content-1"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span>Start Module 1</span>
+              </button>
+
+              <div class="module-content" id="module-content-1" aria-hidden="true">
+                <p class="module-content__heading">Module 1 &mdash; Lessons</p>
+                <div class="lesson-grid">
+                  <a href="lesson.html?m=1&l=1" class="lesson-box" data-lesson="1-1">L1</a>
+                  <a href="lesson.html?m=1&l=2" class="lesson-box" data-lesson="1-2">L2</a>
+                  <a href="lesson.html?m=1&l=3" class="lesson-box" data-lesson="1-3">L3</a>
+                  <a href="lesson.html?m=1&l=4" class="lesson-box" data-lesson="1-4">L4</a>
+                  <a href="lesson.html?m=1&l=5" class="lesson-box" data-lesson="1-5">L5</a>
+                  <a href="lesson.html?m=1&l=6" class="lesson-box" data-lesson="1-6">L6</a>
+                </div>
+              </div>
+            </div>
+            <!-- /module-item 1 -->
+
+            <!-- ── Module 2 ── -->
+            <div class="module-item" role="listitem">
+              <div class="module-card module-card--expanded" for="seminar-2">
+                <input type="checkbox" id="seminar-2" class="module-checkbox" />
+                <span class="check-visual" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="2,7 5.5,10.5 12,3.5"/>
+                  </svg>
+                </span>
+                <div class="module-info">
+                  <span class="module-number">Module 02</span>
+                  <h3>The Customer Paradigm</h3>
+                  <p>How and why the customer paradigm has migrated — and what complete and total benefit really means for your business.</p>
+                </div>
+                <span class="module-status" id="module-status-2">Not started</span>
+              </div>
+
+              <button
+                class="module-reveal-btn"
+                id="reveal-btn-2"
+                type="button"
+                aria-expanded="false"
+                aria-controls="module-content-2"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span>Start Module 2</span>
+              </button>
+
+              <div class="module-content" id="module-content-2" aria-hidden="true">
+                <p class="module-content__heading">Module 2 &mdash; Lessons</p>
+                <div class="lesson-grid">
+                  <a href="lesson.html?m=2&l=1" class="lesson-box" data-lesson="2-1">L1</a>
+                  <a href="lesson.html?m=2&l=2" class="lesson-box" data-lesson="2-2">L2</a>
+                  <a href="lesson.html?m=2&l=3" class="lesson-box" data-lesson="2-3">L3</a>
+                  <a href="lesson.html?m=2&l=4" class="lesson-box" data-lesson="2-4">L4</a>
+                  <a href="lesson.html?m=2&l=5" class="lesson-box" data-lesson="2-5">L5</a>
+                  <a href="lesson.html?m=2&l=6" class="lesson-box" data-lesson="2-6">L6</a>
+                </div>
+              </div>
+            </div>
+            <!-- /module-item 2 -->
+
+            <!-- ── Module 3 ── -->
+            <div class="module-item" role="listitem">
+              <div class="module-card module-card--expanded" for="seminar-3">
+                <input type="checkbox" id="seminar-3" class="module-checkbox" />
+                <span class="check-visual" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="2,7 5.5,10.5 12,3.5"/>
+                  </svg>
+                </span>
+                <div class="module-info">
+                  <span class="module-number">Module 03</span>
+                  <h3>The Umbrella Machine</h3>
+                  <p>Introduction to the 32-step cloud-based tool and how to navigate each instruction set for maximum impact.</p>
+                </div>
+                <span class="module-status" id="module-status-3">Not started</span>
+              </div>
+
+              <button
+                class="module-reveal-btn"
+                id="reveal-btn-3"
+                type="button"
+                aria-expanded="false"
+                aria-controls="module-content-3"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span>Start Module 3</span>
+              </button>
+
+              <div class="module-content" id="module-content-3" aria-hidden="true">
+                <p class="module-content__heading">Module 3 &mdash; Lessons</p>
+                <div class="lesson-grid">
+                  <a href="lesson.html?m=3&l=1" class="lesson-box" data-lesson="3-1">L1</a>
+                  <a href="lesson.html?m=3&l=2" class="lesson-box" data-lesson="3-2">L2</a>
+                  <a href="lesson.html?m=3&l=3" class="lesson-box" data-lesson="3-3">L3</a>
+                  <a href="lesson.html?m=3&l=4" class="lesson-box" data-lesson="3-4">L4</a>
+                  <a href="lesson.html?m=3&l=5" class="lesson-box" data-lesson="3-5">L5</a>
+                  <a href="lesson.html?m=3&l=6" class="lesson-box" data-lesson="3-6">L6</a>
+                </div>
+              </div>
+            </div>
+            <!-- /module-item 3 -->
+
+            <!-- ── Module 4 ── -->
+            <div class="module-item" role="listitem">
+              <div class="module-card module-card--expanded" for="seminar-4">
+                <input type="checkbox" id="seminar-4" class="module-checkbox" />
+                <span class="check-visual" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="2,7 5.5,10.5 12,3.5"/>
+                  </svg>
+                </span>
+                <div class="module-info">
+                  <span class="module-number">Module 04</span>
+                  <h3>Implementation in Practice</h3>
+                  <p>Working through the machine: prerequisites, objectives, and executing each step with precision and confidence.</p>
+                </div>
+                <span class="module-status" id="module-status-4">Not started</span>
+              </div>
+
+              <button
+                class="module-reveal-btn"
+                id="reveal-btn-4"
+                type="button"
+                aria-expanded="false"
+                aria-controls="module-content-4"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span>Start Module 4</span>
+              </button>
+
+              <div class="module-content" id="module-content-4" aria-hidden="true">
+                <p class="module-content__heading">Module 4 &mdash; Lessons</p>
+                <div class="lesson-grid">
+                  <a href="lesson.html?m=4&l=1" class="lesson-box" data-lesson="4-1">L1</a>
+                  <a href="lesson.html?m=4&l=2" class="lesson-box" data-lesson="4-2">L2</a>
+                  <a href="lesson.html?m=4&l=3" class="lesson-box" data-lesson="4-3">L3</a>
+                  <a href="lesson.html?m=4&l=4" class="lesson-box" data-lesson="4-4">L4</a>
+                  <a href="lesson.html?m=4&l=5" class="lesson-box" data-lesson="4-5">L5</a>
+                  <a href="lesson.html?m=4&l=6" class="lesson-box" data-lesson="4-6">L6</a>
+                </div>
+              </div>
+            </div>
+            <!-- /module-item 4 -->
+
+            <!-- ── Module 5 (8 lessons) ── -->
+            <div class="module-item" role="listitem">
+              <div class="module-card module-card--expanded" for="seminar-5">
+                <input type="checkbox" id="seminar-5" class="module-checkbox" />
+                <span class="check-visual" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="2,7 5.5,10.5 12,3.5"/>
+                  </svg>
+                </span>
+                <div class="module-info">
+                  <span class="module-number">Module 05</span>
+                  <h3>Revenue, Profits &amp; Glory</h3>
+                  <p>The capstone seminar — integrating all five dimensions and measuring the full transformation of your business.</p>
+                </div>
+                <span class="module-status" id="module-status-5">Not started</span>
+              </div>
+
+              <button
+                class="module-reveal-btn"
+                id="reveal-btn-5"
+                type="button"
+                aria-expanded="false"
+                aria-controls="module-content-5"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span>Start Module 5</span>
+              </button>
+
+              <div class="module-content" id="module-content-5" aria-hidden="true">
+                <p class="module-content__heading">Module 5 &mdash; Lessons</p>
+                <div class="lesson-grid">
+                  <a href="lesson.html?m=5&l=1" class="lesson-box" data-lesson="5-1">L1</a>
+                  <a href="lesson.html?m=5&l=2" class="lesson-box" data-lesson="5-2">L2</a>
+                  <a href="lesson.html?m=5&l=3" class="lesson-box" data-lesson="5-3">L3</a>
+                  <a href="lesson.html?m=5&l=4" class="lesson-box" data-lesson="5-4">L4</a>
+                  <a href="lesson.html?m=5&l=5" class="lesson-box" data-lesson="5-5">L5</a>
+                  <a href="lesson.html?m=5&l=6" class="lesson-box" data-lesson="5-6">L6</a>
+                  <a href="lesson.html?m=5&l=7" class="lesson-box" data-lesson="5-7">L7</a>
+                  <a href="lesson.html?m=5&l=8" class="lesson-box" data-lesson="5-8">L8</a>
+                </div>
+              </div>
+            </div>
+            <!-- /module-item 5 -->
+
+          </div>
+          <!-- /modules-list -->
+
+        </div>
+        <!-- /dash-layout -->
+      </div>
+      <!-- /dash-content -->
+
+      <!-- ══ FOOTER inside app-main ══ -->
+      <footer class="site-footer">
+        <div class="container">
+          <div class="footer-top">
+
+            <div class="footer-brand">
+              <a class="nav-brand footer-logo" href="index.html">
+                <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+                  <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Umbrella5D
+              </a>
+              <p class="footer-tagline">Revenue. Profits. Glory.</p>
+            </div>
+
+            <div class="footer-links-group">
+              <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                  <li><a href="features.html">Features</a></li>
+                  <li><a href="#">Pricing</a></li>
+                  <li><a href="#">Changelog</a></li>
+                  <li><a href="#">Roadmap</a></li>
+                </ul>
+              </div>
+              <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                  <li><a href="index.html#about">About</a></li>
+                  <li><a href="#">Blog</a></li>
+                  <li><a href="#">Careers</a></li>
+                  <li><a href="#">Press</a></li>
+                </ul>
+              </div>
+              <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                  <li><a href="#">Docs</a></li>
+                  <li><a href="#">Community</a></li>
+                  <li><a href="index.html#contact">Contact</a></li>
+                  <li><a href="#">Status</a></li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="footer-bottom">
+            <p>&copy; 2026 Umbrella5D, Inc. All rights reserved.</p>
+            <div class="footer-legal">
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+              <a href="#">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+    <!-- /app-main -->
+
+  </div>
+  <!-- /app-shell -->
+
+  <script src="script.js"></script>
+
+  <!-- ══ DASHBOARD LOGIC ══ -->
+  <script>
+    (function () {
+      const TOTAL = 32;
+      const MODULE_COUNTS = { 1: 6, 2: 6, 3: 6, 4: 6, 5: 8 };
+
+      function getCompleted() {
+        try { return JSON.parse(localStorage.getItem('umbrella_lessons') || '{}'); }
+        catch (e) { return {}; }
+      }
+
+      function renderAll() {
+        const completed = getCompleted();
+        const done = Object.values(completed).filter(Boolean).length;
+        const pct  = Math.round((done / TOTAL) * 100);
+        const allDone = done === TOTAL;
+
+        /* ── Progress bar ── */
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-pct').textContent  = pct + '%';
+        document.getElementById('progress-pct').classList.toggle('is-done', allDone);
+        document.getElementById('progress-count').textContent = allDone
+          ? '🎉 All lessons complete!'
+          : `${done} of ${TOTAL} lessons complete`;
+        document.querySelector('.progress-track').setAttribute('aria-valuenow', pct);
+
+        /* ── Stat cards ── */
+        const modulesDone = Object.keys(MODULE_COUNTS).filter(function (m) {
+          return Array.from({ length: MODULE_COUNTS[m] }, function (_, j) {
+            return m + '-' + (j + 1);
+          }).every(function (id) { return !!completed[id]; });
+        }).length;
+        document.getElementById('stat-modules').textContent   = `${modulesDone} / 5`;
+        document.getElementById('stat-completed').textContent = `${done} / ${TOTAL}`;
+        document.getElementById('stat-pct-card').textContent  = pct + '%';
+
+        /* ── Sidebar mini bar ── */
+        document.getElementById('sidebar-fill').style.width   = pct + '%';
+        document.getElementById('sidebar-pct-label').textContent = pct + '%';
+
+        /* ── Lesson boxes ── */
+        document.querySelectorAll('.lesson-box').forEach(function (box) {
+          const id = box.dataset.lesson;
+          box.classList.toggle('is-done', !!completed[id]);
+        });
+
+        /* ── Module card states (auto-complete when all lessons done) ── */
+        Object.keys(MODULE_COUNTS).forEach(function (m) {
+          const count   = MODULE_COUNTS[m];
+          const allLessonsDone = Array.from({ length: count }, function (_, j) {
+            return m + '-' + (j + 1);
+          }).every(function (id) { return !!completed[id]; });
+
+          const cb       = document.getElementById('seminar-' + m);
+          const card     = cb && cb.closest('.module-card');
+          const statusEl = document.getElementById('module-status-' + m);
+
+          if (cb)       cb.checked = allLessonsDone;
+          if (card)     card.classList.toggle('is-complete', allLessonsDone);
+          if (statusEl) {
+            statusEl.textContent = allLessonsDone ? 'Complete' : 'Not started';
+            statusEl.classList.toggle('module-status--complete', allLessonsDone);
+          }
+        });
+
+        /* ── Sequential module lock states ── */
+        Object.keys(MODULE_COUNTS).forEach(function (m) {
+          var mNum = parseInt(m);
+          var revealBtn = document.getElementById('reveal-btn-' + m);
+          if (!revealBtn) return;
+          var item = revealBtn.closest('.module-item');
+          if (!item) return;
+
+          if (mNum === 1) {
+            item.classList.remove('is-locked');
+            return;
+          }
+
+          /* Unlock when every lesson of the previous module is complete */
+          var prevCount = MODULE_COUNTS[mNum - 1];
+          var prevComplete = Array.from({ length: prevCount }, function (_, j) {
+            return (mNum - 1) + '-' + (j + 1);
+          }).every(function (id) { return !!completed[id]; });
+
+          var wasLocked = item.classList.contains('is-locked');
+          item.classList.toggle('is-locked', !prevComplete);
+
+          /* If it just became locked while open, collapse it */
+          if (!wasLocked && !prevComplete) {
+            var content = document.getElementById('module-content-' + m);
+            if (content) content.classList.remove('is-open');
+            revealBtn.setAttribute('aria-expanded', 'false');
+            var lbl = revealBtn.querySelector('span');
+            if (lbl) lbl.textContent = 'Start Module ' + m;
+          }
+        });
+      }
+
+      /* ── Module open-state persistence ── */
+      function getModuleStates() {
+        try { return JSON.parse(localStorage.getItem('umbrella_modules_open') || '{}'); }
+        catch (e) { return {}; }
+      }
+      function setModuleState(n, isOpen) {
+        var states = getModuleStates();
+        states[n] = isOpen;
+        localStorage.setItem('umbrella_modules_open', JSON.stringify(states));
+      }
+
+      /* ── Reveal toggles for all 5 modules ── */
+      for (var i = 1; i <= 5; i++) {
+        (function (n) {
+          var btn     = document.getElementById('reveal-btn-' + n);
+          var content = document.getElementById('module-content-' + n);
+          if (!btn || !content) return;
+          var label = btn.querySelector('span');
+          btn.addEventListener('click', function () {
+            var isOpen = content.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', String(isOpen));
+            content.setAttribute('aria-hidden', String(!isOpen));
+            label.textContent = isOpen ? 'Hide Module ' + n : 'Start Module ' + n;
+            setModuleState(n, isOpen);
+          });
+        })(i);
+      }
+
+      renderAll();
+
+      /* ── Restore open modules after renderAll has applied lock states ── */
+      var savedStates = getModuleStates();
+      for (var k = 1; k <= 5; k++) {
+        if (!savedStates[k]) continue;
+        var rBtn = document.getElementById('reveal-btn-' + k);
+        var rContent = document.getElementById('module-content-' + k);
+        if (!rBtn || !rContent) continue;
+        if (rBtn.closest('.module-item').classList.contains('is-locked')) continue;
+        rContent.classList.add('is-open');
+        rBtn.setAttribute('aria-expanded', 'true');
+        rContent.setAttribute('aria-hidden', 'false');
+        var rLabel = rBtn.querySelector('span');
+        if (rLabel) rLabel.textContent = 'Hide Module ' + k;
+      }
+
+      /* Re-render when returning from a lesson page */
+      window.addEventListener('focus', renderAll);
+      window.addEventListener('storage', renderAll);
+    })();
+  </script>
+
+</body>
+</html>

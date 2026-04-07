@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Umbrella5D</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ══ MINIMAL NAV (logo only on login page) ══ -->
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav-brand" href="index.html">
+        <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Umbrella5D
+      </a>
+      <a href="index.html" class="nav-signin login-back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to site
+      </a>
+    </nav>
+  </header>
+
+  <!-- ══ LOGIN PAGE ══ -->
+  <main class="login-bg">
+
+    <div class="login-card">
+
+      <!-- Card header -->
+      <div class="login-card__header">
+        <div class="login-logo" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+            <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1>Welcome back</h1>
+        <p>Sign in to the Umbrella Program</p>
+      </div>
+
+      <!-- Login form -->
+      <form class="login-form" id="login-form" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input
+            class="form-input"
+            type="email"
+            id="email"
+            name="email"
+            value="demo@umbrella5d.com"
+            autocomplete="email"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="password">Password</label>
+            <a href="#" class="forgot-link" tabindex="-1">Forgot password?</a>
+          </div>
+          <div class="form-input-wrap">
+            <input
+              class="form-input"
+              type="password"
+              id="password"
+              name="password"
+              value="Demo1234!"
+              autocomplete="current-password"
+            />
+            <!-- Show / hide toggle -->
+            <button
+              type="button"
+              class="pw-toggle"
+              aria-label="Show password"
+              id="pw-toggle"
+            >
+              <svg id="pw-icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="pw-icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full" id="login-btn">
+          <span id="btn-label">Access your program</span>
+          <svg id="btn-spinner" class="btn-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none" aria-hidden="true">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="login-divider"><span>or</span></div>
+
+      <!-- Sign-up prompt -->
+      <p class="login-alt">
+        Don't have an account?&nbsp;<a href="#">Create one free</a>
+      </p>
+
+    </div>
+    <!-- /login-card -->
+
+  </main>
+
+  <script>
+    (function () {
+      /* ── Form submit → redirect to dashboard ── */
+      const form    = document.getElementById('login-form');
+      const btn     = document.getElementById('login-btn');
+      const label   = document.getElementById('btn-label');
+      const spinner = document.getElementById('btn-spinner');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        label.textContent = 'Signing in…';
+        spinner.style.display = 'block';
+        btn.disabled = true;
+        setTimeout(function () {
+          window.location.href = 'dashboard.html';
+        }, 900);
+      });
+
+      /* ── Password show / hide toggle ── */
+      const pwInput   = document.getElementById('password');
+      const pwToggle  = document.getElementById('pw-toggle');
+      const iconShow  = document.getElementById('pw-icon-show');
+      const iconHide  = document.getElementById('pw-icon-hide');
+
+      pwToggle.addEventListener('click', function () {
+        const isHidden = pwInput.type === 'password';
+        pwInput.type        = isHidden ? 'text' : 'password';
+        iconShow.style.display = isHidden ? 'none'  : 'block';
+        iconHide.style.display = isHidden ? 'block' : 'none';
+        pwToggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      });
+    })();
+  </script>
+
+</body>
+</html>
