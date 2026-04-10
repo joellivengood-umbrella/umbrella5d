@@ -118,38 +118,56 @@
 
   </main>
 
-  <script>
-    (function () {
-      /* ── Form submit → redirect to dashboard ── */
-      const form    = document.getElementById('login-form');
-      const btn     = document.getElementById('login-btn');
-      const label   = document.getElementById('btn-label');
-      const spinner = document.getElementById('btn-spinner');
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        label.textContent = 'Signing in…';
-        spinner.style.display = 'block';
-        btn.disabled = true;
-        setTimeout(function () {
-          window.location.href = 'dashboard.html';
-        }, 900);
-      });
+    const supabase = createClient(
+      'https://tvppkzkqrodrkxemxnvi.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cHBremtxcm9kcmt4ZW14bnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzcxODQsImV4cCI6MjA5MTExMzE4NH0.Z70otGFaOER5KNj2yc7Wk5nl1KiIvKHuFSXHBMnAdUA'
+    )
 
-      /* ── Password show / hide toggle ── */
-      const pwInput   = document.getElementById('password');
-      const pwToggle  = document.getElementById('pw-toggle');
-      const iconShow  = document.getElementById('pw-icon-show');
-      const iconHide  = document.getElementById('pw-icon-hide');
+    const form    = document.getElementById('login-form')
+    const btn     = document.getElementById('login-btn')
+    const label   = document.getElementById('btn-label')
+    const spinner = document.getElementById('btn-spinner')
 
-      pwToggle.addEventListener('click', function () {
-        const isHidden = pwInput.type === 'password';
-        pwInput.type        = isHidden ? 'text' : 'password';
-        iconShow.style.display = isHidden ? 'none'  : 'block';
-        iconHide.style.display = isHidden ? 'block' : 'none';
-        pwToggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-      });
-    })();
+    /* ── Form submit → real Supabase login ── */
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault()
+
+      const email    = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+
+      label.textContent    = 'Signing in…'
+      spinner.style.display = 'block'
+      btn.disabled          = true
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (error) {
+        label.textContent     = 'Access your program'
+        spinner.style.display = 'none'
+        btn.disabled          = false
+        alert('Sign in failed: ' + error.message)
+        return
+      }
+
+      window.location.href = 'dashboard.html'
+    })
+
+    /* ── Password show / hide toggle ── */
+    const pwInput  = document.getElementById('password')
+    const pwToggle = document.getElementById('pw-toggle')
+    const iconShow = document.getElementById('pw-icon-show')
+    const iconHide = document.getElementById('pw-icon-hide')
+
+    pwToggle.addEventListener('click', function () {
+      const isHidden         = pwInput.type === 'password'
+      pwInput.type           = isHidden ? 'text' : 'password'
+      iconShow.style.display = isHidden ? 'none'  : 'block'
+      iconHide.style.display = isHidden ? 'block' : 'none'
+      pwToggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password')
+    })
   </script>
 
 </body>
