@@ -27,8 +27,7 @@
       </ul>
 
       <div class="nav-actions">
-        <a href="#" class="nav-signin">Sign in</a>
-        <a href="#" class="btn btn--primary btn--sm">Get started free</a>
+        <button id="signout-btn" class="btn btn--primary btn--sm">Sign Out</button>
       </div>
     </nav>
   </header>
@@ -489,7 +488,7 @@
 
   <script src="script.js"></script>
 
-  <!-- ══ AUTH GUARD — redirect to login if not signed in ══ -->
+  <!-- ══ AUTH GUARD + SIGN OUT ══ -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
@@ -498,10 +497,17 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cHBremtxcm9kcmt4ZW14bnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzcxODQsImV4cCI6MjA5MTExMzE4NH0.Z70otGFaOER5KNj2yc7Wk5nl1KiIvKHuFSXHBMnAdUA'
     )
 
+    /* ── Auth guard ── */
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       window.location.href = 'login.html'
     }
+
+    /* ── Sign out ── */
+    document.getElementById('signout-btn').addEventListener('click', async function () {
+      await supabase.auth.signOut()
+      window.location.href = 'login.html'
+    })
   </script>
 
   <!-- ══ DASHBOARD LOGIC ══ -->
