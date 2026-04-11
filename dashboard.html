@@ -12,12 +12,7 @@
   <header class="site-header">
     <nav class="nav">
       <a class="nav-brand" href="index.html">
-        <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
-          <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-          <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        Umbrella5D
+        <img src="logo/Umbrella_logo.png" alt="Umbrella5D" class="nav-logo-img" />
       </a>
 
       <ul class="nav-links">
@@ -40,11 +35,11 @@
 
       <!-- User block -->
       <div class="sidebar-user">
-        <img class="sidebar-avatar" src="david_pfp.jpg" alt="David" />
+        <img class="sidebar-avatar" id="sidebar-avatar" src="david_pfp.jpg" alt="Profile" />
         <div class="sidebar-user-info">
-          <p class="sidebar-name">David</p>
-          <p class="sidebar-org">Clearwater Solutions</p>
-          <p class="sidebar-role">Active Learner</p>
+          <p class="sidebar-name" id="sidebar-name">—</p>
+          <p class="sidebar-org" id="sidebar-org">—</p>
+          <p class="sidebar-role" id="sidebar-role">—</p>
         </div>
       </div>
 
@@ -427,12 +422,7 @@
 
             <div class="footer-brand">
               <a class="nav-brand footer-logo" href="index.html">
-                <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
-                  <path d="M7 14 Q14 6 21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-                  <line x1="14" y1="14" x2="14" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Umbrella5D
+                <img src="logo/Umbrella_logo.png" alt="Umbrella5D" class="nav-logo-img" />
               </a>
               <p class="footer-tagline">Revenue. Profits. Glory.</p>
             </div>
@@ -502,6 +492,25 @@
     if (!session) {
       window.location.href = 'login.html'
     }
+
+    /* ── Load profile ── */
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, organization_name, role_title, avatar_url')
+      .eq('id', session.user.id)
+      .single()
+
+    if (profile) {
+      if (profile.full_name)        document.getElementById('sidebar-name').textContent = profile.full_name
+      if (profile.organization_name) document.getElementById('sidebar-org').textContent  = profile.organization_name
+      if (profile.role_title)        document.getElementById('sidebar-role').textContent = profile.role_title
+      if (profile.avatar_url)        document.getElementById('sidebar-avatar').src        = profile.avatar_url
+    }
+
+    /* ── Also update the dashboard welcome heading ── */
+    const firstName = profile?.full_name?.split(' ')[0] || 'there'
+    const heading = document.querySelector('.dash-header h1')
+    if (heading) heading.textContent = `Hey ${firstName}! Welcome to your dashboard.`
 
     /* ── Sign out ── */
     document.getElementById('signout-btn').addEventListener('click', async function () {

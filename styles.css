@@ -44,7 +44,7 @@
 
   /* Layout */
   --max-w: 1120px;
-  --nav-h: 64px;
+  --nav-h: 96px;
 }
 
 /* ── Base ── */
@@ -112,6 +112,12 @@ img, svg { display: block; }
   color: #fff;
   letter-spacing: -.3px;
   flex-shrink: 0;
+}
+
+.nav-logo-img {
+  height: 52px;
+  width: auto;
+  display: block;
 }
 
 .brand-icon {
@@ -1926,21 +1932,15 @@ audio {
 }
 
 .login-logo {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  background: linear-gradient(135deg, var(--clr-primary), #7c3aed);
-  border-radius: var(--radius-md);
   margin-bottom: 1.25rem;
-  box-shadow: 0 4px 16px rgba(91,79,255,.4);
-  color: #fff;
 }
 
-.login-logo svg {
-  width: 28px;
-  height: 28px;
+.login-logo-img {
+  height: 72px;
+  width: auto;
 }
 
 .login-card__header h1 {
