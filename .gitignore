@@ -10,3 +10,6 @@ Thumbs.db
 # Editor folders
 .vscode/
 .idea/
+
+# Claude Code
+.claude/
