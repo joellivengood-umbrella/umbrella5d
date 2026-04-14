@@ -132,7 +132,7 @@
       spinner.style.display = 'block'
       btn.disabled          = true
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
         label.textContent     = 'Access your program'
@@ -142,7 +142,15 @@
         return
       }
 
-      window.location.href = 'dashboard.html'
+      // Check if user has completed onboarding
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('org_id, organization_name')
+        .eq('id', data.session.user.id)
+        .single()
+
+      const needsOnboarding = profile && !profile.org_id && !profile.organization_name
+      window.location.href = needsOnboarding ? 'onboarding.html' : 'dashboard.html'
     })
 
     /* ── Password show / hide toggle ── */

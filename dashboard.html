@@ -493,9 +493,14 @@
     /* ── Load profile ── */
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, organization_name, role_title, avatar_url')
+      .select('full_name, organization_name, role_title, avatar_url, org_id')
       .eq('id', userId)
       .single()
+
+    /* ── Onboarding redirect — send new users to set up their org ── */
+    if (profile && !profile.org_id && !profile.organization_name) {
+      window.location.href = 'onboarding.html'
+    }
 
     if (profile) {
       if (profile.full_name)         document.getElementById('sidebar-name').textContent = profile.full_name
