@@ -81,85 +81,96 @@
 
   </main>
 
-  <script>
-    (function () {
-      var params  = new URLSearchParams(window.location.search);
-      var m       = parseInt(params.get('m'), 10) || 1;
-      var l       = parseInt(params.get('l'), 10) || 1;
-      var lessonId = m + '-' + l;
-
-      var moduleNames = {
-        1: 'The Five Dimensions',
-        2: 'The Customer Paradigm',
-        3: 'The Umbrella Machine',
-        4: 'Implementation in Practice',
-        5: 'Revenue, Profits & Glory'
-      };
-
-      /* ── Set page metadata ── */
-      document.getElementById('lesson-module-label').textContent =
-        'Module ' + m + (moduleNames[m] ? ' \u2014 ' + moduleNames[m] : '');
-      document.getElementById('lesson-title').textContent = 'Lesson ' + l;
-      document.title = 'Module ' + m + ' \u2014 Lesson ' + l + ' \u2014 Umbrella5D';
-
-      /* ── Show video or placeholder ── */
-      if (m === 1 && l === 1) {
-        document.getElementById('lesson-video').hidden = false;
-        document.getElementById('lesson-placeholder').hidden = true;
-      } else {
-        document.getElementById('lesson-placeholder').hidden = false;
-      }
-
-      /* ── Completion state ── */
-      function getCompleted() {
-        try { return JSON.parse(localStorage.getItem('umbrella_lessons') || '{}'); }
-        catch (e) { return {}; }
-      }
-
-      function setCompleted(id, value) {
-        var data = getCompleted();
-        if (value) {
-          data[id] = true;
-        } else {
-          delete data[id];
-        }
-        localStorage.setItem('umbrella_lessons', JSON.stringify(data));
-      }
-
-      function renderButton(isDone) {
-        var btn   = document.getElementById('complete-btn');
-        var label = document.getElementById('complete-btn-label');
-
-        if (isDone) {
-          btn.classList.add('lesson-complete-btn--done');
-          label.textContent = 'Completed — Click to Undo';
-        } else {
-          btn.classList.remove('lesson-complete-btn--done');
-          label.textContent = 'Mark Lesson Complete';
-        }
-      }
-
-      /* Initial render */
-      renderButton(!!getCompleted()[lessonId]);
-
-      /* Toggle complete on click */
-      document.getElementById('complete-btn').addEventListener('click', function () {
-        var isDone = !!getCompleted()[lessonId];
-        setCompleted(lessonId, !isDone);
-        renderButton(!isDone);
-      });
-    })();
-  </script>
-
-  <!-- ══ AUTH GUARD ══ -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
     const supabase = createClient(
       'https://tvppkzkqrodrkxemxnvi.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cHBremtxcm9kcmt4ZW14bnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzcxODQsImV4cCI6MjA5MTExMzE4NH0.Z70otGFaOER5KNj2yc7Wk5nl1KiIvKHuFSXHBMnAdUA'
     )
+
+    /* ── Auth guard ── */
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) window.location.href = 'login.html'
+    if (!session) { window.location.href = 'login.html' }
+
+    const userId  = session.user.id
+    const params  = new URLSearchParams(window.location.search)
+    const m       = parseInt(params.get('m'), 10) || 1
+    const l       = parseInt(params.get('l'), 10) || 1
+    const lessonId = m + '-' + l
+
+    const moduleNames = {
+      1: 'The Five Dimensions',
+      2: 'The Customer Paradigm',
+      3: 'The Umbrella Machine',
+      4: 'Implementation in Practice',
+      5: 'Revenue, Profits & Glory'
+    }
+
+    /* ── Set page metadata ── */
+    document.getElementById('lesson-module-label').textContent =
+      'Module ' + m + (moduleNames[m] ? ' \u2014 ' + moduleNames[m] : '')
+    document.getElementById('lesson-title').textContent = 'Lesson ' + l
+    document.title = 'Module ' + m + ' \u2014 Lesson ' + l + ' \u2014 Umbrella5D'
+
+    /* ── Show video or placeholder ── */
+    if (m === 1 && l === 1) {
+      document.getElementById('lesson-video').hidden = false
+      document.getElementById('lesson-placeholder').hidden = true
+    } else {
+      document.getElementById('lesson-placeholder').hidden = false
+    }
+
+    /* ── Check completion from Supabase ── */
+    async function getIsCompleted() {
+      const { data } = await supabase
+        .from('lesson_progress')
+        .select('completed')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId)
+        .single()
+      return data?.completed === true
+    }
+
+    /* ── Save completion to Supabase ── */
+    async function setCompleted(value) {
+      if (value) {
+        await supabase.from('lesson_progress').upsert({
+          user_id:   userId,
+          lesson_id: lessonId,
+          completed: true
+        }, { onConflict: 'user_id,lesson_id' })
+      } else {
+        await supabase.from('lesson_progress')
+          .delete()
+          .eq('user_id', userId)
+          .eq('lesson_id', lessonId)
+      }
+    }
+
+    /* ── Render button state ── */
+    function renderButton(isDone) {
+      const btn   = document.getElementById('complete-btn')
+      const label = document.getElementById('complete-btn-label')
+      if (isDone) {
+        btn.classList.add('lesson-complete-btn--done')
+        label.textContent = 'Completed — Click to Undo'
+      } else {
+        btn.classList.remove('lesson-complete-btn--done')
+        label.textContent = 'Mark Lesson Complete'
+      }
+    }
+
+    /* ── Initial render ── */
+    const isDoneOnLoad = await getIsCompleted()
+    renderButton(isDoneOnLoad)
+
+    /* ── Toggle on click ── */
+    document.getElementById('complete-btn').addEventListener('click', async function () {
+      const isDone = await getIsCompleted()
+      await setCompleted(!isDone)
+      renderButton(!isDone)
+    })
   </script>
 
 </body>
