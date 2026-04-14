@@ -34,11 +34,11 @@
 
       <!-- User block -->
       <div class="sidebar-user">
-        <img class="sidebar-avatar" src="david_pfp.jpg" alt="David" />
+        <img class="sidebar-avatar" id="sidebar-avatar" src="david_pfp.jpg" alt="Profile" />
         <div class="sidebar-user-info">
-          <p class="sidebar-name">David</p>
-          <p class="sidebar-org">Clearwater Solutions</p>
-          <p class="sidebar-role">Active Learner</p>
+          <p class="sidebar-name" id="sidebar-name">—</p>
+          <p class="sidebar-org" id="sidebar-org">—</p>
+          <p class="sidebar-role" id="sidebar-role">—</p>
         </div>
       </div>
 
@@ -120,8 +120,8 @@
 
           <!-- ── Compose box ── -->
           <div class="feed-compose">
-            <img class="feed-compose__avatar" src="david_pfp.jpg" alt="David" />
-            <input class="feed-compose__input" type="text" placeholder="Share an update with Clearwater Solutions…" readonly />
+            <img class="feed-compose__avatar" id="compose-avatar" src="david_pfp.jpg" alt="Profile" />
+            <input class="feed-compose__input" id="compose-input" type="text" placeholder="Share an update…" readonly />
             <button class="feed-compose__btn" type="button">Post</button>
           </div>
 
@@ -593,6 +593,24 @@
     )
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) window.location.href = 'login.html'
+
+    /* ── Load profile ── */
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, organization_name, role_title, avatar_url')
+      .eq('id', session.user.id)
+      .single()
+
+    if (profile) {
+      if (profile.full_name)         document.getElementById('sidebar-name').textContent  = profile.full_name
+      if (profile.organization_name) document.getElementById('sidebar-org').textContent   = profile.organization_name
+      if (profile.role_title)        document.getElementById('sidebar-role').textContent  = profile.role_title
+      if (profile.avatar_url)        document.getElementById('sidebar-avatar').src         = profile.avatar_url
+      if (profile.avatar_url)        document.getElementById('compose-avatar').src         = profile.avatar_url
+
+      const orgName = profile.organization_name || 'your organization'
+      document.getElementById('compose-input').placeholder = `Share an update with ${orgName}…`
+    }
   </script>
 
 </body>
