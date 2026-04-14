@@ -84,9 +84,10 @@ img, svg { display: block; }
   border-bottom: 1px solid rgba(255,255,255,.07);
 }
 
-/* On the dashboard the content behind the nav is light, so override
-   the semi-transparent backdrop with a solid dark background. */
-.page-dashboard .site-header {
+/* On the dashboard and lesson pages the content behind the nav is light,
+   so override the semi-transparent backdrop with a solid dark background. */
+.page-dashboard .site-header,
+.page-lesson .site-header {
   background: #06060f;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
