@@ -9,22 +9,15 @@
 </head>
 <body class="page-lesson">
 
-  <!-- ══ TOP NAV ══ -->
+  <!-- ══ APP NAV ══ -->
   <header class="site-header">
     <nav class="nav">
-      <a class="nav-brand" href="index.html">
+      <a class="nav-brand" href="dashboard.html">
         <img src="logo/Umbrella_logo.png" alt="Umbrella5D" class="nav-logo-img" />
       </a>
 
-      <ul class="nav-links">
-        <li><a href="features.html">Features</a></li>
-        <li><a href="index.html#about">About</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
-      </ul>
-
       <div class="nav-actions">
-        <a href="dashboard.html" class="nav-signin">Dashboard</a>
-        <a href="login.html" class="btn btn--primary btn--sm">Get started free</a>
+        <button id="signout-btn" class="btn btn--primary btn--sm">Sign Out</button>
       </div>
     </nav>
   </header>
@@ -93,6 +86,12 @@
     /* ── Auth guard ── */
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { window.location.href = 'login.html' }
+
+    /* ── Sign out ── */
+    document.getElementById('signout-btn').addEventListener('click', async function () {
+      await supabase.auth.signOut()
+      window.location.href = 'login.html'
+    })
 
     const userId  = session.user.id
     const params  = new URLSearchParams(window.location.search)
