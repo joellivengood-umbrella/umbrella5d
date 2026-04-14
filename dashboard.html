@@ -478,7 +478,7 @@
 
   <script src="script.js"></script>
 
-  <!-- ══ AUTH GUARD + SIGN OUT ══ -->
+  <!-- ══ DASHBOARD — Auth, Profile, Progress ══ -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
@@ -487,27 +487,27 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cHBremtxcm9kcmt4ZW14bnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzcxODQsImV4cCI6MjA5MTExMzE4NH0.Z70otGFaOER5KNj2yc7Wk5nl1KiIvKHuFSXHBMnAdUA'
     )
 
+    const TOTAL = 32
+    const MODULE_COUNTS = { 1: 6, 2: 6, 3: 6, 4: 6, 5: 8 }
+
     /* ── Auth guard ── */
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      window.location.href = 'login.html'
-    }
+    if (!session) { window.location.href = 'login.html' }
+    const userId = session.user.id
 
     /* ── Load profile ── */
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, organization_name, role_title, avatar_url')
-      .eq('id', session.user.id)
+      .eq('id', userId)
       .single()
 
     if (profile) {
-      if (profile.full_name)        document.getElementById('sidebar-name').textContent = profile.full_name
+      if (profile.full_name)         document.getElementById('sidebar-name').textContent = profile.full_name
       if (profile.organization_name) document.getElementById('sidebar-org').textContent  = profile.organization_name
       if (profile.role_title)        document.getElementById('sidebar-role').textContent = profile.role_title
       if (profile.avatar_url)        document.getElementById('sidebar-avatar').src        = profile.avatar_url
     }
-
-    /* ── Also update the dashboard welcome heading ── */
     const firstName = profile?.full_name?.split(' ')[0] || 'there'
     const heading = document.querySelector('.dash-header h1')
     if (heading) heading.textContent = `Hey ${firstName}! Welcome to your dashboard.`
@@ -517,155 +517,138 @@
       await supabase.auth.signOut()
       window.location.href = 'login.html'
     })
-  </script>
 
-  <!-- ══ DASHBOARD LOGIC ══ -->
-  <script>
-    (function () {
-      const TOTAL = 32;
-      const MODULE_COUNTS = { 1: 6, 2: 6, 3: 6, 4: 6, 5: 8 };
+    /* ── Fetch progress from Supabase ── */
+    async function getCompleted() {
+      const { data } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', userId)
+        .eq('completed', true)
+      const map = {}
+      if (data) data.forEach(row => { map[row.lesson_id] = true })
+      return map
+    }
 
-      function getCompleted() {
-        try { return JSON.parse(localStorage.getItem('umbrella_lessons') || '{}'); }
-        catch (e) { return {}; }
-      }
+    /* ── Render dashboard ── */
+    async function renderAll() {
+      const completed = await getCompleted()
+      const done      = Object.keys(completed).length
+      const pct       = Math.round((done / TOTAL) * 100)
+      const allDone   = done === TOTAL
 
-      function renderAll() {
-        const completed = getCompleted();
-        const done = Object.values(completed).filter(Boolean).length;
-        const pct  = Math.round((done / TOTAL) * 100);
-        const allDone = done === TOTAL;
+      /* Progress bar */
+      document.getElementById('progress-fill').style.width = pct + '%'
+      document.getElementById('progress-pct').textContent  = pct + '%'
+      document.getElementById('progress-pct').classList.toggle('is-done', allDone)
+      document.getElementById('progress-count').textContent = allDone
+        ? '🎉 All lessons complete!'
+        : `${done} of ${TOTAL} lessons complete`
+      document.querySelector('.progress-track').setAttribute('aria-valuenow', pct)
 
-        /* ── Progress bar ── */
-        document.getElementById('progress-fill').style.width = pct + '%';
-        document.getElementById('progress-pct').textContent  = pct + '%';
-        document.getElementById('progress-pct').classList.toggle('is-done', allDone);
-        document.getElementById('progress-count').textContent = allDone
-          ? '🎉 All lessons complete!'
-          : `${done} of ${TOTAL} lessons complete`;
-        document.querySelector('.progress-track').setAttribute('aria-valuenow', pct);
+      /* Stat cards */
+      const modulesDone = Object.keys(MODULE_COUNTS).filter(m => {
+        return Array.from({ length: MODULE_COUNTS[m] }, (_, j) => m + '-' + (j + 1))
+          .every(id => !!completed[id])
+      }).length
+      document.getElementById('stat-modules').textContent   = `${modulesDone} / 5`
+      document.getElementById('stat-completed').textContent = `${done} / ${TOTAL}`
+      document.getElementById('stat-pct-card').textContent  = pct + '%'
 
-        /* ── Stat cards ── */
-        const modulesDone = Object.keys(MODULE_COUNTS).filter(function (m) {
-          return Array.from({ length: MODULE_COUNTS[m] }, function (_, j) {
-            return m + '-' + (j + 1);
-          }).every(function (id) { return !!completed[id]; });
-        }).length;
-        document.getElementById('stat-modules').textContent   = `${modulesDone} / 5`;
-        document.getElementById('stat-completed').textContent = `${done} / ${TOTAL}`;
-        document.getElementById('stat-pct-card').textContent  = pct + '%';
+      /* Sidebar mini bar */
+      document.getElementById('sidebar-fill').style.width      = pct + '%'
+      document.getElementById('sidebar-pct-label').textContent = pct + '%'
 
-        /* ── Sidebar mini bar ── */
-        document.getElementById('sidebar-fill').style.width   = pct + '%';
-        document.getElementById('sidebar-pct-label').textContent = pct + '%';
+      /* Lesson boxes */
+      document.querySelectorAll('.lesson-box').forEach(box => {
+        box.classList.toggle('is-done', !!completed[box.dataset.lesson])
+      })
 
-        /* ── Lesson boxes ── */
-        document.querySelectorAll('.lesson-box').forEach(function (box) {
-          const id = box.dataset.lesson;
-          box.classList.toggle('is-done', !!completed[id]);
-        });
+      /* Module card states */
+      Object.keys(MODULE_COUNTS).forEach(m => {
+        const count = MODULE_COUNTS[m]
+        const allLessonsDone = Array.from({ length: count }, (_, j) => m + '-' + (j + 1))
+          .every(id => !!completed[id])
+        const cb       = document.getElementById('seminar-' + m)
+        const card     = cb && cb.closest('.module-card')
+        const statusEl = document.getElementById('module-status-' + m)
+        if (cb)       cb.checked = allLessonsDone
+        if (card)     card.classList.toggle('is-complete', allLessonsDone)
+        if (statusEl) {
+          statusEl.textContent = allLessonsDone ? 'Complete' : 'Not started'
+          statusEl.classList.toggle('module-status--complete', allLessonsDone)
+        }
+      })
 
-        /* ── Module card states (auto-complete when all lessons done) ── */
-        Object.keys(MODULE_COUNTS).forEach(function (m) {
-          const count   = MODULE_COUNTS[m];
-          const allLessonsDone = Array.from({ length: count }, function (_, j) {
-            return m + '-' + (j + 1);
-          }).every(function (id) { return !!completed[id]; });
+      /* Sequential module lock states */
+      Object.keys(MODULE_COUNTS).forEach(m => {
+        const mNum = parseInt(m)
+        const revealBtn = document.getElementById('reveal-btn-' + m)
+        if (!revealBtn) return
+        const item = revealBtn.closest('.module-item')
+        if (!item) return
+        if (mNum === 1) { item.classList.remove('is-locked'); return }
+        const prevCount = MODULE_COUNTS[mNum - 1]
+        const prevComplete = Array.from({ length: prevCount }, (_, j) => (mNum - 1) + '-' + (j + 1))
+          .every(id => !!completed[id])
+        const wasLocked = item.classList.contains('is-locked')
+        item.classList.toggle('is-locked', !prevComplete)
+        if (!wasLocked && !prevComplete) {
+          const content = document.getElementById('module-content-' + m)
+          if (content) content.classList.remove('is-open')
+          revealBtn.setAttribute('aria-expanded', 'false')
+          const lbl = revealBtn.querySelector('span')
+          if (lbl) lbl.textContent = 'Start Module ' + m
+        }
+      })
+    }
 
-          const cb       = document.getElementById('seminar-' + m);
-          const card     = cb && cb.closest('.module-card');
-          const statusEl = document.getElementById('module-status-' + m);
+    /* ── Module open-state persistence (localStorage is fine for UI state) ── */
+    function getModuleStates() {
+      try { return JSON.parse(localStorage.getItem('umbrella_modules_open') || '{}') }
+      catch (e) { return {} }
+    }
+    function setModuleState(n, isOpen) {
+      const states = getModuleStates()
+      states[n] = isOpen
+      localStorage.setItem('umbrella_modules_open', JSON.stringify(states))
+    }
 
-          if (cb)       cb.checked = allLessonsDone;
-          if (card)     card.classList.toggle('is-complete', allLessonsDone);
-          if (statusEl) {
-            statusEl.textContent = allLessonsDone ? 'Complete' : 'Not started';
-            statusEl.classList.toggle('module-status--complete', allLessonsDone);
-          }
-        });
+    /* ── Reveal toggles ── */
+    for (let i = 1; i <= 5; i++) {
+      const btn     = document.getElementById('reveal-btn-' + i)
+      const content = document.getElementById('module-content-' + i)
+      if (!btn || !content) continue
+      const label = btn.querySelector('span')
+      btn.addEventListener('click', () => {
+        const isOpen = content.classList.toggle('is-open')
+        btn.setAttribute('aria-expanded', String(isOpen))
+        content.setAttribute('aria-hidden', String(!isOpen))
+        label.textContent = isOpen ? 'Hide Module ' + i : 'Start Module ' + i
+        setModuleState(i, isOpen)
+      })
+    }
 
-        /* ── Sequential module lock states ── */
-        Object.keys(MODULE_COUNTS).forEach(function (m) {
-          var mNum = parseInt(m);
-          var revealBtn = document.getElementById('reveal-btn-' + m);
-          if (!revealBtn) return;
-          var item = revealBtn.closest('.module-item');
-          if (!item) return;
+    /* ── Initial render ── */
+    await renderAll()
 
-          if (mNum === 1) {
-            item.classList.remove('is-locked');
-            return;
-          }
+    /* ── Restore open modules ── */
+    const savedStates = getModuleStates()
+    for (let k = 1; k <= 5; k++) {
+      if (!savedStates[k]) continue
+      const rBtn = document.getElementById('reveal-btn-' + k)
+      const rContent = document.getElementById('module-content-' + k)
+      if (!rBtn || !rContent) continue
+      if (rBtn.closest('.module-item').classList.contains('is-locked')) continue
+      rContent.classList.add('is-open')
+      rBtn.setAttribute('aria-expanded', 'true')
+      rContent.setAttribute('aria-hidden', 'false')
+      const rLabel = rBtn.querySelector('span')
+      if (rLabel) rLabel.textContent = 'Hide Module ' + k
+    }
 
-          /* Unlock when every lesson of the previous module is complete */
-          var prevCount = MODULE_COUNTS[mNum - 1];
-          var prevComplete = Array.from({ length: prevCount }, function (_, j) {
-            return (mNum - 1) + '-' + (j + 1);
-          }).every(function (id) { return !!completed[id]; });
-
-          var wasLocked = item.classList.contains('is-locked');
-          item.classList.toggle('is-locked', !prevComplete);
-
-          /* If it just became locked while open, collapse it */
-          if (!wasLocked && !prevComplete) {
-            var content = document.getElementById('module-content-' + m);
-            if (content) content.classList.remove('is-open');
-            revealBtn.setAttribute('aria-expanded', 'false');
-            var lbl = revealBtn.querySelector('span');
-            if (lbl) lbl.textContent = 'Start Module ' + m;
-          }
-        });
-      }
-
-      /* ── Module open-state persistence ── */
-      function getModuleStates() {
-        try { return JSON.parse(localStorage.getItem('umbrella_modules_open') || '{}'); }
-        catch (e) { return {}; }
-      }
-      function setModuleState(n, isOpen) {
-        var states = getModuleStates();
-        states[n] = isOpen;
-        localStorage.setItem('umbrella_modules_open', JSON.stringify(states));
-      }
-
-      /* ── Reveal toggles for all 5 modules ── */
-      for (var i = 1; i <= 5; i++) {
-        (function (n) {
-          var btn     = document.getElementById('reveal-btn-' + n);
-          var content = document.getElementById('module-content-' + n);
-          if (!btn || !content) return;
-          var label = btn.querySelector('span');
-          btn.addEventListener('click', function () {
-            var isOpen = content.classList.toggle('is-open');
-            btn.setAttribute('aria-expanded', String(isOpen));
-            content.setAttribute('aria-hidden', String(!isOpen));
-            label.textContent = isOpen ? 'Hide Module ' + n : 'Start Module ' + n;
-            setModuleState(n, isOpen);
-          });
-        })(i);
-      }
-
-      renderAll();
-
-      /* ── Restore open modules after renderAll has applied lock states ── */
-      var savedStates = getModuleStates();
-      for (var k = 1; k <= 5; k++) {
-        if (!savedStates[k]) continue;
-        var rBtn = document.getElementById('reveal-btn-' + k);
-        var rContent = document.getElementById('module-content-' + k);
-        if (!rBtn || !rContent) continue;
-        if (rBtn.closest('.module-item').classList.contains('is-locked')) continue;
-        rContent.classList.add('is-open');
-        rBtn.setAttribute('aria-expanded', 'true');
-        rContent.setAttribute('aria-hidden', 'false');
-        var rLabel = rBtn.querySelector('span');
-        if (rLabel) rLabel.textContent = 'Hide Module ' + k;
-      }
-
-      /* Re-render when returning from a lesson page */
-      window.addEventListener('focus', renderAll);
-      window.addEventListener('storage', renderAll);
-    })();
+    /* ── Re-render when returning from a lesson page ── */
+    window.addEventListener('focus', renderAll)
   </script>
 
 </body>
