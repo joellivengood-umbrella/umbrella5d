@@ -1,65 +1,161 @@
-import Image from "next/image";
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import { MarketingNav } from '@/components/marketing/MarketingNav'
+import { MarketingFooter } from '@/components/marketing/MarketingFooter'
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: 'Umbrella5D — Revenue. Profits. Glory.',
+  description:
+    'The only program built on all five dimensions of your business. 32 precise steps to transform any business into a profit machine.',
+}
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <MarketingNav />
+
+      <main>
+        {/* ── HERO ── */}
+        <section className="hero">
+          <div className="hero-glow" aria-hidden="true" />
+          <div className="hero-content">
+            <div className="hero-badge">
+              <span className="badge-dot" />
+              The Program &middot; Now Enrolling
+            </div>
+
+            <h1 className="hero-headline">
+              <span style={{ whiteSpace: 'nowrap' }}>
+                The only program built on
+              </span>
+              <br />
+              <span className="headline-accent">all five dimensions</span>
+              <br />
+              of your business.
+            </h1>
+
+            <p className="hero-sub">
+              There are irrefutable laws that govern the business universe. The
+              Umbrella Program is the only detailed, comprehensive solution to
+              put those laws to work — transforming any business into a profit
+              machine.
+            </p>
+
+            <div className="hero-actions">
+              <Link href="/login" className="btn btn--primary btn--lg">
+                Start for free
+              </Link>
+              <Link href="/features" className="btn btn--ghost btn--lg">
+                See how it works
+              </Link>
+            </div>
+
+            <p className="hero-proof">
+              32 precise steps — any business, any size — results in 6 weeks.
+            </p>
+          </div>
+        </section>
+
+        {/* ── FEATURES ── */}
+        <section id="features" className="features">
+          <div className="container">
+            <div className="section-header">
+              <p className="section-eyebrow">Why the Umbrella Program</p>
+              <h2 className="section-title">
+                The complete transformation. Nothing left out.
+              </h2>
+              <p className="section-sub">
+                The customer paradigm has shifted. Customers want complete and
+                total benefit — across every dimension. The Umbrella Program is
+                the only comprehensive solution.
+              </p>
+            </div>
+
+            <div className="features-grid">
+              <div className="feature-card">
+                <div className="feature-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                </div>
+                <h3>The 32-Step Machine</h3>
+                <p>
+                  An online, cloud-based tool incorporating 32 precise
+                  instruction sets, completed over six weeks, to transform any
+                  business into a profit machine.
+                </p>
+              </div>
+
+              <div className="feature-card">
+                <div className="feature-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                </div>
+                <h3>Guide at Your Side</h3>
+                <p>
+                  You&rsquo;re never on your own. Every step comes with expert
+                  guidance, business history examples, and clear objectives —
+                  before the instruction even begins.
+                </p>
+              </div>
+
+              <div className="feature-card">
+                <div className="feature-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+                <h3>Any Business, Any Size</h3>
+                <p>
+                  From a one-chair barber shop to Tesla. The Umbrella Program
+                  works regardless of industry, size, or stage of growth.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA BAND ── */}
+        <section id="about" className="cta-band">
+          <div className="container">
+            <h2>Ready to see what five dimensions can do?</h2>
+            <p>
+              The only program of its kind, anywhere in the world. It&rsquo;s
+              time to stop waiting and start profiting.
+            </p>
+            <Link href="/login" className="btn btn--white btn--lg">
+              Get started — it&rsquo;s free
+            </Link>
+          </div>
+        </section>
       </main>
-    </div>
-  );
+
+      <MarketingFooter />
+    </>
+  )
 }
