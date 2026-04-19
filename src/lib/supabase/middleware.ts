@@ -51,8 +51,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Already signed in users hitting /login go straight to dashboard
-  if (user && pathname === '/login') {
+  // Already signed in users hitting /login or /signup go straight to dashboard
+  if (user && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
