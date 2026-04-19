@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { TOTAL_LESSONS } from '@/lib/curriculum'
 
 type Profile = {
   full_name: string | null
@@ -25,13 +24,20 @@ export function AppSidebar({
   const supabase = createClient()
 
   const fetchProgress = useCallback(async () => {
-    const { data } = await supabase
-      .from('lesson_progress')
-      .select('lesson_id')
-      .eq('user_id', userId)
-      .eq('completed', true)
-    const done = data?.length ?? 0
-    setPct(Math.round((done / TOTAL_LESSONS) * 100))
+    // Overall progress = completed content_progress rows / total published items.
+    const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
+      supabase
+        .from('content_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_published', true),
+      supabase
+        .from('content_progress')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId),
+    ])
+    const total = totalCount ?? 0
+    const done = doneCount ?? 0
+    setPct(total > 0 ? Math.round((done / total) * 100) : 0)
   }, [supabase, userId])
 
   useEffect(() => {
@@ -41,7 +47,8 @@ export function AppSidebar({
     return () => window.removeEventListener('focus', onFocus)
   }, [fetchProgress])
 
-  const isActive = (href: string) => pathname === href
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <aside className="app-sidebar" aria-label="Dashboard navigation">
@@ -66,8 +73,8 @@ export function AppSidebar({
 
         <Link
           href="/dashboard"
-          className={`sidebar-link${isActive('/dashboard') ? ' is-active' : ''}`}
-          aria-current={isActive('/dashboard') ? 'page' : undefined}
+          className={`sidebar-link${pathname === '/dashboard' ? ' is-active' : ''}`}
+          aria-current={pathname === '/dashboard' ? 'page' : undefined}
         >
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -90,7 +97,11 @@ export function AppSidebar({
           <span className="sidebar-notif-badge" aria-label="8 unread posts">8</span>
         </Link>
 
-        <Link href="#" className="sidebar-link">
+        <Link
+          href="/courses"
+          className={`sidebar-link${isActive('/courses') ? ' is-active' : ''}`}
+          aria-current={isActive('/courses') ? 'page' : undefined}
+        >
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
@@ -110,7 +121,7 @@ export function AppSidebar({
       {/* Mini progress bar */}
       <div className="sidebar-progress">
         <div className="sidebar-progress__header">
-          <span>Course Progress</span>
+          <span>Overall Progress</span>
           <span>{pct}%</span>
         </div>
         <div className="sidebar-progress__track">

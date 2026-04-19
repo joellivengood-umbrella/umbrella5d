@@ -4,18 +4,20 @@ import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 /**
- * Toggles completion state for a single lesson.
- * Writes to (or deletes from) `lesson_progress` under the current user's
- * session. The dashboard re-fetches progress on window focus, so returning
- * to the dashboard after clicking this will reflect the new state.
+ * Toggles completion state for a single content_item.
+ * Writes to (or deletes from) `content_progress` under the current user's
+ * session. Optimistic UI with rollback on error.
+ *
+ * Generalization of the old LessonCompleteButton — same UX, but keyed by
+ * content_item UUID instead of "m-l" string IDs.
  */
-export function LessonCompleteButton({
+export function MarkCompleteButton({
   userId,
-  lessonId,
+  contentItemId,
   initialDone,
 }: {
   userId: string
-  lessonId: string
+  contentItemId: string
   initialDone: boolean
 }) {
   const [isDone, setIsDone] = useState(initialDone)
@@ -23,31 +25,28 @@ export function LessonCompleteButton({
 
   async function toggle() {
     const nextDone = !isDone
-    // Optimistic update
     setIsDone(nextDone)
 
     startTransition(async () => {
       const supabase = createClient()
       if (nextDone) {
         const { error } = await supabase
-          .from('lesson_progress')
+          .from('content_progress')
           .upsert(
-            { user_id: userId, lesson_id: lessonId, completed: true },
-            { onConflict: 'user_id,lesson_id' }
+            {
+              user_id: userId,
+              content_item_id: contentItemId,
+            },
+            { onConflict: 'user_id,content_item_id' }
           )
-        if (error) {
-          // Roll back on failure
-          setIsDone(!nextDone)
-        }
+        if (error) setIsDone(!nextDone)
       } else {
         const { error } = await supabase
-          .from('lesson_progress')
+          .from('content_progress')
           .delete()
           .eq('user_id', userId)
-          .eq('lesson_id', lessonId)
-        if (error) {
-          setIsDone(!nextDone)
-        }
+          .eq('content_item_id', contentItemId)
+        if (error) setIsDone(!nextDone)
       }
     })
   }
@@ -75,7 +74,7 @@ export function LessonCompleteButton({
       >
         <polyline points="20 6 9 17 4 12" />
       </svg>
-      <span>{isDone ? 'Completed — Click to Undo' : 'Mark Lesson Complete'}</span>
+      <span>{isDone ? 'Completed — Click to Undo' : 'Mark Complete'}</span>
     </button>
   )
 }
