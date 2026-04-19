@@ -190,6 +190,8 @@ img, svg { display: block; }
   align-items: center;
   justify-content: center;
   gap: .45rem;
+  padding: .65rem 1.5rem;
+  font-size: .9rem;
   font-weight: 600;
   border-radius: var(--radius-md);
   border: none;
@@ -3360,6 +3362,13 @@ button.sidebar-signout {
   align-items: center;
   gap: .75rem;
   margin-top: .5rem;
+}
+.settings-actions .btn,
+.settings-avatar-row .btn {
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 700;
+  font-size: .8rem;
 }
 
 .settings-status {
