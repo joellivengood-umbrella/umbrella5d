@@ -1758,7 +1758,7 @@ button.sidebar-signout {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
+  height: 6px;
   background: linear-gradient(90deg, var(--clr-primary), #7c3aed);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
@@ -2327,7 +2327,7 @@ button.sidebar-signout {
   /* "Pinned" top accent line */
   content: '';
   display: block;
-  height: 3px;
+  height: 6px;
   background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent-to));
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   margin: -1.4rem -1.5rem 1.1rem;
@@ -2845,10 +2845,55 @@ button.sidebar-signout {
   line-height: 1.6;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Course theme tokens — one class on the <main> or .course-card
+   controls every coloured element inside that course.
+   ══════════════════════════════════════════════════════════════════ */
+.course-theme-bss {
+  --ct-from:      #5b4fff;
+  --ct-to:        #7c3aed;
+  --ct-text:      #5b4fff;
+  --ct-tint:      rgba(91, 79, 255, .1);
+  --ct-tint-badge:rgba(91, 79, 255, .12);
+  --ct-hover-bg:  rgba(91, 79, 255, .07);
+  --ct-done-text: #fff;
+  --ct-border-h:  #c4b8ff;
+}
+.course-theme-eos {
+  --ct-from:      #FF6E6E;
+  --ct-to:        #e03535;
+  --ct-text:      #c93030;
+  --ct-tint:      rgba(255, 110, 110, .12);
+  --ct-tint-badge:rgba(255, 110, 110, .14);
+  --ct-hover-bg:  rgba(255, 110, 110, .08);
+  --ct-done-text: #fff;
+  --ct-border-h:  #ffb8b8;
+}
+.course-theme-potd {
+  --ct-from:      #68F268;
+  --ct-to:        #22a322;
+  --ct-text:      #1a8a1a;
+  --ct-tint:      rgba(104, 242, 104, .14);
+  --ct-tint-badge:rgba(104, 242, 104, .18);
+  --ct-hover-bg:  rgba(104, 242, 104, .09);
+  --ct-done-text: #fff;
+  --ct-border-h:  #b6f5b6;
+}
+.course-theme-machine {
+  --ct-from:      #FFEE6E;
+  --ct-to:        #d4b800;
+  --ct-text:      #8a7200;
+  --ct-tint:      rgba(255, 238, 110, .18);
+  --ct-tint-badge:rgba(255, 238, 110, .22);
+  --ct-hover-bg:  rgba(255, 238, 110, .12);
+  --ct-done-text: #111;
+  --ct-border-h:  #fff3a0;
+}
+
 /* ── Eyebrow color inside courses pages ── */
 .courses-header .section-eyebrow,
 .lesson-header .section-eyebrow {
-  color: var(--clr-primary);
+  color: var(--ct-text, var(--clr-primary));
 }
 
 /* ── Back button ── */
@@ -2866,8 +2911,8 @@ button.sidebar-signout {
   margin-bottom: .5rem;
 }
 .lesson-back-btn:hover {
-  color: var(--clr-primary);
-  background: rgba(91, 79, 255, .07);
+  color: var(--ct-text, var(--clr-primary));
+  background: var(--ct-hover-bg, rgba(91, 79, 255, .07));
 }
 .lesson-back-btn svg { flex-shrink: 0; }
 
@@ -2897,19 +2942,19 @@ button.sidebar-signout {
               box-shadow var(--dur) var(--ease),
               border-color var(--dur) var(--ease);
 }
-/* Coloured top accent stripe — same treatment as stat-card */
+/* Coloured top accent stripe — colour follows course theme */
 .course-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--clr-primary), #7c3aed);
+  height: 6px;
+  background: linear-gradient(90deg, var(--ct-from, var(--clr-primary)), var(--ct-to, #7c3aed));
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .course-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: #c4b8ff;
+  border-color: var(--ct-border-h, #c4b8ff);
 }
 .course-card__header {
   display: flex;
@@ -2922,7 +2967,7 @@ button.sidebar-signout {
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--clr-primary);
+  color: var(--ct-text, var(--clr-primary));
 }
 .course-card__title {
   font-size: 1.15rem;
@@ -2954,7 +2999,7 @@ button.sidebar-signout {
 .course-card__progress-bar {
   height: 100%;
   border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--clr-primary) 0%, #7c3aed 100%);
+  background: linear-gradient(90deg, var(--ct-from, var(--clr-primary)) 0%, var(--ct-to, #7c3aed) 100%);
   transition: width .55s cubic-bezier(.4, 0, .2, 1);
   position: relative;
 }
@@ -3010,7 +3055,7 @@ button.sidebar-signout {
               box-shadow var(--dur) var(--ease);
 }
 .content-tile:hover {
-  border-left-color: var(--clr-primary);
+  border-left-color: var(--ct-from, var(--clr-primary));
   transform: translateX(3px);
   box-shadow: var(--shadow-md);
 }
@@ -3020,16 +3065,16 @@ button.sidebar-signout {
   flex: 0 0 auto;
   width: 40px; height: 40px;
   border-radius: var(--radius-sm);
-  background: rgba(91, 79, 255, .1);
-  color: var(--clr-primary);
+  background: var(--ct-tint, rgba(91, 79, 255, .1));
+  color: var(--ct-text, var(--clr-primary));
   display: flex; align-items: center; justify-content: center;
   font-weight: 800;
   font-size: .95rem;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 .content-tile.is-done .content-tile__number {
-  background: linear-gradient(135deg, var(--clr-primary), #7c3aed);
-  color: #fff;
+  background: linear-gradient(135deg, var(--ct-from, var(--clr-primary)), var(--ct-to, #7c3aed));
+  color: var(--ct-done-text, #fff);
 }
 .content-tile.is-locked .content-tile__number {
   background: #f1f1f5;
@@ -3061,8 +3106,8 @@ button.sidebar-signout {
   color: #6b7280;
 }
 .content-tile.is-done .content-tile__status {
-  background: rgba(91, 79, 255, .12);
-  color: var(--clr-primary);
+  background: var(--ct-tint-badge, rgba(91, 79, 255, .12));
+  color: var(--ct-text, var(--clr-primary));
 }
 .content-tile.is-locked {
   opacity: .5;
@@ -3169,23 +3214,23 @@ button.sidebar-signout {
   font-weight: 700;
   padding: .7rem 1.4rem;
   border-radius: var(--radius-pill);
-  border: 2px solid var(--clr-primary);
+  border: 2px solid var(--ct-from, var(--clr-primary));
   background: transparent;
-  color: var(--clr-primary);
+  color: var(--ct-text, var(--clr-primary));
   cursor: pointer;
   transition: background var(--dur) var(--ease),
               color var(--dur) var(--ease),
               transform var(--dur) var(--ease);
 }
 .lesson-complete-btn:hover:not(:disabled) {
-  background: var(--clr-primary);
-  color: #fff;
+  background: var(--ct-from, var(--clr-primary));
+  color: var(--ct-done-text, #fff);
   transform: translateY(-1px);
 }
 .lesson-complete-btn--done {
-  background: linear-gradient(135deg, var(--clr-primary), #7c3aed) !important;
+  background: linear-gradient(135deg, var(--ct-from, var(--clr-primary)), var(--ct-to, #7c3aed)) !important;
   border-color: transparent !important;
-  color: #fff !important;
+  color: var(--ct-done-text, #fff) !important;
   cursor: default;
 }
 .lesson-complete-btn--done:hover { transform: none !important; }

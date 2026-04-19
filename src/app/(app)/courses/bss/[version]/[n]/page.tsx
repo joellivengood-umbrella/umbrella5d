@@ -53,7 +53,7 @@ export default async function BssSegmentPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main courses-main--narrow">
+      <main className="courses-main courses-main--narrow course-theme-bss">
         <Link href={`/courses/bss/${version}`} className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"

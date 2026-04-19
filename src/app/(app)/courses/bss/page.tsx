@@ -34,7 +34,7 @@ export default async function BssHubPage() {
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main">
+      <main className="courses-main course-theme-bss">
         <Link href="/courses" className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
@@ -71,7 +71,7 @@ export default async function BssHubPage() {
               <Link
                 key={v.slug}
                 href={`/courses/bss/${v.slug}`}
-                className="course-card"
+                className="course-card course-theme-bss"
               >
                 <div className="course-card__header">
                   <span className="course-card__eyebrow">

@@ -23,7 +23,7 @@ export default async function EosIndexPage() {
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main">
+      <main className="courses-main course-theme-eos">
         <Link href="/courses" className="lesson-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
             <polyline points="15 18 9 12 15 6" />

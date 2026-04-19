@@ -45,7 +45,7 @@ export default async function MachineItemPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main courses-main--narrow">
+      <main className="courses-main courses-main--narrow course-theme-machine">
         <Link href="/courses/machine" className="lesson-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
             <polyline points="15 18 9 12 15 6" />

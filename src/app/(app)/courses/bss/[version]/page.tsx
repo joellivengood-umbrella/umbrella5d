@@ -45,7 +45,7 @@ export default async function BssVersionPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main">
+      <main className="courses-main course-theme-bss">
         <Link href="/courses/bss" className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"

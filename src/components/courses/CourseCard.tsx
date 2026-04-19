@@ -21,7 +21,7 @@ export function CourseCard({
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   return (
-    <Link href={href} className="course-card">
+    <Link href={href} className={`course-card course-theme-${slug}`}>
       <div className="course-card__header">
         <span className="course-card__eyebrow">{meta.shortTitle}</span>
         <h3 className="course-card__title">{meta.title}</h3>
