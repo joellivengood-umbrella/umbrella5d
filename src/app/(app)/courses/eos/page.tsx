@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCourseMeta } from '@/lib/courses'
-import { fetchContentItems, fetchCompletedItemIds } from '@/lib/content-queries'
+import {
+  fetchContentItems,
+  fetchCompletedItemIds,
+  fetchUserSettings,
+} from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
 
@@ -15,10 +19,15 @@ export default async function EosIndexPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [items, completed] = await Promise.all([
+  const [items, completed, settings] = await Promise.all([
     fetchContentItems(supabase, 'eos'),
     fetchCompletedItemIds(supabase, user.id),
+    fetchUserSettings(supabase, user.id),
   ])
+
+  const visibleItems = settings.showCompleted
+    ? items
+    : items.filter((i) => !completed.has(i.id))
 
   return (
     <>
@@ -38,7 +47,7 @@ export default async function EosIndexPage() {
         </div>
 
         <div className="content-item-list">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <ContentItemTile
               key={item.id}
               href={`/courses/eos/${item.sequence_num}`}

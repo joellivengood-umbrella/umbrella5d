@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCourseMeta } from '@/lib/courses'
-import { fetchContentItems, fetchCompletedItemIds } from '@/lib/content-queries'
+import {
+  fetchContentItems,
+  fetchCompletedItemIds,
+  fetchUserSettings,
+} from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
 
@@ -15,10 +19,15 @@ export default async function PotdIndexPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [items, completed] = await Promise.all([
+  const [items, completed, settings] = await Promise.all([
     fetchContentItems(supabase, 'potd'),
     fetchCompletedItemIds(supabase, user.id),
+    fetchUserSettings(supabase, user.id),
   ])
+
+  const visibleItems = settings.showCompleted
+    ? items
+    : items.filter((i) => !completed.has(i.id))
 
   // POTD unlocks one per day after a manager "launches" it for the org.
   // Branch 1: launch tracking isn't built yet — all items show as locked.
@@ -56,7 +65,7 @@ export default async function PotdIndexPage() {
         )}
 
         <div className="content-item-list">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const isUnlocked = item.sequence_num <= unlockedThroughDay
             return (
               <ContentItemTile

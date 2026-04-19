@@ -155,3 +155,24 @@ export async function fetchCompletedCountsByType(
   }
   return counts
 }
+
+/**
+ * Fetch the user's preference flags used by course list pages.
+ * Always resolves — falls back to safe defaults on error or missing row.
+ */
+export async function fetchUserSettings(
+  supabase: MaybeClient,
+  userId: string
+): Promise<{ showCompleted: boolean; timezone: string }> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('show_completed_items, timezone')
+    .eq('id', userId)
+    .single()
+
+  return {
+    showCompleted:
+      (data?.show_completed_items as boolean | undefined) ?? true,
+    timezone: (data?.timezone as string | undefined) ?? 'America/Chicago',
+  }
+}
