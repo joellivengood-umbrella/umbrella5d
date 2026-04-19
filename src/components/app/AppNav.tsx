@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { SignOutButton } from '@/components/auth/SignOutButton'
 
 export function AppNav() {
   return (
@@ -16,9 +15,7 @@ export function AppNav() {
             priority
           />
         </Link>
-        <div className="nav-actions">
-          <SignOutButton />
-        </div>
+        <div className="nav-actions" />
       </nav>
     </header>
   )

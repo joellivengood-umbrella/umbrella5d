@@ -1695,6 +1695,15 @@ audio {
   border-top: 1px solid var(--clr-border);
 }
 
+/* Sign-out button shares sidebar-link styles; reset button chrome */
+button.sidebar-signout {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
 /* ── App main ── */
 .app-main {
   flex: 1;
