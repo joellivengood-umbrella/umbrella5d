@@ -65,7 +65,7 @@ export function AppSidebar({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="sidebar-avatar"
-          src={profile?.avatar_url || '/david_pfp.jpg'}
+          src={profile?.avatar_url || '/default_avatar.png'}
           alt="Profile"
         />
         <div className="sidebar-user-info">
