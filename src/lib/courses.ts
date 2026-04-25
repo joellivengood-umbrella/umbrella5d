@@ -59,7 +59,7 @@ export const COURSES: ReadonlyArray<CourseMeta> = [
     title: 'Pod of the Day',
     shortTitle: 'POTD',
     blurb:
-      'Short daily podcasts — business stories and anecdotes, released one per day after a manager launches the feed for their org.',
+      'A new short podcast every morning, two to four minutes each. Business stories pulled from a century of wins, disasters, bad names, dumb mergers, and the occasional genius moment. Some episodes hammer a specific principle. Others just tell a great story and let you draw the lesson yourself. The format is built for a habit: listen on the drive in, pick up something useful, come back tomorrow.',
     mediaKind: 'audio',
     hasDripRelease: true,
   },
@@ -68,7 +68,7 @@ export const COURSES: ReadonlyArray<CourseMeta> = [
     title: 'The 5D Machine',
     shortTitle: '5D Machine',
     blurb:
-      'Twenty-eight video lessons — the core Umbrella curriculum — each paired with actionable tasks that move your business forward.',
+      'Thirty video lessons that walk you through the Umbrella framework one floor at a time. You cut your business down to its strongest core, expand outward with services and alliances, strip the friction out of every customer touchpoint, build real emotional loyalty with the people you serve, and set up a running source of new ideas. Every lesson ends with direct work to do on your own company, so by the end you have actually changed something, not just watched a course.',
     mediaKind: 'video',
     hasDripRelease: false,
   },
