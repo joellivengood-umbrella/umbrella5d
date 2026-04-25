@@ -163,10 +163,14 @@ export async function fetchCompletedCountsByType(
 export async function fetchUserSettings(
   supabase: MaybeClient,
   userId: string
-): Promise<{ showCompleted: boolean; timezone: string }> {
+): Promise<{
+  showCompleted: boolean
+  timezone: string
+  orgId: string | null
+}> {
   const { data } = await supabase
     .from('profiles')
-    .select('show_completed_items, timezone')
+    .select('show_completed_items, timezone, org_id')
     .eq('id', userId)
     .single()
 
@@ -174,5 +178,6 @@ export async function fetchUserSettings(
     showCompleted:
       (data?.show_completed_items as boolean | undefined) ?? true,
     timezone: (data?.timezone as string | undefined) ?? 'America/Chicago',
+    orgId: (data?.org_id as string | null | undefined) ?? null,
   }
 }

@@ -6,8 +6,11 @@ import {
   fetchCompletedItemIds,
   fetchUserSettings,
 } from '@/lib/content-queries'
+import { fetchOrgPotdLaunch, fetchUserOrgRole } from '@/lib/org-queries'
+import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
+import { LaunchPotdButton } from '@/components/courses/LaunchPotdButton'
 
 export const metadata = { title: 'Pod of the Day' }
 
@@ -25,14 +28,26 @@ export default async function PotdIndexPage() {
     fetchUserSettings(supabase, user.id),
   ])
 
+  // Org-scoped POTD launch state. Individuals (no org_id) can't launch
+  // POTD yet — the manager flow assumes an org.
+  const [launch, role] = settings.orgId
+    ? await Promise.all([
+        fetchOrgPotdLaunch(supabase, settings.orgId),
+        fetchUserOrgRole(supabase, user.id, settings.orgId),
+      ])
+    : [null, null]
+
+  const unlockedThroughDay = computeUnlockedThroughDay({
+    launchedAt: launch?.launchedAt ?? null,
+    timezone: settings.timezone,
+  })
+
+  const isOrgAdmin = role === 'admin'
+  const isLaunched = !!launch
+
   const visibleItems = settings.showCompleted
     ? items
     : items.filter((i) => !completed.has(i.id))
-
-  // POTD unlocks one per day after a manager "launches" it for the org.
-  // Branch 1: launch tracking isn't built yet — all items show as locked.
-  // Branch 4 will add org_potd_launches table + compute the unlock window.
-  const unlockedThroughDay = 0
 
   return (
     <>
@@ -51,15 +66,37 @@ export default async function PotdIndexPage() {
           <p className="courses-header__blurb">{meta.blurb}</p>
         </div>
 
-        {unlockedThroughDay === 0 && (
+        {!isLaunched && (
           <div className="potd-launch-notice">
             <div>
-              <strong>POTD isn&apos;t running for your organization yet.</strong>
-              <p>
-                Once a manager launches the daily pod feed, a new episode will
-                unlock each day. Managers: the launch control is coming in a
-                future update.
-              </p>
+              {!settings.orgId ? (
+                <>
+                  <strong>POTD runs at the team level.</strong>
+                  <p>
+                    Daily episodes unlock once your team launches POTD. If
+                    you&apos;re joining an organization, ask your account
+                    manager for an invite code.
+                  </p>
+                </>
+              ) : isOrgAdmin ? (
+                <>
+                  <strong>POTD isn&apos;t running for your team yet.</strong>
+                  <p>
+                    Launch the daily feed and episode 1 unlocks today. A new
+                    episode then unlocks each day, in your team&apos;s local
+                    time.
+                  </p>
+                  <LaunchPotdButton orgId={settings.orgId} userId={user.id} />
+                </>
+              ) : (
+                <>
+                  <strong>POTD isn&apos;t running for your team yet.</strong>
+                  <p>
+                    Once your account manager launches the daily feed, a new
+                    episode will unlock each day.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         )}

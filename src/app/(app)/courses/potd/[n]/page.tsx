@@ -1,7 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { fetchContentItem } from '@/lib/content-queries'
+import {
+  fetchContentItem,
+  fetchUserSettings,
+} from '@/lib/content-queries'
+import { fetchOrgPotdLaunch } from '@/lib/org-queries'
+import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { MarkCompleteButton } from '@/components/courses/MarkCompleteButton'
@@ -32,13 +37,22 @@ export default async function PotdItemPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const item = await fetchContentItem(supabase, 'potd', n)
+  const [item, settings] = await Promise.all([
+    fetchContentItem(supabase, 'potd', n),
+    fetchUserSettings(supabase, user.id),
+  ])
   if (!item) notFound()
 
-  // Branch 1: no org launch tracking yet, so all episodes are effectively locked.
-  // Branch 4 will compare the item's sequence_num to the org's unlock window
-  // and redirect / render a locked state for items past the window.
-  const unlockedThroughDay = 0
+  // Compute the org's current unlock window. Individuals (no org_id) and
+  // orgs that haven't launched yet both end up with unlockedThroughDay = 0.
+  const launch = settings.orgId
+    ? await fetchOrgPotdLaunch(supabase, settings.orgId)
+    : null
+  const unlockedThroughDay = computeUnlockedThroughDay({
+    launchedAt: launch?.launchedAt ?? null,
+    timezone: settings.timezone,
+  })
+
   if (item.sequence_num > unlockedThroughDay) {
     return (
       <>
@@ -58,8 +72,11 @@ export default async function PotdItemPage({
             <div>
               <strong>This episode isn&apos;t available yet.</strong>
               <p>
-                POTD episodes unlock one per day after a manager launches the
-                feed for your organization.
+                {launch
+                  ? `Episode ${unlockedThroughDay} is the latest one open today. Episode ${item.sequence_num} unlocks in ${
+                      item.sequence_num - unlockedThroughDay
+                    } day${item.sequence_num - unlockedThroughDay === 1 ? '' : 's'}.`
+                  : 'POTD episodes unlock one per day after your team launches the feed.'}
               </p>
             </div>
           </div>
