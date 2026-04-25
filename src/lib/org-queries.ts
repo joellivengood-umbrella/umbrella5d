@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 type MaybeClient = SupabaseClient
 
-export type OrgRole = 'admin' | 'member'
+export type OrgRole = 'manager' | 'member'
 
 /**
  * The current user's role inside the given org, or null if not a member.
@@ -32,7 +32,7 @@ export async function fetchUserOrgRole(
   }
   if (!data) return null
   const role = (data as { role: string }).role
-  if (role === 'admin' || role === 'member') return role
+  if (role === 'manager' || role === 'member') return role
   return null
 }
 
