@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { TOTAL_LESSONS } from '@/lib/curriculum'
 
 type Profile = {
   full_name: string | null
@@ -24,14 +23,29 @@ export function AppSidebar({
   const [pct, setPct] = useState(0)
   const supabase = createClient()
 
+  const router = useRouter()
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
   const fetchProgress = useCallback(async () => {
-    const { data } = await supabase
-      .from('lesson_progress')
-      .select('lesson_id')
-      .eq('user_id', userId)
-      .eq('completed', true)
-    const done = data?.length ?? 0
-    setPct(Math.round((done / TOTAL_LESSONS) * 100))
+    // Overall progress = completed content_progress rows / total published items.
+    const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
+      supabase
+        .from('content_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_published', true),
+      supabase
+        .from('content_progress')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId),
+    ])
+    const total = totalCount ?? 0
+    const done = doneCount ?? 0
+    setPct(total > 0 ? Math.round((done / total) * 100) : 0)
   }, [supabase, userId])
 
   useEffect(() => {
@@ -41,7 +55,8 @@ export function AppSidebar({
     return () => window.removeEventListener('focus', onFocus)
   }, [fetchProgress])
 
-  const isActive = (href: string) => pathname === href
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <aside className="app-sidebar" aria-label="Dashboard navigation">
@@ -50,7 +65,7 @@ export function AppSidebar({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="sidebar-avatar"
-          src={profile?.avatar_url || '/david_pfp.jpg'}
+          src={profile?.avatar_url || '/default_avatar.png'}
           alt="Profile"
         />
         <div className="sidebar-user-info">
@@ -66,8 +81,8 @@ export function AppSidebar({
 
         <Link
           href="/dashboard"
-          className={`sidebar-link${isActive('/dashboard') ? ' is-active' : ''}`}
-          aria-current={isActive('/dashboard') ? 'page' : undefined}
+          className={`sidebar-link${pathname === '/dashboard' ? ' is-active' : ''}`}
+          aria-current={pathname === '/dashboard' ? 'page' : undefined}
         >
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -76,6 +91,18 @@ export function AppSidebar({
             <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
           <span>Dashboard</span>
+        </Link>
+
+        <Link
+          href="/courses"
+          className={`sidebar-link${isActive('/courses') ? ' is-active' : ''}`}
+          aria-current={isActive('/courses') ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+          <span>Courses</span>
         </Link>
 
         <Link
@@ -90,15 +117,11 @@ export function AppSidebar({
           <span className="sidebar-notif-badge" aria-label="8 unread posts">8</span>
         </Link>
 
-        <Link href="#" className="sidebar-link">
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg>
-          <span>Courses</span>
-        </Link>
-
-        <Link href="#" className="sidebar-link">
+        <Link
+          href="/settings"
+          className={`sidebar-link${isActive('/settings') ? ' is-active' : ''}`}
+          aria-current={isActive('/settings') ? 'page' : undefined}
+        >
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -110,7 +133,7 @@ export function AppSidebar({
       {/* Mini progress bar */}
       <div className="sidebar-progress">
         <div className="sidebar-progress__header">
-          <span>Course Progress</span>
+          <span>Overall Progress</span>
           <span>{pct}%</span>
         </div>
         <div className="sidebar-progress__track">
@@ -120,12 +143,14 @@ export function AppSidebar({
 
       {/* Sidebar footer */}
       <div className="sidebar-footer">
-        <Link href="/" className="sidebar-link">
+        <button type="button" className="sidebar-link sidebar-signout" onClick={handleSignOut}>
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>Back to site</span>
-        </Link>
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
   )

@@ -28,7 +28,7 @@ export default async function FeedPage() {
     .single()
 
   const orgName = profile?.organization_name || 'your organization'
-  const avatarUrl = profile?.avatar_url || '/david_pfp.jpg'
+  const avatarUrl = profile?.avatar_url || '/default_avatar.png'
 
   return (
     <>
