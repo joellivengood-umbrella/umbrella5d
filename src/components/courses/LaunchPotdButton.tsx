@@ -36,7 +36,19 @@ export function LaunchPotdButton({
 
     setSubmitting(false)
     if (insertErr) {
-      setError(insertErr.message)
+      // 23505 = unique_violation. Means POTD is already launched for this
+      // org (e.g. a second tab beat us to it, or the user double-clicked).
+      // Treat as success — the desired end-state is reached either way.
+      if (insertErr.code === '23505') {
+        startTransition(() => router.refresh())
+        return
+      }
+      // Anything else is a real failure. Don't leak raw Postgres error
+      // text to the user; log it for ourselves and show a generic message.
+      console.error('LaunchPotdButton insert error', insertErr)
+      setError(
+        'Something went wrong launching POTD. Please refresh and try again.'
+      )
       return
     }
     startTransition(() => router.refresh())
