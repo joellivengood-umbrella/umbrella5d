@@ -26,9 +26,13 @@ export async function fetchUserOrgRole(
     .eq('user_id', userId)
     .eq('org_id', orgId)
     .maybeSingle()
+  // .maybeSingle() returns { data: null, error: null } when there's no
+  // matching row, so any non-null error is a real failure (network,
+  // permissions, duplicate rows). Bubble it up rather than masquerading
+  // as "not a member" — the Next.js error boundary handles the rest.
   if (error) {
     console.error('fetchUserOrgRole error', error)
-    return null
+    throw new Error(`fetchUserOrgRole failed: ${error.message}`)
   }
   if (!data) return null
   const role = (data as { role: string }).role
@@ -50,9 +54,12 @@ export async function fetchOrgPotdLaunch(
     .select('launched_at, launched_by')
     .eq('org_id', orgId)
     .maybeSingle()
+  // Same reasoning as fetchUserOrgRole: .maybeSingle() already handles
+  // the "no launch row yet" case via { data: null, error: null }, so a
+  // real error must not be silently flattened into "POTD not launched."
   if (error) {
     console.error('fetchOrgPotdLaunch error', error)
-    return null
+    throw new Error(`fetchOrgPotdLaunch failed: ${error.message}`)
   }
   if (!data) return null
   return {
