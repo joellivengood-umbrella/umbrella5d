@@ -42,7 +42,7 @@ export default async function PotdIndexPage() {
     timezone: settings.timezone,
   })
 
-  const isOrgAdmin = role === 'admin'
+  const isOrgManager = role === 'manager'
   const isLaunched = !!launch
 
   const visibleItems = settings.showCompleted
@@ -78,7 +78,7 @@ export default async function PotdIndexPage() {
                     manager for an invite code.
                   </p>
                 </>
-              ) : isOrgAdmin ? (
+              ) : isOrgManager ? (
                 <>
                   <strong>POTD isn&apos;t running for your team yet.</strong>
                   <p>

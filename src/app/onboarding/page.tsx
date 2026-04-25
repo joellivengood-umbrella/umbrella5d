@@ -77,7 +77,7 @@ export default function OnboardingPage() {
         }
         const { error: memberErr } = await supabase
           .from('org_members')
-          .insert({ org_id: org.id, user_id: userId, role: 'admin' })
+          .insert({ org_id: org.id, user_id: userId, role: 'manager' })
         if (memberErr) {
           showError('Organization created but could not assign role. Contact support.')
           return
