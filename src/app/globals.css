@@ -3376,3 +3376,197 @@ button.sidebar-signout {
 }
 .settings-status--success { color: #16a34a; }
 .settings-status--error { color: #dc2626; }
+
+/* ══════════════════════════════════════════════════════════════════
+   Admin UI — content library management (platform admin only)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Landing grid: one card per course */
+.admin-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.admin-course-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  padding: 1.25rem 1.25rem 1rem;
+  background: #fff;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.admin-course-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--ct-from), var(--ct-to));
+}
+.admin-course-card:hover {
+  border-color: var(--ct-border-h, #c4b8ff);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(17, 24, 39, .06);
+}
+.admin-course-card h2 {
+  font-size: 1.1rem;
+  margin: .15rem 0 .35rem;
+  color: var(--clr-text, #111);
+  letter-spacing: -.01em;
+}
+.admin-course-card__stats {
+  display: flex;
+  gap: 1rem;
+  font-size: .85rem;
+  color: var(--clr-muted, #6b7280);
+  margin-top: auto;
+}
+.admin-course-card__stats strong {
+  color: var(--clr-text, #111);
+  font-weight: 700;
+}
+
+/* Toolbar above the table */
+.admin-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin: .75rem 0 1rem;
+}
+
+/* Items table */
+.admin-table-wrap {
+  background: #fff;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+.admin-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--clr-muted, #6b7280);
+  background: #fafbfd;
+  padding: .65rem .85rem;
+  border-bottom: 1px solid var(--clr-border, #e6e8ef);
+}
+.admin-table tbody td {
+  padding: .7rem .85rem;
+  border-bottom: 1px solid var(--clr-border, #e6e8ef);
+  vertical-align: middle;
+  color: var(--clr-text, #111);
+}
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.admin-table tbody tr:hover {
+  background: var(--ct-hover-bg, rgba(91, 79, 255, .04));
+}
+.admin-table a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+}
+.admin-table a:hover {
+  color: var(--ct-text, var(--clr-primary));
+}
+.admin-empty {
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--clr-muted, #6b7280);
+  font-size: .9rem;
+}
+.admin-muted {
+  color: var(--clr-muted, #6b7280);
+  font-style: italic;
+}
+
+/* Status / media pills */
+.admin-pill {
+  display: inline-block;
+  padding: .15rem .55rem;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.admin-pill--ok {
+  background: rgba(22, 163, 74, .12);
+  color: #15803d;
+}
+.admin-pill--draft {
+  background: rgba(245, 158, 11, .15);
+  color: #b45309;
+}
+.admin-pill--muted {
+  background: #f1f2f6;
+  color: var(--clr-muted, #6b7280);
+}
+
+/* Form (extends .settings-form) */
+.admin-form {
+  width: 100%;
+}
+.admin-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+.admin-form-actions {
+  flex-wrap: wrap;
+}
+.admin-form-delete {
+  margin-left: auto;
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, .35);
+}
+.admin-form-delete:hover:not(:disabled) {
+  background: rgba(185, 28, 28, .08);
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+/* Extend settings-field input styling to cover the input types the
+   admin form uses (number, url) and the description textarea. */
+.settings-field input[type="number"],
+.settings-field input[type="url"],
+.settings-field textarea {
+  width: 100%;
+  padding: .6rem .75rem;
+  font-size: .95rem;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--clr-text, #111);
+  font-family: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+.settings-field textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.5;
+}
+.settings-field input[type="number"]:focus,
+.settings-field input[type="url"]:focus,
+.settings-field textarea:focus {
+  outline: none;
+  border-color: #5b4fff;
+  box-shadow: 0 0 0 3px rgba(91, 79, 255, .15);
+}

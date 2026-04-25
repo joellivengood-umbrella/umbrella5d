@@ -10,6 +10,7 @@ type Profile = {
   organization_name: string | null
   role_title: string | null
   avatar_url: string | null
+  is_platform_admin?: boolean | null
 }
 
 export function AppSidebar({
@@ -128,6 +129,19 @@ export function AppSidebar({
           </svg>
           <span>Settings</span>
         </Link>
+
+        {profile?.is_platform_admin && (
+          <Link
+            href="/admin"
+            className={`sidebar-link${isActive('/admin') ? ' is-active' : ''}`}
+            aria-current={isActive('/admin') ? 'page' : undefined}
+          >
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6z" />
+            </svg>
+            <span>Admin</span>
+          </Link>
+        )}
       </nav>
 
       {/* Mini progress bar */}
