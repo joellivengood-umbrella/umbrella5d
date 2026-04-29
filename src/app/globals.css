@@ -3583,6 +3583,68 @@ button.sidebar-signout {
   background: #f1f2f7;
 }
 
+/* Per-row action buttons (Promote / Remove) on the team roster */
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-shrink: 0;
+}
+
+.member-actions__btn {
+  font-size: .78rem;
+  font-weight: 600;
+  padding: .35rem .75rem;
+  border-radius: 6px;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  background: #ffffff;
+  color: var(--clr-text, #111);
+  cursor: pointer;
+  transition: background var(--dur, .2s) var(--ease, ease),
+              border-color var(--dur, .2s) var(--ease, ease),
+              color var(--dur, .2s) var(--ease, ease);
+}
+
+.member-actions__btn:hover:not(:disabled) {
+  background: #f4f5fb;
+  border-color: #c4c8d6;
+}
+
+.member-actions__btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.member-actions__btn--danger {
+  color: #c93030;
+  border-color: rgba(201, 48, 48, .25);
+}
+
+.member-actions__btn--danger:hover:not(:disabled) {
+  background: rgba(255, 110, 110, .08);
+  border-color: rgba(201, 48, 48, .5);
+  color: #b02020;
+}
+
+.member-actions__error {
+  font-size: .75rem;
+  color: #c93030;
+  margin-left: .5rem;
+}
+
+/* On narrow screens, wrap actions under the row instead of crowding
+   the right edge */
+@media (max-width: 600px) {
+  .team-roster__row {
+    flex-wrap: wrap;
+  }
+  .member-actions {
+    margin-left: calc(40px + .85rem); /* line up under the name, past the avatar */
+    width: 100%;
+    margin-top: .25rem;
+  }
+}
+
 .settings-avatar-row {
   display: flex;
   align-items: center;

@@ -1,4 +1,5 @@
 import type { OrgMember } from '@/lib/org-queries'
+import { MemberActions } from './MemberActions'
 
 /**
  * Member roster for the Team page.
@@ -7,13 +8,15 @@ import type { OrgMember } from '@/lib/org-queries'
  * joined date. The current user's row is highlighted with a "You" tag
  * so the manager can locate themselves at a glance.
  *
- * Read-only. Member actions (remove, promote) are a separate feature
- * coming after this page.
+ * Each non-self row gets MemberActions (Remove + conditional Promote)
+ * rendered alongside the role badge.
  */
 export function TeamRoster({
+  orgId,
   members,
   currentUserId,
 }: {
+  orgId: string
   members: OrgMember[]
   currentUserId: string
 }) {
@@ -55,6 +58,14 @@ export function TeamRoster({
               >
                 {m.role === 'manager' ? 'Manager' : 'Member'}
               </span>
+              {!isYou && (
+                <MemberActions
+                  orgId={orgId}
+                  memberUserId={m.userId}
+                  memberName={displayName}
+                  memberRole={m.role}
+                />
+              )}
             </li>
           )
         })}
