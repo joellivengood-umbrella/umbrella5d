@@ -52,8 +52,27 @@ export default async function DashboardPage() {
     unlockedThroughDay
   )
 
-  const totalAll = COURSES.reduce((sum, c) => sum + (totals[c.slug] ?? 0), 0)
-  const doneAll = COURSES.reduce((sum, c) => sum + (doneCounts[c.slug] ?? 0), 0)
+  // Clamp POTD totals to the user's unlock window so locked episodes
+  // don't drag the dashboard's numbers down. Same fix the sidebar uses.
+  // For individuals (no org_id) and pre-launch orgs, unlockedThroughDay
+  // is 0 — POTD contributes 0 to both numerator and denominator, so the
+  // user's overall progress reflects only what they can actually access.
+  const accessiblePotdTotal = Math.min(totals.potd ?? 0, unlockedThroughDay)
+  const accessiblePotdDone = Math.min(
+    doneCounts.potd ?? 0,
+    accessiblePotdTotal
+  )
+  const accessibleTotals = { ...totals, potd: accessiblePotdTotal }
+  const accessibleDoneCounts = { ...doneCounts, potd: accessiblePotdDone }
+
+  const totalAll = COURSES.reduce(
+    (sum, c) => sum + (accessibleTotals[c.slug] ?? 0),
+    0
+  )
+  const doneAll = COURSES.reduce(
+    (sum, c) => sum + (accessibleDoneCounts[c.slug] ?? 0),
+    0
+  )
   const pctAll = totalAll > 0 ? Math.round((doneAll / totalAll) * 100) : 0
   const allDone = doneAll === totalAll && totalAll > 0
 
@@ -157,8 +176,8 @@ export default async function DashboardPage() {
                 key={course.slug}
                 slug={course.slug}
                 href={`/courses/${course.slug}`}
-                completedCount={doneCounts[course.slug] ?? 0}
-                totalCount={totals[course.slug] ?? 0}
+                completedCount={accessibleDoneCounts[course.slug] ?? 0}
+                totalCount={accessibleTotals[course.slug] ?? 0}
               />
             ))}
           </div>
