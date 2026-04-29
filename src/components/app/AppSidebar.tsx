@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
+import type { OrgRole } from '@/lib/org-queries'
 
 type Profile = {
   full_name: string | null
@@ -19,9 +20,11 @@ type Profile = {
 export function AppSidebar({
   userId,
   profile,
+  orgRole,
 }: {
   userId: string
   profile: Profile | null
+  orgRole: OrgRole | null
 }) {
   const pathname = usePathname()
   const [pct, setPct] = useState(0)
@@ -96,6 +99,10 @@ export function AppSidebar({
   }, [supabase, userId, orgId, timezone])
 
   useEffect(() => {
+    // fetchProgress is async — the setState inside it only fires after
+    // a network round-trip, so this isn't a cascading-render problem.
+    // The lint rule pattern-matches the call shape, not the async-ness.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProgress()
     const onFocus = () => fetchProgress()
     window.addEventListener('focus', onFocus)
@@ -162,6 +169,22 @@ export function AppSidebar({
           </svg>
           <span>Courses</span>
         </Link>
+
+        {orgRole === 'manager' && (
+          <Link
+            href="/team"
+            className={`sidebar-link${isActive('/team') ? ' is-active' : ''}`}
+            aria-current={isActive('/team') ? 'page' : undefined}
+          >
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span>Team</span>
+          </Link>
+        )}
 
         <Link
           href="/feed"
