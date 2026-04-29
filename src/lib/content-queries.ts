@@ -158,7 +158,9 @@ export async function fetchCompletedCountsByType(
 
 /**
  * Fetch the user's preference flags used by course list pages.
- * Always resolves — falls back to safe defaults on error or missing row.
+ * Returns safe defaults if the user has no profile row yet (which can
+ * happen briefly between auth signup and the profile-creation trigger),
+ * but throws on real DB errors so they aren't silently masked.
  */
 export async function fetchUserSettings(
   supabase: MaybeClient,
@@ -168,11 +170,20 @@ export async function fetchUserSettings(
   timezone: string
   orgId: string | null
 }> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('show_completed_items, timezone, org_id')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
+
+  // .maybeSingle() returns { data: null, error: null } when the profile
+  // row doesn't exist yet. Any non-null error is a real failure — let
+  // the Next.js error boundary handle it instead of silently rendering
+  // the page with default settings.
+  if (error) {
+    console.error('fetchUserSettings error', error)
+    throw new Error(`fetchUserSettings failed: ${error.message}`)
+  }
 
   return {
     showCompleted:
