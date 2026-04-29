@@ -3454,6 +3454,40 @@ button.sidebar-signout {
   margin: .25rem 0 0;
 }
 
+/* Read-only settings field (e.g. org name display) */
+.settings-readonly {
+  font-size: .95rem;
+  color: var(--clr-text, #111);
+  margin: 0;
+  padding: .6rem 0;
+  font-weight: 500;
+}
+
+/* Invite-code display + copy button row */
+.invite-code-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.invite-code {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1rem;
+  letter-spacing: .12em;
+  font-weight: 600;
+  background: #f4f5fb;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  border-radius: 8px;
+  padding: .65rem .85rem;
+  color: var(--clr-text, #111);
+  user-select: all;
+}
+
+.invite-copy-btn {
+  flex-shrink: 0;
+}
+
 .settings-avatar-row {
   display: flex;
   align-items: center;
