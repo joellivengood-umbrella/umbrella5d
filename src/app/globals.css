@@ -1745,6 +1745,98 @@ button.sidebar-signout {
 /* ══════════════════════════════════════════
    STAT CARDS
    ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   CONTINUE WHERE YOU LEFT OFF
+   ══════════════════════════════════════════ */
+.resume-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow var(--dur) var(--ease),
+              transform var(--dur) var(--ease);
+}
+
+/* Course-themed accent stripe along the left edge */
+.resume-card::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 6px;
+  background: linear-gradient(
+    180deg,
+    var(--ct-from, var(--clr-primary)),
+    var(--ct-to, #7c3aed)
+  );
+}
+
+.resume-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.resume-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  min-width: 0;
+}
+
+.resume-card__eyebrow {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+  color: var(--clr-muted);
+  margin: 0;
+}
+
+.resume-card__course {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ct-text, var(--clr-primary));
+  margin: 0;
+}
+
+.resume-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  letter-spacing: -.01em;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--ct-text, var(--clr-primary));
+  flex-shrink: 0;
+}
+
+.resume-card__cta svg {
+  transition: transform var(--dur) var(--ease);
+}
+
+.resume-card:hover .resume-card__cta svg {
+  transform: translateX(3px);
+}
+
 .dash-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
