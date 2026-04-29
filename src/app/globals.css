@@ -1664,9 +1664,9 @@ audio {
 
 /* Mini progress bar */
 .sidebar-progress {
-  margin-top: auto;
-  padding: 1.1rem .4rem .85rem;
-  border-top: 1px solid var(--clr-border);
+  /* Sits between the user block and the primary nav. The user block's
+     own border-bottom separates them, so no border-top needed here. */
+  padding: 0 .4rem 1.25rem;
 }
 
 .sidebar-progress__header {
@@ -1703,6 +1703,10 @@ audio {
 
 /* Sidebar footer */
 .sidebar-footer {
+  /* margin-top: auto pushes Sign Out to the bottom of the sidebar
+     regardless of how tall the nav is. Used to live on .sidebar-progress
+     when the progress bar was the bottom-pinned element. */
+  margin-top: auto;
   padding-top: .75rem;
   border-top: 1px solid var(--clr-border);
 }
@@ -3444,9 +3448,10 @@ button.sidebar-signout {
 .settings-field--toggle > span { font-weight: 500; }
 
 .settings-hint {
+  display: block;
   font-size: .8rem;
   color: var(--clr-muted, #6b7280);
-  margin: 0;
+  margin: .25rem 0 0;
 }
 
 .settings-avatar-row {
