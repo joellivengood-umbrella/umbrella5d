@@ -122,6 +122,17 @@ export function AppSidebar({
         </div>
       </div>
 
+      {/* Mini progress bar */}
+      <div className="sidebar-progress">
+        <div className="sidebar-progress__header">
+          <span>Overall Progress</span>
+          <span>{pct}%</span>
+        </div>
+        <div className="sidebar-progress__track">
+          <div className="sidebar-progress__fill" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
       {/* Primary nav */}
       <nav className="sidebar-nav">
         <p className="sidebar-section-label">Menu</p>
@@ -189,17 +200,6 @@ export function AppSidebar({
           </Link>
         )}
       </nav>
-
-      {/* Mini progress bar */}
-      <div className="sidebar-progress">
-        <div className="sidebar-progress__header">
-          <span>Overall Progress</span>
-          <span>{pct}%</span>
-        </div>
-        <div className="sidebar-progress__track">
-          <div className="sidebar-progress__fill" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
 
       {/* Sidebar footer */}
       <div className="sidebar-footer">
