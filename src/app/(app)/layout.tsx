@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AppNav } from '@/components/app/AppNav'
 import { AppSidebar } from '@/components/app/AppSidebar'
 import { MarketingFooter } from '@/components/marketing/MarketingFooter'
+import { fetchUserOrgRole } from '@/lib/org-queries'
 
 export default async function AppLayout({
   children,
@@ -29,11 +30,22 @@ export default async function AppLayout({
     redirect('/onboarding')
   }
 
+  // Org role (manager / member / null) drives the sidebar's Team link
+  // visibility. Skip the lookup for individuals (no org_id) — they're
+  // never managers and the helper would just return null anyway.
+  const orgRole = profile?.org_id
+    ? await fetchUserOrgRole(supabase, user.id, profile.org_id)
+    : null
+
   return (
     <>
       <AppNav />
       <div className="app-shell">
-        <AppSidebar userId={user.id} profile={profile ?? null} />
+        <AppSidebar
+          userId={user.id}
+          profile={profile ?? null}
+          orgRole={orgRole}
+        />
         <div className="app-main">
           {children}
           <MarketingFooter />
