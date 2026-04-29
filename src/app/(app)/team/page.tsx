@@ -59,7 +59,11 @@ export default async function TeamPage() {
 
         {inviteCode && <TeamInviteCode inviteCode={inviteCode} />}
 
-        <TeamRoster members={members} currentUserId={user.id} />
+        <TeamRoster
+          orgId={profile.org_id}
+          members={members}
+          currentUserId={user.id}
+        />
       </main>
     </>
   )
