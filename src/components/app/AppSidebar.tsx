@@ -4,12 +4,15 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 
 type Profile = {
   full_name: string | null
   organization_name: string | null
   role_title: string | null
   avatar_url: string | null
+  org_id?: string | null
+  timezone?: string | null
   is_platform_admin?: boolean | null
 }
 
@@ -32,22 +35,65 @@ export function AppSidebar({
     router.refresh()
   }
 
+  const orgId = profile?.org_id ?? null
+  const timezone = profile?.timezone ?? 'America/Chicago'
+
   const fetchProgress = useCallback(async () => {
-    // Overall progress = completed content_progress rows / total published items.
-    const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
+    // Progress denominator is "what the user can actually access right
+    // now": everything published, MINUS POTD episodes that haven't
+    // unlocked yet for their org. Otherwise the bar would be permanently
+    // dragged down by 120+ locked POTD episodes the user can't reach.
+
+    // 1. Find the org's POTD unlock window. Individuals (no orgId) and
+    //    orgs that haven't launched yet both end up with 0 — meaning
+    //    no POTD episodes count toward the denominator.
+    let unlockedThroughDay = 0
+    if (orgId) {
+      const { data: launch } = await supabase
+        .from('org_potd_launches')
+        .select('launched_at')
+        .eq('org_id', orgId)
+        .maybeSingle()
+      unlockedThroughDay = computeUnlockedThroughDay({
+        launchedAt: launch?.launched_at ?? null,
+        timezone,
+      })
+    }
+
+    // 2. Three counts in parallel:
+    //    - all published non-POTD items
+    //    - POTD items whose sequence_num is within the unlock window
+    //    - the user's completed-item rows
+    const [
+      { count: nonPotdCount },
+      { count: potdAvailableCount },
+      { count: doneCount },
+    ] = await Promise.all([
       supabase
         .from('content_items')
         .select('id', { count: 'exact', head: true })
-        .eq('is_published', true),
+        .eq('is_published', true)
+        .neq('type', 'potd'),
+      supabase
+        .from('content_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_published', true)
+        .eq('type', 'potd')
+        .lte('sequence_num', unlockedThroughDay),
       supabase
         .from('content_progress')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId),
     ])
-    const total = totalCount ?? 0
+
+    const total = (nonPotdCount ?? 0) + (potdAvailableCount ?? 0)
     const done = doneCount ?? 0
-    setPct(total > 0 ? Math.round((done / total) * 100) : 0)
-  }, [supabase, userId])
+    // Cap at 100 — defends against stale progress on items that are
+    // no longer in the user's unlock window (e.g. an org change).
+    setPct(
+      total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0
+    )
+  }, [supabase, userId, orgId, timezone])
 
   useEffect(() => {
     fetchProgress()
