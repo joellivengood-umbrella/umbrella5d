@@ -157,6 +157,113 @@ export async function fetchCompletedCountsByType(
 }
 
 /**
+ * Shape of "what should the user do next" — fed to the dashboard's
+ * Continue Where You Left Off card. Intentionally raw: href + display
+ * strings are derived in the UI layer so this file stays free of routing
+ * and copy decisions.
+ */
+export type ResumeTarget = {
+  courseSlug: ContentType
+  bssVersion: BssVersion | null
+  itemTitle: string | null
+  sequenceNum: number
+}
+
+/**
+ * The next thing the user should do, based on their most recent
+ * completion. Returns null when:
+ *   - the user has no completions yet,
+ *   - the most-recent course is finished (no next item exists),
+ *   - the next item is a still-locked POTD episode.
+ *
+ * `unlockedThroughDay` is the user's current POTD unlock window
+ * (computed from their org's launch + their timezone). Pass 0 for
+ * individuals or orgs that haven't launched.
+ */
+export async function fetchResumeTarget(
+  supabase: MaybeClient,
+  userId: string,
+  unlockedThroughDay: number
+): Promise<ResumeTarget | null> {
+  // 1. Find the user's most recent completion. We pull the joined
+  //    content_items row in one trip so we know what course/sequence
+  //    they were last on.
+  const { data: rows, error: lastErr } = await supabase
+    .from('content_progress')
+    .select(
+      'completed_at, content_items!inner(type, sequence_num, metadata)'
+    )
+    .eq('user_id', userId)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+
+  if (lastErr) {
+    console.error('fetchResumeTarget last completion error', lastErr)
+    throw new Error(`fetchResumeTarget failed: ${lastErr.message}`)
+  }
+  if (!rows || rows.length === 0) return null
+
+  // Supabase types embedded relations as either an object or an array
+  // depending on FK shape. content_progress -> content_items is many-to-one,
+  // so it should always be an object here, but normalize defensively.
+  const rawItem = (rows[0] as {
+    content_items:
+      | { type: ContentType; sequence_num: number; metadata: Record<string, unknown> | null }
+      | { type: ContentType; sequence_num: number; metadata: Record<string, unknown> | null }[]
+      | null
+  }).content_items
+  const lastItem = Array.isArray(rawItem) ? rawItem[0] : rawItem
+  if (!lastItem) return null
+
+  const courseSlug = lastItem.type
+  const lastSeq = lastItem.sequence_num
+  const lastMeta = lastItem.metadata as { version?: BssVersion } | null
+  const bssVersion: BssVersion | null =
+    courseSlug === 'bss' ? (lastMeta?.version ?? null) : null
+
+  // BSS items must carry a metadata.version — every BSS route lives at
+  // /courses/bss/[version]/[n]. If the row is missing the version we
+  // can't build a valid URL, so refuse to suggest it rather than ship
+  // a broken link to the user.
+  if (courseSlug === 'bss' && !bssVersion) return null
+
+  const nextSeq = lastSeq + 1
+
+  // POTD gate: don't suggest a locked episode.
+  if (courseSlug === 'potd' && nextSeq > unlockedThroughDay) {
+    return null
+  }
+
+  // 2. Find the next published item in the same course (and, for BSS,
+  //    the same version).
+  let nextQuery = supabase
+    .from('content_items')
+    .select('type, sequence_num, title, metadata')
+    .eq('type', courseSlug)
+    .eq('sequence_num', nextSeq)
+    .eq('is_published', true)
+
+  if (courseSlug === 'bss' && bssVersion) {
+    nextQuery = nextQuery.eq('metadata->>version', bssVersion)
+  }
+
+  const { data: nextItem, error: nextErr } = await nextQuery.maybeSingle()
+
+  if (nextErr) {
+    console.error('fetchResumeTarget next item error', nextErr)
+    throw new Error(`fetchResumeTarget failed: ${nextErr.message}`)
+  }
+  if (!nextItem) return null
+
+  return {
+    courseSlug,
+    bssVersion,
+    itemTitle: (nextItem.title as string | null) ?? null,
+    sequenceNum: nextItem.sequence_num as number,
+  }
+}
+
+/**
  * Fetch the user's preference flags used by course list pages.
  * Returns safe defaults if the user has no profile row yet (which can
  * happen briefly between auth signup and the profile-creation trigger),

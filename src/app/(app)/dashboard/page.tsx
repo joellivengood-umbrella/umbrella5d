@@ -3,10 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
 import { COURSES } from '@/lib/courses'
 import { CourseCard } from '@/components/courses/CourseCard'
+import { ResumeCard } from '@/components/dashboard/ResumeCard'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
+  fetchResumeTarget,
 } from '@/lib/content-queries'
+import { fetchOrgPotdLaunch } from '@/lib/org-queries'
+import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 
 export const metadata = {
   title: 'Dashboard',
@@ -20,12 +24,33 @@ export default async function DashboardPage() {
   if (!user) return null
 
   const [{ data: profile }, totals, doneCounts] = await Promise.all([
-    supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+    supabase
+      .from('profiles')
+      .select('full_name, org_id, timezone')
+      .eq('id', user.id)
+      .single(),
     fetchTotalsByType(supabase),
     fetchCompletedCountsByType(supabase, user.id),
   ])
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
+
+  // Compute the user's POTD unlock window so fetchResumeTarget can avoid
+  // suggesting a still-locked episode. Individuals (no org_id) and orgs
+  // that haven't launched POTD both end up with unlockedThroughDay = 0.
+  const launch = profile?.org_id
+    ? await fetchOrgPotdLaunch(supabase, profile.org_id)
+    : null
+  const unlockedThroughDay = computeUnlockedThroughDay({
+    launchedAt: launch?.launchedAt ?? null,
+    timezone: profile?.timezone ?? 'America/Chicago',
+  })
+
+  const resumeTarget = await fetchResumeTarget(
+    supabase,
+    user.id,
+    unlockedThroughDay
+  )
 
   const totalAll = COURSES.reduce((sum, c) => sum + (totals[c.slug] ?? 0), 0)
   const doneAll = COURSES.reduce((sum, c) => sum + (doneCounts[c.slug] ?? 0), 0)
@@ -48,6 +73,9 @@ export default async function DashboardPage() {
 
       <div className="dash-content">
         <div className="dash-layout">
+
+          {/* ── Continue Where You Left Off ── */}
+          {resumeTarget && <ResumeCard target={resumeTarget} />}
 
           {/* ── Stat cards ── */}
           <div className="dash-stats">
