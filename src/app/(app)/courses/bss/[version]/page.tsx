@@ -11,6 +11,7 @@ import {
   fetchCompletedItemIds,
   fetchUserSettings,
 } from '@/lib/content-queries'
+import { fetchMemberAssignments } from '@/lib/org-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
 
@@ -41,11 +42,14 @@ export default async function BssVersionPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [items, completed, settings] = await Promise.all([
+  const [items, completed, settings, assignments] = await Promise.all([
     fetchContentItems(supabase, 'bss', version as BssVersion),
     fetchCompletedItemIds(supabase, user.id),
     fetchUserSettings(supabase, user.id),
+    fetchMemberAssignments(supabase, user.id),
   ])
+
+  const assignedItemIds = new Set(assignments.map((a) => a.contentItemId))
 
   const visibleItems = settings.showCompleted
     ? items
@@ -90,6 +94,7 @@ export default async function BssVersionPage({
               title={item.title ?? `Segment ${item.sequence_num}`}
               durationMins={item.duration_mins}
               done={completed.has(item.id)}
+              assigned={assignedItemIds.has(item.id)}
             />
           ))}
         </div>

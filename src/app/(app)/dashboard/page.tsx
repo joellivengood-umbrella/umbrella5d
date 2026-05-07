@@ -4,12 +4,17 @@ import { BodyClass } from '@/components/app/BodyClass'
 import { COURSES } from '@/lib/courses'
 import { CourseCard } from '@/components/courses/CourseCard'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
+import { AssignmentsSection } from '@/components/dashboard/AssignmentsSection'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
+  fetchCompletedItemIds,
   fetchResumeTarget,
 } from '@/lib/content-queries'
-import { fetchOrgPotdLaunch } from '@/lib/org-queries'
+import {
+  fetchOrgPotdLaunch,
+  fetchMemberAssignments,
+} from '@/lib/org-queries'
 import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 
 export const metadata = {
@@ -52,6 +57,17 @@ export default async function DashboardPage() {
     unlockedThroughDay
   )
 
+  // Pull the user's assignments + completed-item IDs in parallel, then
+  // filter out anything they've already completed — the dashboard's
+  // assignments list is "still to do," not a permanent record.
+  const [allAssignments, completedItemIds] = await Promise.all([
+    fetchMemberAssignments(supabase, user.id),
+    fetchCompletedItemIds(supabase, user.id),
+  ])
+  const pendingAssignments = allAssignments.filter(
+    (a) => !completedItemIds.has(a.contentItemId)
+  )
+
   // Clamp POTD totals to the user's unlock window so locked episodes
   // don't drag the dashboard's numbers down. Same fix the sidebar uses.
   // For individuals (no org_id) and pre-launch orgs, unlockedThroughDay
@@ -92,6 +108,12 @@ export default async function DashboardPage() {
 
       <div className="dash-content">
         <div className="dash-layout">
+
+          {/* ── Assigned to you (manager-directed work) ── */}
+          <AssignmentsSection
+            assignments={pendingAssignments}
+            unlockedThroughDay={unlockedThroughDay}
+          />
 
           {/* ── Continue Where You Left Off ── */}
           {resumeTarget && <ResumeCard target={resumeTarget} />}
