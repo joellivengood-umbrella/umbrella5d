@@ -12,6 +12,7 @@ export function ContentItemTile({
   durationMins,
   done = false,
   locked = false,
+  assigned = false,
   lockedLabel,
 }: {
   href: string
@@ -20,18 +21,25 @@ export function ContentItemTile({
   durationMins?: number | null
   done?: boolean
   locked?: boolean
+  assigned?: boolean
   lockedLabel?: string
 }) {
   const className = [
     'content-tile',
     done ? 'is-done' : '',
     locked ? 'is-locked' : '',
+    assigned ? 'is-assigned' : '',
   ]
     .filter(Boolean)
     .join(' ')
 
   const body = (
     <>
+      {assigned && (
+        <span className="content-tile__assigned" aria-label="Assigned">
+          Assigned
+        </span>
+      )}
       <div className="content-tile__number">
         {locked ? (
           <svg

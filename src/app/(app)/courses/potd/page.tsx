@@ -6,7 +6,11 @@ import {
   fetchCompletedItemIds,
   fetchUserSettings,
 } from '@/lib/content-queries'
-import { fetchOrgPotdLaunch, fetchUserOrgRole } from '@/lib/org-queries'
+import {
+  fetchOrgPotdLaunch,
+  fetchUserOrgRole,
+  fetchMemberAssignments,
+} from '@/lib/org-queries'
 import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
@@ -22,11 +26,14 @@ export default async function PotdIndexPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [items, completed, settings] = await Promise.all([
+  const [items, completed, settings, assignments] = await Promise.all([
     fetchContentItems(supabase, 'potd'),
     fetchCompletedItemIds(supabase, user.id),
     fetchUserSettings(supabase, user.id),
+    fetchMemberAssignments(supabase, user.id),
   ])
+
+  const assignedItemIds = new Set(assignments.map((a) => a.contentItemId))
 
   // Org-scoped POTD launch state. Individuals (no org_id) can't launch
   // POTD yet — the manager flow assumes an org.
@@ -114,6 +121,7 @@ export default async function PotdIndexPage() {
                 done={completed.has(item.id)}
                 locked={!isUnlocked}
                 lockedLabel="Locked"
+                assigned={assignedItemIds.has(item.id)}
               />
             )
           })}
