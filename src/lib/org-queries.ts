@@ -107,6 +107,81 @@ export async function fetchOrgMembers(
 }
 
 /**
+ * Per-member completed-item count for the Team Progress section on
+ * /team. Counts only items the user can actually access (i.e. excludes
+ * POTD episodes beyond the org's current unlock window) so the
+ * percentages match what each member sees in their own sidebar.
+ */
+export type TeamProgressRow = {
+  userId: string
+  completed: number
+}
+
+/**
+ * Returns one TeamProgressRow per provided user_id. Users with zero
+ * completions are included with completed=0 — every team member shows
+ * up in the progress list, not just the active ones.
+ *
+ * RLS requirement: the caller must be a manager of an org that the
+ * provided user_ids are members of. Without the
+ * "managers can view team progress" policy
+ * (20260428_managers_view_team_progress.sql), this returns nothing.
+ */
+export async function fetchTeamProgress(
+  supabase: MaybeClient,
+  userIds: string[],
+  unlockedThroughDay: number
+): Promise<TeamProgressRow[]> {
+  if (userIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('content_progress')
+    .select(
+      'user_id, content_items!inner(type, sequence_num, is_published)'
+    )
+    .in('user_id', userIds)
+
+  if (error) {
+    console.error('fetchTeamProgress error', error)
+    throw new Error(`fetchTeamProgress failed: ${error.message}`)
+  }
+
+  // Initialize every user with 0 so members with no completions still
+  // get a row.
+  const counts = new Map<string, number>()
+  for (const id of userIds) counts.set(id, 0)
+
+  for (const row of data ?? []) {
+    const userId = (row as { user_id: string }).user_id
+
+    // Supabase types embedded relations as object-or-array. Normalize.
+    const rawItem = (row as {
+      content_items:
+        | { type: string; sequence_num: number; is_published: boolean }
+        | { type: string; sequence_num: number; is_published: boolean }[]
+        | null
+    }).content_items
+    const item = Array.isArray(rawItem) ? rawItem[0] : rawItem
+    if (!item) continue
+
+    // Skip unpublished items (admin pulled them after the user
+    // completed them) and out-of-window POTD episodes (matches the
+    // accessible-totals math the sidebar/dashboard use).
+    if (!item.is_published) continue
+    if (item.type === 'potd' && item.sequence_num > unlockedThroughDay) {
+      continue
+    }
+
+    counts.set(userId, (counts.get(userId) ?? 0) + 1)
+  }
+
+  return Array.from(counts.entries()).map(([userId, completed]) => ({
+    userId,
+    completed,
+  }))
+}
+
+/**
  * The org's POTD launch row, or null if POTD hasn't been launched yet.
  * Returns the launch timestamp as an ISO string for easy serialization
  * across server -> client component boundaries.
