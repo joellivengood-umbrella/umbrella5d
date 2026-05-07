@@ -182,6 +182,85 @@ export async function fetchTeamProgress(
 }
 
 /**
+ * One row from content_assignments, with the joined content_item
+ * details flattened so the UI can render without dealing with
+ * Supabase's embedded-relation shape.
+ */
+export type AssignmentEntry = {
+  id: string
+  contentItemId: string
+  type: 'bss' | 'eos' | 'potd' | 'machine'
+  sequenceNum: number
+  title: string | null
+  metadataVersion: string | null // BSS version slug, otherwise null
+  assignedAt: string
+}
+
+/**
+ * All assignments for a single member, joined to content_items so the
+ * UI can show "BSS 5hr · Segment 4: Title" without a second round-trip.
+ *
+ * RLS: managers can read these via "managers read team assignments";
+ * the assignee themselves can read via "users read own assignments".
+ * Order: most recently assigned first, so a manager scanning the list
+ * sees their latest action at the top.
+ */
+export async function fetchMemberAssignments(
+  supabase: MaybeClient,
+  userId: string
+): Promise<AssignmentEntry[]> {
+  const { data, error } = await supabase
+    .from('content_assignments')
+    .select(
+      'id, content_item_id, assigned_at, content_items!inner(type, sequence_num, title, metadata)'
+    )
+    .eq('user_id', userId)
+    .order('assigned_at', { ascending: false })
+
+  if (error) {
+    console.error('fetchMemberAssignments error', error)
+    throw new Error(`fetchMemberAssignments failed: ${error.message}`)
+  }
+
+  return (data ?? []).map((row) => {
+    const rawItem = (row as {
+      content_items:
+        | {
+            type: string
+            sequence_num: number
+            title: string | null
+            metadata: Record<string, unknown> | null
+          }
+        | {
+            type: string
+            sequence_num: number
+            title: string | null
+            metadata: Record<string, unknown> | null
+          }[]
+        | null
+    }).content_items
+    const item = Array.isArray(rawItem) ? rawItem[0] : rawItem
+
+    const type = (item?.type ?? 'bss') as
+      | 'bss'
+      | 'eos'
+      | 'potd'
+      | 'machine'
+    const meta = (item?.metadata ?? {}) as { version?: string }
+
+    return {
+      id: (row as { id: string }).id,
+      contentItemId: (row as { content_item_id: string }).content_item_id,
+      type,
+      sequenceNum: item?.sequence_num ?? 0,
+      title: item?.title ?? null,
+      metadataVersion: type === 'bss' ? (meta.version ?? null) : null,
+      assignedAt: (row as { assigned_at: string }).assigned_at,
+    }
+  })
+}
+
+/**
  * The org's POTD launch row, or null if POTD hasn't been launched yet.
  * Returns the launch timestamp as an ISO string for easy serialization
  * across server -> client component boundaries.
