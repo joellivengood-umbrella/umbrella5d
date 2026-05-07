@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { OrgMember } from '@/lib/org-queries'
 import { MemberActions } from './MemberActions'
 
@@ -46,7 +47,12 @@ export function TeamRoster({
               />
               <div className="team-roster__info">
                 <div className="team-roster__name-line">
-                  <span className="team-roster__name">{displayName}</span>
+                  <Link
+                    href={`/team/${m.userId}`}
+                    className="team-roster__name team-roster__name--link"
+                  >
+                    {displayName}
+                  </Link>
                   {isYou && <span className="team-roster__you">You</span>}
                 </div>
                 <span className="team-roster__joined">
