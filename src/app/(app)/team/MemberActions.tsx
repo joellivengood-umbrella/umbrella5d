@@ -76,7 +76,17 @@ export function MemberActions({
 
     if (delErr) {
       console.error('MemberActions remove error', delErr)
-      setError('Could not remove. Please try again.')
+      // The prevent_last_manager_removal trigger raises this when
+      // removing this member would leave the org with zero managers.
+      // Detected by message substring because Supabase relays the
+      // raw Postgres error text rather than a custom error code.
+      if (delErr.message?.includes('last manager')) {
+        setError(
+          'Cannot remove the only manager. Promote another team member first.'
+        )
+      } else {
+        setError('Could not remove. Please try again.')
+      }
       return
     }
     startTransition(() => router.refresh())
