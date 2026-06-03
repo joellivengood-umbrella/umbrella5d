@@ -83,10 +83,20 @@ export function AssignmentForm({
     setSubmitting(false)
 
     if (insErr) {
-      // 23505 = unique_violation. If it slipped past our filter (race
-      // with another manager assigning the same item), refresh and
-      // pretend it succeeded.
+      // 23505 = unique_violation. Reached when another manager (or
+      // a stale tab) assigned the same item between us last loading
+      // the page and clicking Add. Tell the manager the truth — the
+      // earlier behavior was to silently refresh, which made the
+      // collision invisible. Still refresh so the dropdown re-filters
+      // out the now-assigned item.
       if (insErr.code === '23505') {
+        setError(
+          'This item is already assigned to this member. The list has been refreshed.'
+        )
+        // Clear the selection — the item is about to disappear from
+        // the dropdown after refresh, leaving the select in a stale
+        // state otherwise.
+        setContentItemId('')
         startTransition(() => router.refresh())
         return
       }
