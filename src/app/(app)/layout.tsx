@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AppNav } from '@/components/app/AppNav'
 import { AppSidebar } from '@/components/app/AppSidebar'
 import { MarketingFooter } from '@/components/marketing/MarketingFooter'
+import { PotdPlayerProvider } from '@/components/potd/PotdPlayerProvider'
 import { fetchUserOrgRole } from '@/lib/org-queries'
 
 export default async function AppLayout({
@@ -38,7 +39,7 @@ export default async function AppLayout({
     : null
 
   return (
-    <>
+    <PotdPlayerProvider userId={user.id}>
       <AppNav />
       <div className="app-shell">
         <AppSidebar
@@ -51,6 +52,6 @@ export default async function AppLayout({
           <MarketingFooter />
         </div>
       </div>
-    </>
+    </PotdPlayerProvider>
   )
 }
