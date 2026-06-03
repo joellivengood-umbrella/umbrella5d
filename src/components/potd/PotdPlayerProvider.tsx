@@ -80,6 +80,10 @@ export function PotdPlayerProvider({
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(1)
+
+  // Remembers the last non-zero volume so the mute toggle can restore it.
+  const lastVolumeRef = useRef(1)
 
   // Tracks which itemIds we've already auto-completed this session, so a
   // replay doesn't spam the DB / router.refresh on every 'ended'.
@@ -131,6 +135,34 @@ export function PotdPlayerProvider({
     document.body.classList.toggle('potd-player-active', current != null)
     return () => document.body.classList.remove('potd-player-active')
   }, [current])
+
+  // Keep the element's volume in sync with state. The volume property is
+  // an attribute of the <audio> element (not the media), so it persists
+  // across track changes — setting it on change is enough.
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume
+  }, [volume])
+
+  function rewind15() {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.currentTime = Math.max(0, audio.currentTime - 15)
+    setCurrentTime(audio.currentTime)
+  }
+
+  function changeVolume(v: number) {
+    setVolume(v)
+    if (v > 0) lastVolumeRef.current = v
+  }
+
+  function toggleMute() {
+    if (volume > 0) {
+      lastVolumeRef.current = volume
+      setVolume(0)
+    } else {
+      setVolume(lastVolumeRef.current || 1)
+    }
+  }
 
   async function handleEnded() {
     setIsPlaying(false)
@@ -204,6 +236,19 @@ export function PotdPlayerProvider({
           <div className="potd-miniplayer__controls">
             <button
               type="button"
+              className="potd-miniplayer__skipbtn"
+              onClick={rewind15}
+              aria-label="Rewind 15 seconds"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                <polyline points="11 17 6 12 11 7" />
+                <path d="M6 12h9a5 5 0 0 1 0 10h-1" />
+              </svg>
+              <span className="potd-miniplayer__skiplabel">15</span>
+            </button>
+
+            <button
+              type="button"
               className="potd-miniplayer__playbtn"
               onClick={toggle}
               aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -234,6 +279,43 @@ export function PotdPlayerProvider({
               </div>
               <span className="potd-miniplayer__time">{formatTime(duration)}</span>
             </div>
+          </div>
+
+          <div className="potd-miniplayer__volume">
+            <button
+              type="button"
+              className="potd-miniplayer__volbtn"
+              onClick={toggleMute}
+              aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+            >
+              {volume === 0 ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+              ) : volume < 0.5 ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              )}
+            </button>
+            <input
+              type="range"
+              className="potd-miniplayer__volslider"
+              min={0}
+              max={1}
+              step={0.05}
+              value={volume}
+              onChange={(e) => changeVolume(parseFloat(e.target.value))}
+              aria-label="Volume"
+            />
           </div>
 
           <button

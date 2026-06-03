@@ -2041,10 +2041,11 @@ button.sidebar-signout {
   right: 0;
   bottom: 0;
   z-index: 80;
+  min-height: 72px;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  padding: .6rem 1.5rem;
+  gap: 1.1rem;
+  padding: .75rem 1.5rem;
   background: #fff;
   border-top: 1px solid var(--clr-border, #e6e8ef);
   box-shadow: 0 -6px 24px rgba(15, 17, 23, .08);
@@ -2103,8 +2104,8 @@ button.sidebar-signout {
 }
 
 .potd-miniplayer__playbtn {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   flex-shrink: 0;
   border-radius: 50%;
   border: none;
@@ -2118,6 +2119,33 @@ button.sidebar-signout {
 }
 .potd-miniplayer__playbtn:hover {
   background: #1a8a1a;
+}
+
+/* Rewind-15 button */
+.potd-miniplayer__skipbtn {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--clr-text, #111);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background var(--dur, .2s) var(--ease, ease);
+}
+.potd-miniplayer__skipbtn:hover {
+  background: #f1f2f7;
+}
+.potd-miniplayer__skiplabel {
+  position: absolute;
+  bottom: 6px;
+  font-size: .52rem;
+  font-weight: 800;
+  letter-spacing: .02em;
 }
 
 .potd-miniplayer__scrubber {
@@ -2170,9 +2198,43 @@ button.sidebar-signout {
   color: var(--clr-text, #111);
 }
 
+/* Volume control — mute button + slider */
+.potd-miniplayer__volume {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.potd-miniplayer__volbtn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--clr-muted, #6b7280);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background var(--dur, .2s) var(--ease, ease),
+              color var(--dur, .2s) var(--ease, ease);
+}
+.potd-miniplayer__volbtn:hover {
+  background: #f1f2f7;
+  color: var(--clr-text, #111);
+}
+
+.potd-miniplayer__volslider {
+  width: 80px;
+  height: 6px;
+  cursor: pointer;
+  accent-color: #22a322;
+}
+
 /* Reserve space so the fixed bar doesn't cover content / footer. */
 body.potd-player-active .app-main {
-  padding-bottom: 84px;
+  padding-bottom: 96px;
 }
 
 /* Mobile: sidebar collapses to a top strip, so the bar spans full width. */
@@ -2180,13 +2242,18 @@ body.potd-player-active .app-main {
   .potd-miniplayer {
     left: 0;
     gap: .85rem;
-    padding: .55rem .85rem;
+    padding: .6rem .85rem;
   }
   .potd-miniplayer__info {
     width: auto;
     flex: 1;
   }
   .potd-miniplayer__time {
+    display: none;
+  }
+  /* Volume control is desktop-only — the slider crowds the narrow bar.
+     Mobile users use their device volume buttons. */
+  .potd-miniplayer__volume {
     display: none;
   }
 }
