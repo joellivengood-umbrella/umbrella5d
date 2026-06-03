@@ -118,28 +118,31 @@ export type TeamProgressRow = {
 }
 
 /**
- * Returns one TeamProgressRow per provided user_id. Users with zero
- * completions are included with completed=0 — every team member shows
- * up in the progress list, not just the active ones.
+ * Returns one TeamProgressRow per provided user_id, counting only
+ * Umbrella Program completions (BSS, EOS, Machine — POTD excluded).
+ * Users with zero completions are included with completed=0 so every
+ * team member shows up in the progress list, not just the active ones.
+ *
+ * POTD is bonus content; its completions don't count toward program
+ * progress. Filter is server-side via the embedded-table .neq.
  *
  * RLS requirement: the caller must be a manager of an org that the
- * provided user_ids are members of. Without the
- * "managers can view team progress" policy
- * (20260428_managers_view_team_progress.sql), this returns nothing.
+ * provided user_ids are members of, via the
+ * "managers can view team progress" policy.
  */
 export async function fetchTeamProgress(
   supabase: MaybeClient,
-  userIds: string[],
-  unlockedThroughDay: number
+  userIds: string[]
 ): Promise<TeamProgressRow[]> {
   if (userIds.length === 0) return []
 
   const { data, error } = await supabase
     .from('content_progress')
     .select(
-      'user_id, content_items!inner(type, sequence_num, is_published)'
+      'user_id, content_items!inner(type, is_published)'
     )
     .in('user_id', userIds)
+    .neq('content_items.type', 'potd')
 
   if (error) {
     console.error('fetchTeamProgress error', error)
@@ -157,20 +160,16 @@ export async function fetchTeamProgress(
     // Supabase types embedded relations as object-or-array. Normalize.
     const rawItem = (row as {
       content_items:
-        | { type: string; sequence_num: number; is_published: boolean }
-        | { type: string; sequence_num: number; is_published: boolean }[]
+        | { type: string; is_published: boolean }
+        | { type: string; is_published: boolean }[]
         | null
     }).content_items
     const item = Array.isArray(rawItem) ? rawItem[0] : rawItem
     if (!item) continue
 
     // Skip unpublished items (admin pulled them after the user
-    // completed them) and out-of-window POTD episodes (matches the
-    // accessible-totals math the sidebar/dashboard use).
+    // completed them). POTD is already filtered server-side.
     if (!item.is_published) continue
-    if (item.type === 'potd' && item.sequence_num > unlockedThroughDay) {
-      continue
-    }
 
     counts.set(userId, (counts.get(userId) ?? 0) + 1)
   }

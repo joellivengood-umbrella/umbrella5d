@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 import type { OrgRole } from '@/lib/org-queries'
 
 type Profile = {
@@ -38,65 +37,36 @@ export function AppSidebar({
     router.refresh()
   }
 
-  const orgId = profile?.org_id ?? null
-  const timezone = profile?.timezone ?? 'America/Chicago'
-
   const fetchProgress = useCallback(async () => {
-    // Progress denominator is "what the user can actually access right
-    // now": everything published, MINUS POTD episodes that haven't
-    // unlocked yet for their org. Otherwise the bar would be permanently
-    // dragged down by 120+ locked POTD episodes the user can't reach.
+    // Progress denominator is the Umbrella Program: every published
+    // non-POTD item. POTD is bonus content and intentionally excluded
+    // — an ever-growing daily-pod catalog shouldn't drag the program
+    // completion bar down, and a user "completing the program"
+    // shouldn't depend on listening to every pod ever published.
+    //
+    // The numerator counts only program completions to match the
+    // denominator (POTD progress doesn't push the bar up either).
+    const [{ count: programTotal }, { count: programDone }] =
+      await Promise.all([
+        supabase
+          .from('content_items')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_published', true)
+          .neq('type', 'potd'),
+        supabase
+          .from('content_progress')
+          .select('id, content_items!inner(type)', {
+            count: 'exact',
+            head: true,
+          })
+          .eq('user_id', userId)
+          .neq('content_items.type', 'potd'),
+      ])
 
-    // 1. Find the org's POTD unlock window. Individuals (no orgId) and
-    //    orgs that haven't launched yet both end up with 0 — meaning
-    //    no POTD episodes count toward the denominator.
-    let unlockedThroughDay = 0
-    if (orgId) {
-      const { data: launch } = await supabase
-        .from('org_potd_launches')
-        .select('launched_at')
-        .eq('org_id', orgId)
-        .maybeSingle()
-      unlockedThroughDay = computeUnlockedThroughDay({
-        launchedAt: launch?.launched_at ?? null,
-        timezone,
-      })
-    }
-
-    // 2. Three counts in parallel:
-    //    - all published non-POTD items
-    //    - POTD items whose sequence_num is within the unlock window
-    //    - the user's completed-item rows
-    const [
-      { count: nonPotdCount },
-      { count: potdAvailableCount },
-      { count: doneCount },
-    ] = await Promise.all([
-      supabase
-        .from('content_items')
-        .select('id', { count: 'exact', head: true })
-        .eq('is_published', true)
-        .neq('type', 'potd'),
-      supabase
-        .from('content_items')
-        .select('id', { count: 'exact', head: true })
-        .eq('is_published', true)
-        .eq('type', 'potd')
-        .lte('sequence_num', unlockedThroughDay),
-      supabase
-        .from('content_progress')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId),
-    ])
-
-    const total = (nonPotdCount ?? 0) + (potdAvailableCount ?? 0)
-    const done = doneCount ?? 0
-    // Cap at 100 — defends against stale progress on items that are
-    // no longer in the user's unlock window (e.g. an org change).
-    setPct(
-      total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0
-    )
-  }, [supabase, userId, orgId, timezone])
+    const total = programTotal ?? 0
+    const done = programDone ?? 0
+    setPct(total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0)
+  }, [supabase, userId])
 
   useEffect(() => {
     // fetchProgress is async — the setState inside it only fires after
@@ -160,14 +130,28 @@ export function AppSidebar({
 
         <Link
           href="/courses"
-          className={`sidebar-link${isActive('/courses') ? ' is-active' : ''}`}
-          aria-current={isActive('/courses') ? 'page' : undefined}
+          className={`sidebar-link${pathname === '/courses' || (isActive('/courses') && !pathname.startsWith('/courses/potd')) ? ' is-active' : ''}`}
+          aria-current={pathname === '/courses' ? 'page' : undefined}
         >
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg>
           <span>Courses</span>
+        </Link>
+
+        <Link
+          href="/courses/potd"
+          className={`sidebar-link${isActive('/courses/potd') ? ' is-active' : ''}`}
+          aria-current={isActive('/courses/potd') ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="8" y1="23" x2="16" y2="23" />
+          </svg>
+          <span>Daily Pod</span>
         </Link>
 
         {orgRole === 'manager' && (
