@@ -1,14 +1,16 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
-import { COURSES } from '@/lib/courses'
+import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
 import { CourseCard } from '@/components/courses/CourseCard'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
 import { AssignmentsSection } from '@/components/dashboard/AssignmentsSection'
+import { TodayPodWidget } from '@/components/dashboard/TodayPodWidget'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
   fetchCompletedItemIds,
+  fetchContentItem,
   fetchResumeTarget,
 } from '@/lib/content-queries'
 import {
@@ -40,9 +42,8 @@ export default async function DashboardPage() {
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
 
-  // Compute the user's POTD unlock window so fetchResumeTarget can avoid
-  // suggesting a still-locked episode. Individuals (no org_id) and orgs
-  // that haven't launched POTD both end up with unlockedThroughDay = 0.
+  // POTD launch state powers the TodayPodWidget. POTD is bonus content
+  // and intentionally excluded from program progress math below.
   const launch = profile?.org_id
     ? await fetchOrgPotdLaunch(supabase, profile.org_id)
     : null
@@ -51,15 +52,20 @@ export default async function DashboardPage() {
     timezone: profile?.timezone ?? 'America/Chicago',
   })
 
-  const resumeTarget = await fetchResumeTarget(
-    supabase,
-    user.id,
-    unlockedThroughDay
-  )
+  // Today's POTD episode = the highest unlocked sequence_num. Only
+  // fetch when there's actually something unlocked to show.
+  const todayPotdItem =
+    unlockedThroughDay > 0
+      ? await fetchContentItem(supabase, 'potd', unlockedThroughDay)
+      : null
 
-  // Pull the user's assignments + completed-item IDs in parallel, then
-  // filter out anything they've already completed — the dashboard's
-  // assignments list is "still to do," not a permanent record.
+  // Resume card now scopes to Umbrella Program only — POTD is bonus
+  // content, not "where you left off."
+  const resumeTarget = await fetchResumeTarget(supabase, user.id)
+
+  // Pull the user's assignments + completed-item IDs in parallel.
+  // pendingAssignments = unfinished; powers the AssignmentsSection.
+  // completedItemIds also lets the TodayPodWidget show a "heard" state.
   const [allAssignments, completedItemIds] = await Promise.all([
     fetchMemberAssignments(supabase, user.id),
     fetchCompletedItemIds(supabase, user.id),
@@ -67,30 +73,24 @@ export default async function DashboardPage() {
   const pendingAssignments = allAssignments.filter(
     (a) => !completedItemIds.has(a.contentItemId)
   )
+  const todayPotdDone = todayPotdItem
+    ? completedItemIds.has(todayPotdItem.id)
+    : false
 
-  // Clamp POTD totals to the user's unlock window so locked episodes
-  // don't drag the dashboard's numbers down. Same fix the sidebar uses.
-  // For individuals (no org_id) and pre-launch orgs, unlockedThroughDay
-  // is 0 — POTD contributes 0 to both numerator and denominator, so the
-  // user's overall progress reflects only what they can actually access.
-  const accessiblePotdTotal = Math.min(totals.potd ?? 0, unlockedThroughDay)
-  const accessiblePotdDone = Math.min(
-    doneCounts.potd ?? 0,
-    accessiblePotdTotal
-  )
-  const accessibleTotals = { ...totals, potd: accessiblePotdTotal }
-  const accessibleDoneCounts = { ...doneCounts, potd: accessiblePotdDone }
-
-  const totalAll = COURSES.reduce(
-    (sum, c) => sum + (accessibleTotals[c.slug] ?? 0),
+  // Program progress math — Umbrella Program only (BSS + EOS + Machine).
+  // POTD is bonus content, intentionally excluded so an ever-growing
+  // catalog of daily pods can't drag the completion bar down.
+  const totalProgram = UMBRELLA_PROGRAM_COURSES.reduce(
+    (sum, c) => sum + (totals[c.slug] ?? 0),
     0
   )
-  const doneAll = COURSES.reduce(
-    (sum, c) => sum + (accessibleDoneCounts[c.slug] ?? 0),
+  const doneProgram = UMBRELLA_PROGRAM_COURSES.reduce(
+    (sum, c) => sum + (doneCounts[c.slug] ?? 0),
     0
   )
-  const pctAll = totalAll > 0 ? Math.round((doneAll / totalAll) * 100) : 0
-  const allDone = doneAll === totalAll && totalAll > 0
+  const pctProgram =
+    totalProgram > 0 ? Math.round((doneProgram / totalProgram) * 100) : 0
+  const allDone = doneProgram === totalProgram && totalProgram > 0
 
   return (
     <>
@@ -100,9 +100,9 @@ export default async function DashboardPage() {
         <p className="section-eyebrow">Your Learning Journey</p>
         <h1>Hey {firstName}! Welcome to your dashboard.</h1>
         <p className="dash-subtext">
-          Work through any of the four courses below. Your manager may have
-          assigned specific segments — check in with them if you&apos;re not
-          sure where to start.
+          Work through the three courses of the Umbrella Program below. Your
+          manager may have assigned specific segments — check in with them if
+          you&apos;re not sure where to start.
         </p>
       </div>
 
@@ -113,6 +113,14 @@ export default async function DashboardPage() {
           <AssignmentsSection
             assignments={pendingAssignments}
             unlockedThroughDay={unlockedThroughDay}
+          />
+
+          {/* ── Today's Pod (bonus daily content) ── */}
+          <TodayPodWidget
+            orgId={profile?.org_id ?? null}
+            isLaunched={!!launch}
+            todayItem={todayPotdItem}
+            todayItemDone={todayPotdDone}
           />
 
           {/* ── Continue Where You Left Off ── */}
@@ -128,7 +136,7 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <p className="stat-card__value">
-                {doneAll} / {totalAll}
+                {doneProgram} / {totalProgram}
               </p>
               <p className="stat-card__label">Items Completed</p>
             </div>
@@ -141,7 +149,7 @@ export default async function DashboardPage() {
                   <line x1="6" y1="20" x2="6" y2="14" />
                 </svg>
               </div>
-              <p className="stat-card__value">{pctAll}%</p>
+              <p className="stat-card__value">{pctProgram}%</p>
               <p className="stat-card__label">Overall Progress</p>
             </div>
 
@@ -152,12 +160,14 @@ export default async function DashboardPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
               </div>
-              <p className="stat-card__value">{COURSES.length}</p>
+              <p className="stat-card__value">
+                {UMBRELLA_PROGRAM_COURSES.length}
+              </p>
               <p className="stat-card__label">Courses Available</p>
             </div>
           </div>
 
-          {/* ── Overall progress bar card ── */}
+          {/* ── Overall progress bar card (program only) ── */}
           <div className="progress-card" role="region" aria-label="Overall progress">
             <div className="progress-header">
               <h2 className="progress-title">Overall Progress</h2>
@@ -165,41 +175,41 @@ export default async function DashboardPage() {
                 className={`progress-pct${allDone ? ' is-done' : ''}`}
                 aria-live="polite"
               >
-                {pctAll}%
+                {pctProgram}%
               </span>
             </div>
             <div
               className="progress-track"
               role="progressbar"
-              aria-valuenow={pctAll}
+              aria-valuenow={pctProgram}
               aria-valuemin={0}
               aria-valuemax={100}
             >
-              <div className="progress-fill" style={{ width: `${pctAll}%` }} />
+              <div className="progress-fill" style={{ width: `${pctProgram}%` }} />
             </div>
             <p className="progress-meta">
               {allDone
-                ? '🎉 All content complete!'
-                : `${doneAll} of ${totalAll} items complete across all courses`}
+                ? '🎉 Program complete!'
+                : `${doneProgram} of ${totalProgram} items complete across the program`}
             </p>
           </div>
 
-          {/* ── Course cards ── */}
+          {/* ── Umbrella Program courses ── */}
           <div className="modules-header">
-            <h2>Your Courses</h2>
+            <h2>The Umbrella Program</h2>
             <p>
               <Link href="/courses">Browse all courses →</Link>
             </p>
           </div>
 
           <div className="courses-grid">
-            {COURSES.map((course) => (
+            {UMBRELLA_PROGRAM_COURSES.map((course) => (
               <CourseCard
                 key={course.slug}
                 slug={course.slug}
                 href={`/courses/${course.slug}`}
-                completedCount={accessibleDoneCounts[course.slug] ?? 0}
-                totalCount={accessibleTotals[course.slug] ?? 0}
+                completedCount={doneCounts[course.slug] ?? 0}
+                totalCount={totals[course.slug] ?? 0}
               />
             ))}
           </div>

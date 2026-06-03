@@ -170,30 +170,32 @@ export type ResumeTarget = {
 }
 
 /**
- * The next thing the user should do, based on their most recent
- * completion. Returns null when:
- *   - the user has no completions yet,
- *   - the most-recent course is finished (no next item exists),
- *   - the next item is a still-locked POTD episode.
+ * The next thing the user should do in the Umbrella Program, based on
+ * their most recent program completion. POTD episodes are excluded —
+ * POTD is bonus content, not part of "where you left off." A user who
+ * has only ever completed POTD episodes gets null here (no program
+ * thread to resume).
  *
- * `unlockedThroughDay` is the user's current POTD unlock window
- * (computed from their org's launch + their timezone). Pass 0 for
- * individuals or orgs that haven't launched.
+ * Returns null when:
+ *   - the user has no program-course completions,
+ *   - the most-recent course is finished (no next item exists),
+ *   - the most-recent completion was BSS but missing metadata.version
+ *     (would produce a broken URL).
  */
 export async function fetchResumeTarget(
   supabase: MaybeClient,
-  userId: string,
-  unlockedThroughDay: number
+  userId: string
 ): Promise<ResumeTarget | null> {
-  // 1. Find the user's most recent completion. We pull the joined
-  //    content_items row in one trip so we know what course/sequence
-  //    they were last on.
+  // 1. Find the user's most recent program-course completion. POTD
+  //    rows are filtered server-side via the embedded-table .neq so
+  //    we don't have to fetch and discard them.
   const { data: rows, error: lastErr } = await supabase
     .from('content_progress')
     .select(
       'completed_at, content_items!inner(type, sequence_num, metadata)'
     )
     .eq('user_id', userId)
+    .neq('content_items.type', 'potd')
     .order('completed_at', { ascending: false })
     .limit(1)
 
@@ -228,11 +230,6 @@ export async function fetchResumeTarget(
   if (courseSlug === 'bss' && !bssVersion) return null
 
   const nextSeq = lastSeq + 1
-
-  // POTD gate: don't suggest a locked episode.
-  if (courseSlug === 'potd' && nextSeq > unlockedThroughDay) {
-    return null
-  }
 
   // 2. Find the next published item in the same course (and, for BSS,
   //    the same version).

@@ -16,7 +16,7 @@ import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
 import { LaunchPotdButton } from '@/components/courses/LaunchPotdButton'
 
-export const metadata = { title: 'Pod of the Day' }
+export const metadata = { title: 'Daily Pod' }
 
 export default async function PotdIndexPage() {
   const meta = getCourseMeta('potd')
@@ -52,6 +52,13 @@ export default async function PotdIndexPage() {
   const isOrgManager = role === 'manager'
   const isLaunched = !!launch
 
+  // "X / Y heard" — Y is the dynamic total of all published POTD
+  // episodes (whatever's in the DB, including ones not yet unlocked).
+  // X counts only this user's completed POTD episodes. The denominator
+  // grows naturally as the admin adds new pods.
+  const totalEpisodes = items.length
+  const heardEpisodes = items.filter((i) => completed.has(i.id)).length
+
   const visibleItems = settings.showCompleted
     ? items
     : items.filter((i) => !completed.has(i.id))
@@ -68,9 +75,14 @@ export default async function PotdIndexPage() {
         </Link>
 
         <div className="courses-header">
-          <p className="section-eyebrow">{meta.shortTitle}</p>
+          <p className="section-eyebrow">Daily Pod · Bonus</p>
           <h1>{meta.title}</h1>
           <p className="courses-header__blurb">{meta.blurb}</p>
+          {isLaunched && totalEpisodes > 0 && (
+            <p className="potd-heard-count">
+              You&apos;ve heard <strong>{heardEpisodes} / {totalEpisodes}</strong> episodes.
+            </p>
+          )}
         </div>
 
         {!isLaunched && (

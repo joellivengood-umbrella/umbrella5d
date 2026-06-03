@@ -1881,6 +1881,158 @@ button.sidebar-signout {
 }
 
 /* ══════════════════════════════════════════
+   TODAY'S POD WIDGET  (bonus content highlight)
+   ══════════════════════════════════════════ */
+.today-pod {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  /* POTD's green theme stripe along the left edge to mark this as
+     bonus content distinct from the program-themed sections. */
+  border-left: 4px solid #22a322;
+}
+
+.today-pod--pending {
+  /* Softer treatment when POTD isn't launched yet — still visible
+     but doesn't shout for attention like the active widget. */
+  border-left-color: #c8e3c8;
+  background: #f7fbf7;
+}
+
+.today-pod--done {
+  border-left-color: #1a8a1a;
+  background: #f5faf5;
+}
+
+.today-pod__body {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.today-pod__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md, 10px);
+  background: rgba(104, 242, 104, .14);
+  color: #1a8a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.today-pod--done .today-pod__icon {
+  background: linear-gradient(135deg, #68F268, #22a322);
+  color: #fff;
+}
+
+.today-pod__copy {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.today-pod__eyebrow {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #1a8a1a;
+  margin: 0;
+}
+
+.today-pod__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today-pod__meta {
+  font-size: .78rem;
+  color: var(--clr-muted);
+  margin: 0;
+}
+
+.today-pod__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+  padding: .6rem 1rem;
+  background: #22a322;
+  color: #fff;
+  border-radius: var(--radius-md, 10px);
+  font-weight: 600;
+  font-size: .9rem;
+  text-decoration: none;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.today-pod--pending .today-pod__cta {
+  background: transparent;
+  color: #1a8a1a;
+  border: 1px solid #c8e3c8;
+}
+
+.today-pod__cta:hover {
+  background: #1a8a1a;
+  transform: translateX(2px);
+}
+
+.today-pod--pending .today-pod__cta:hover {
+  background: rgba(104, 242, 104, .12);
+  transform: translateX(2px);
+}
+
+/* ══════════════════════════════════════════
+   /courses  → bonus link
+   ══════════════════════════════════════════ */
+.courses-bonus-link {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: .9rem;
+  color: var(--clr-muted);
+}
+.courses-bonus-link a {
+  color: var(--clr-primary, #5b4fff);
+  font-weight: 600;
+  text-decoration: none;
+}
+.courses-bonus-link a:hover {
+  text-decoration: underline;
+}
+
+/* ══════════════════════════════════════════
+   POTD index — "X / Y heard" subtitle
+   ══════════════════════════════════════════ */
+.potd-heard-count {
+  margin-top: 1rem;
+  font-size: .9rem;
+  color: var(--clr-muted);
+}
+.potd-heard-count strong {
+  color: var(--ct-text, #1a8a1a);
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════
    CONTINUE WHERE YOU LEFT OFF
    ══════════════════════════════════════════ */
 .resume-card {

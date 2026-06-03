@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
 import {
   fetchUserOrgRole,
-  fetchOrgPotdLaunch,
   fetchMemberAssignments,
   fetchTeamProgress,
 } from '@/lib/org-queries'
@@ -12,7 +11,6 @@ import {
   fetchContentItems,
   fetchTotalsByType,
 } from '@/lib/content-queries'
-import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 import { AssignmentList } from './AssignmentList'
 import { AssignmentForm } from './AssignmentForm'
 
@@ -37,7 +35,7 @@ export default async function ManageMemberPage({
   // — non-managers and orphans get a 404.
   const { data: callerProfile } = await supabase
     .from('profiles')
-    .select('org_id, timezone')
+    .select('org_id')
     .eq('id', user.id)
     .single()
 
@@ -62,11 +60,13 @@ export default async function ManageMemberPage({
 
   if (!targetMembership) notFound()
 
-  // Pull everything we need to render in parallel.
+  // Pull everything we need to render in parallel. POTD items are
+  // still fetched for the assignment form — managers can assign POTD
+  // bonus episodes even though POTD doesn't count toward program
+  // progress.
   const [
     { data: targetProfile },
     assignments,
-    launch,
     totals,
     bssItems,
     eosItems,
@@ -79,7 +79,6 @@ export default async function ManageMemberPage({
       .eq('id', memberId)
       .single(),
     fetchMemberAssignments(supabase, memberId),
-    fetchOrgPotdLaunch(supabase, callerProfile.org_id),
     fetchTotalsByType(supabase),
     fetchContentItems(supabase, 'bss'),
     fetchContentItems(supabase, 'eos'),
@@ -87,30 +86,17 @@ export default async function ManageMemberPage({
     fetchContentItems(supabase, 'machine'),
   ])
 
-  // Same accessible-totals math as /team and the dashboard. Used to
-  // show this member's progress percentage in the header.
-  const unlockedThroughDay = computeUnlockedThroughDay({
-    launchedAt: launch?.launchedAt ?? null,
-    timezone: callerProfile.timezone ?? 'America/Chicago',
-  })
-  const accessibleTotal =
-    (totals.bss ?? 0) +
-    (totals.eos ?? 0) +
-    (totals.machine ?? 0) +
-    Math.min(totals.potd ?? 0, unlockedThroughDay)
+  // Program-only progress denominator (POTD intentionally excluded —
+  // bonus content doesn't count toward program completion).
+  const programTotal =
+    (totals.bss ?? 0) + (totals.eos ?? 0) + (totals.machine ?? 0)
 
-  // Single-member progress lookup. Reuses the team-progress helper —
-  // it accepts an array of user IDs, we just pass one.
-  const [progress] = await fetchTeamProgress(
-    supabase,
-    [memberId],
-    unlockedThroughDay
-  )
-  const completed = Math.min(progress?.completed ?? 0, accessibleTotal)
+  // Single-member program-completed lookup. Reuses the team-progress
+  // helper — it accepts an array of user IDs, we just pass one.
+  const [progress] = await fetchTeamProgress(supabase, [memberId])
+  const completed = Math.min(progress?.completed ?? 0, programTotal)
   const pct =
-    accessibleTotal > 0
-      ? Math.round((completed / accessibleTotal) * 100)
-      : 0
+    programTotal > 0 ? Math.round((completed / programTotal) * 100) : 0
 
   const memberName = targetProfile?.full_name ?? '—'
   const memberAvatar = targetProfile?.avatar_url ?? '/default_avatar.png'
@@ -174,7 +160,7 @@ export default async function ManageMemberPage({
               {pct}%
               <span className="team-progress__count-detail">
                 {' '}
-                ({completed} / {accessibleTotal})
+                ({completed} / {programTotal})
               </span>
             </span>
           </div>

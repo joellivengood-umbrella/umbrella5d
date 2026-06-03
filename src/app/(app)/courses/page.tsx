@@ -1,5 +1,6 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { COURSES } from '@/lib/courses'
+import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
@@ -28,16 +29,17 @@ export default async function CoursesIndexPage() {
       <BodyClass className="page-dashboard" />
       <main className="courses-main">
         <div className="courses-header">
-          <p className="section-eyebrow">Content Library</p>
+          <p className="section-eyebrow">The Umbrella Program</p>
           <h1>Courses</h1>
           <p className="courses-header__blurb">
-            Four tracks of content, all equal-weight. Work through them in any
-            order — or let your organization assign specific segments to your role.
+            Three tracks of content that make up the Umbrella Program. Work
+            through them in any order — or let your organization assign
+            specific segments to your role.
           </p>
         </div>
 
         <div className="courses-grid">
-          {COURSES.map((c) => (
+          {UMBRELLA_PROGRAM_COURSES.map((c) => (
             <CourseCard
               key={c.slug}
               slug={c.slug}
@@ -47,6 +49,11 @@ export default async function CoursesIndexPage() {
             />
           ))}
         </div>
+
+        <p className="courses-bonus-link">
+          Looking for the daily bonus?{' '}
+          <Link href="/courses/potd">Open the Daily Pod →</Link>
+        </p>
       </main>
     </>
   )

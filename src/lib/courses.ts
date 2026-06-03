@@ -80,6 +80,31 @@ export function getCourseMeta(slug: CourseSlug): CourseMeta {
   return c
 }
 
+/**
+ * The three core courses that make up "The Umbrella Program."
+ * Used for the dashboard grid, the /courses index, and overall
+ * progress math (POTD is excluded — it's a separate bonus track).
+ *
+ * Order matches the COURSES declaration above so display ordering
+ * stays predictable.
+ */
+export const UMBRELLA_PROGRAM_COURSES: ReadonlyArray<CourseMeta> =
+  COURSES.filter((c) => c.slug !== 'potd')
+
+/**
+ * POTD as a standalone metadata reference, separated from the main
+ * program. Anywhere that previously iterated COURSES and treated
+ * POTD identically to BSS/EOS/Machine should reach for one of:
+ *   - UMBRELLA_PROGRAM_COURSES (for "the program")
+ *   - POTD_META (for the bonus track)
+ *   - COURSES (only when literally any course slug is valid)
+ */
+export const POTD_META: CourseMeta = (() => {
+  const m = COURSES.find((c) => c.slug === 'potd')
+  if (!m) throw new Error('POTD meta missing from COURSES')
+  return m
+})()
+
 export function isValidCourseSlug(value: string): value is CourseSlug {
   return COURSES.some((c) => c.slug === (value as CourseSlug))
 }
