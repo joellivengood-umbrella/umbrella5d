@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ContentItem } from '@/lib/courses'
+import { PotdPlayButton } from '@/components/potd/PotdPlayButton'
 
 /**
  * "Today's Pod" widget on the dashboard.
@@ -146,21 +147,14 @@ export function TodayPodWidget({
           <p className="today-pod__meta">{durationLabel}</p>
         </div>
       </div>
-      <Link
-        href={`/courses/potd/${todayItem.sequence_num}`}
+      <PotdPlayButton
+        itemId={todayItem.id}
+        episodeNum={todayItem.sequence_num}
+        title={itemTitle}
+        mediaUrl={todayItem.media_url}
         className="today-pod__cta"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="14"
-          height="14"
-          aria-hidden="true"
-        >
-          <polygon points="5 3 19 12 5 21 5 3" />
-        </svg>
-        <span>{todayItemDone ? 'Replay' : 'Listen'}</span>
-      </Link>
+        idleLabel={todayItemDone ? 'Replay' : 'Listen'}
+      />
     </section>
   )
 }

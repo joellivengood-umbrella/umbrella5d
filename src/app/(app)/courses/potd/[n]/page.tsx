@@ -8,7 +8,7 @@ import {
 import { fetchOrgPotdLaunch } from '@/lib/org-queries'
 import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
 import { BodyClass } from '@/components/app/BodyClass'
-import { ContentPlayer } from '@/components/courses/ContentPlayer'
+import { PotdPlayButton } from '@/components/potd/PotdPlayButton'
 import { MarkCompleteButton } from '@/components/courses/MarkCompleteButton'
 
 type RouteParams = { n: string }
@@ -109,11 +109,20 @@ export default async function PotdItemPage({
         </div>
 
         <div className="lesson-body">
-          <ContentPlayer
-            mediaUrl={item.media_url}
-            mediaKind="audio"
-            title={item.title ?? `POTD ${item.sequence_num}`}
-          />
+          <div className="potd-episode-player">
+            <PotdPlayButton
+              itemId={item.id}
+              episodeNum={item.sequence_num}
+              title={item.title ?? `Episode ${item.sequence_num}`}
+              mediaUrl={item.media_url}
+              className="btn btn--primary btn--lg potd-episode-player__btn"
+              idleLabel="Play episode"
+            />
+            <p className="potd-episode-player__hint">
+              Plays in the bar at the bottom of the screen — keep listening
+              while you browse around.
+            </p>
+          </div>
           {item.description && (
             <p className="content-description">{item.description}</p>
           )}
