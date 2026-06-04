@@ -125,6 +125,13 @@ img, svg { display: block; }
   gap: 2rem;
 }
 
+/* App header spans the full width: brand pinned far-left, account menu
+   far-right. Marketing header keeps the centered max-width nav. */
+.nav--app {
+  max-width: none;
+  justify-content: space-between;
+}
+
 /* Brand / logo */
 .nav-brand {
   display: flex;
