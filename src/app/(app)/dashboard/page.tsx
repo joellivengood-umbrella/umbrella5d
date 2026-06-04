@@ -96,18 +96,38 @@ export default async function DashboardPage() {
     <>
       <BodyClass className="page-dashboard" />
 
-      <div className="dash-header">
-        <p className="section-eyebrow">Your Learning Journey</p>
-        <h1>Hey {firstName}! Welcome to your dashboard.</h1>
-        <p className="dash-subtext">
-          Work through the three courses of the Umbrella Program below. Your
-          manager may have assigned specific segments — check in with them if
-          you&apos;re not sure where to start.
-        </p>
-      </div>
-
       <div className="dash-content">
         <div className="dash-layout">
+
+          {/* ── Hero: greeting + featured Overall Progress (glass) ── */}
+          <section className="dash-hero" aria-label="Your progress">
+            <p className="dash-hero__greeting">Welcome back, {firstName}</p>
+            <div className="dash-hero__glass">
+              <div className="dash-hero__phead">
+                <span className="dash-hero__plabel">Overall Progress</span>
+                <span className="dash-hero__ppct" aria-live="polite">
+                  {pctProgram}%
+                </span>
+              </div>
+              <div
+                className="dash-hero__track"
+                role="progressbar"
+                aria-valuenow={pctProgram}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className="dash-hero__fill"
+                  style={{ width: `${pctProgram}%` }}
+                />
+              </div>
+              <p className="dash-hero__meta">
+                {allDone
+                  ? '🎉 Program complete!'
+                  : `${doneProgram} of ${totalProgram} items complete across the program`}
+              </p>
+            </div>
+          </section>
 
           {/* ── Assigned to you (manager-directed work) ── */}
           <AssignmentsSection
@@ -165,33 +185,6 @@ export default async function DashboardPage() {
               </p>
               <p className="stat-card__label">Courses Available</p>
             </div>
-          </div>
-
-          {/* ── Overall progress bar card (program only) ── */}
-          <div className="progress-card" role="region" aria-label="Overall progress">
-            <div className="progress-header">
-              <h2 className="progress-title">Overall Progress</h2>
-              <span
-                className={`progress-pct${allDone ? ' is-done' : ''}`}
-                aria-live="polite"
-              >
-                {pctProgram}%
-              </span>
-            </div>
-            <div
-              className="progress-track"
-              role="progressbar"
-              aria-valuenow={pctProgram}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div className="progress-fill" style={{ width: `${pctProgram}%` }} />
-            </div>
-            <p className="progress-meta">
-              {allDone
-                ? '🎉 Program complete!'
-                : `${doneProgram} of ${totalProgram} items complete across the program`}
-            </p>
           </div>
 
           {/* ── Umbrella Program courses ── */}

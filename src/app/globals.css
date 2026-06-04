@@ -1279,58 +1279,121 @@ img, svg { display: block; }
 /* ══════════════════════════════════════════
    DASHBOARD  —  Header
    ══════════════════════════════════════════ */
-.dash-header {
-  background: var(--clr-hero-bg);
-  padding: calc(var(--nav-h) + 3rem) 1.5rem 3rem;
-  border-bottom: 1px solid rgba(255,255,255,.06);
+/* Dashboard hero — a contained, rounded gradient card holding a slim
+   greeting and the featured Overall Progress in a frosted-glass panel.
+   Replaces the old full-width dark band. */
+.dash-hero {
   position: relative;
   overflow: hidden;
+  border-radius: 20px;
+  padding: 1.6rem 1.85rem 1.85rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(125deg, #7aa3f0 0%, #a08ff0 50%, #c098e6 100%);
+  box-shadow: 0 12px 32px rgba(95, 80, 180, .22);
   isolation: isolate;
 }
 
-.dash-header::before {
+/* Soft light blooms for depth — kept subtle for the pastel look. */
+.dash-hero::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 30% 50%,
-    rgba(91,79,255,.22) 0%,
-    transparent 60%);
+  top: -45%;
+  right: -8%;
+  width: 55%;
+  height: 170%;
+  background: radial-gradient(ellipse at center,
+    rgba(255, 255, 255, .38) 0%, transparent 62%);
   pointer-events: none;
+  z-index: -1;
+}
+.dash-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -55%;
+  left: -8%;
+  width: 50%;
+  height: 160%;
+  background: radial-gradient(ellipse at center,
+    rgba(120, 90, 220, .22) 0%, transparent 62%);
+  pointer-events: none;
+  z-index: -1;
 }
 
-.dash-header__inner {
+.dash-hero__greeting {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: rgba(255, 255, 255, .96);
+  margin: 0 0 1rem;
+  text-shadow: 0 1px 2px rgba(60, 40, 120, .18);
+}
+
+/* The liquid-glass progress panel sitting on the gradient. */
+.dash-hero__glass {
   position: relative;
-  max-width: var(--max-w);
-  margin-inline: auto;
-  padding-inline: 1.5rem;
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .32);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45),
+              0 8px 24px rgba(60, 40, 120, .16);
 }
 
-.dash-header .section-eyebrow {
-  color: var(--clr-accent-from);
-  margin-bottom: .85rem;
+.dash-hero__phead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .9rem;
 }
-
-.dash-header h1 {
-  font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  color: var(--clr-hero-text);
-  letter-spacing: -.025em;
-  line-height: 1.15;
-  margin-bottom: .5rem;
-}
-
-.dash-org-label {
-  font-size: .85rem;
+.dash-hero__plabel {
+  font-size: .78rem;
   font-weight: 600;
-  color: var(--clr-accent-from);
-  letter-spacing: .03em;
-  margin-bottom: .85rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .85);
+}
+.dash-hero__ppct {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(60, 40, 120, .22);
 }
 
-.dash-subtext {
-  font-size: 1rem;
-  color: rgba(240,240,255,.48);
-  line-height: 1.6;
+.dash-hero__track {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .24);
+  overflow: hidden;
+  margin-bottom: .75rem;
+}
+.dash-hero__fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, .8) 100%);
+  box-shadow: 0 0 12px rgba(255, 255, 255, .5);
+  transition: width .6s cubic-bezier(.4, 0, .2, 1);
+}
+
+.dash-hero__meta {
+  font-size: .85rem;
+  color: rgba(255, 255, 255, .82);
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .dash-hero {
+    padding: 1.35rem 1.25rem 1.5rem;
+  }
+  .dash-hero__ppct {
+    font-size: 1.9rem;
+  }
 }
 
 /* ══════════════════════════════════════════
