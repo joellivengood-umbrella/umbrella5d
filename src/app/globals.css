@@ -1288,8 +1288,8 @@ img, svg { display: block; }
   border-radius: 20px;
   padding: 1.6rem 1.85rem 1.85rem;
   margin-bottom: 1.5rem;
-  background: linear-gradient(125deg, #7aa3f0 0%, #a08ff0 50%, #c098e6 100%);
-  box-shadow: 0 12px 32px rgba(95, 80, 180, .22);
+  background: linear-gradient(125deg, #5f82e6 0%, #7d64e2 50%, #9a64d4 100%);
+  box-shadow: 0 12px 32px rgba(95, 80, 180, .25);
   isolation: isolate;
 }
 
@@ -1365,20 +1365,44 @@ img, svg { display: block; }
 }
 
 .dash-hero__track {
+  position: relative;
   width: 100%;
   height: 12px;
   border-radius: 999px;
   background: rgba(255, 255, 255, .24);
-  overflow: hidden;
   margin-bottom: .75rem;
 }
 .dash-hero__fill {
+  position: relative;
+  overflow: hidden;
   height: 100%;
   width: 0%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, .8) 100%);
-  box-shadow: 0 0 12px rgba(255, 255, 255, .5);
+  background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, .82) 100%);
   transition: width .6s cubic-bezier(.4, 0, .2, 1);
+  /* Breathing outer glow. The track no longer clips, so this spills
+     onto the glass panel and reads as a living glow. */
+  animation: heroGlowPulse 2.8s ease-in-out infinite;
+}
+/* Traveling sheen — same idea as the course-card progress bars,
+   reusing the shared @keyframes shimmer. Clipped to the fill. */
+.dash-hero__fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, .75) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes heroGlowPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 255, 255, .4); }
+  50%      { box-shadow: 0 0 16px rgba(255, 255, 255, .75); }
 }
 
 .dash-hero__meta {
