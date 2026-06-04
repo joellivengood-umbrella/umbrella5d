@@ -63,7 +63,7 @@
   --dur:  .18s;
 
   --max-w: 1120px;
-  --nav-h: 96px;
+  --nav-h: 72px;
 }
 
 /* ── Reset (minimal — Tailwind preflight handles the rest) ── */
@@ -115,6 +115,16 @@ img, svg { display: block; }
   -webkit-backdrop-filter: none;
 }
 
+/* Elevated, solid app header — sits above the light content with a
+   crisp border + soft shadow rather than blending in. */
+.site-header--app {
+  background: #0b0b15;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
+}
+
 .nav {
   max-width: var(--max-w);
   margin-inline: auto;
@@ -130,6 +140,68 @@ img, svg { display: block; }
 .nav--app {
   max-width: none;
   justify-content: space-between;
+  gap: 1rem;
+}
+.nav--app .nav-logo-img {
+  height: 40px;
+}
+.nav--app .nav-actions {
+  gap: .6rem;
+}
+
+/* Left group: logo + contextual page title */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Thin vertical divider used between header groups */
+.nav-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, .16);
+  flex-shrink: 0;
+}
+
+.header-page-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: rgba(255, 255, 255, .92);
+  white-space: nowrap;
+}
+
+/* Header icon button (notifications bell) */
+.nav-iconbtn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, .7);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.nav-iconbtn:hover {
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+}
+.nav-iconbtn svg {
+  width: 19px;
+  height: 19px;
+}
+.nav-iconbtn__dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff5b5b;
+  border: 2px solid #0b0b15;
 }
 
 /* Brand / logo */
@@ -186,29 +258,57 @@ img, svg { display: block; }
 }
 
 .account-menu__trigger {
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  border: 2px solid rgba(255, 255, 255, .25);
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  transition: border-color var(--dur) var(--ease);
+  gap: .5rem;
+  padding: .28rem .6rem .28rem .32rem;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .04);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
 }
-.account-menu__trigger:hover {
-  border-color: rgba(255, 255, 255, .6);
+.account-menu__trigger:hover,
+.account-menu__trigger.is-open {
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .28);
 }
 
 .account-menu__avatar {
-  width: 100%;
-  height: 100%;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
+  flex-shrink: 0;
+}
+
+.account-menu__triggername {
+  font-size: .85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .92);
+  white-space: nowrap;
+}
+
+.account-menu__chevron {
+  width: 15px;
+  height: 15px;
+  color: rgba(255, 255, 255, .55);
+  transition: transform var(--dur) var(--ease);
+}
+.account-menu__trigger.is-open .account-menu__chevron {
+  transform: rotate(180deg);
+}
+
+/* On narrow screens, collapse the trigger to just the avatar. */
+@media (max-width: 640px) {
+  .account-menu__triggername {
+    display: none;
+  }
+  .header-page-title {
+    display: none;
+  }
 }
 
 .account-menu__dropdown {

@@ -55,12 +55,13 @@ export function AccountMenu({
   }
 
   const avatar = avatarUrl || '/default_avatar.png'
+  const firstName = fullName?.split(' ')[0] || 'Account'
 
   return (
     <div className="account-menu" ref={menuRef}>
       <button
         type="button"
-        className="account-menu__trigger"
+        className={`account-menu__trigger${open ? ' is-open' : ''}`}
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -68,6 +69,19 @@ export function AccountMenu({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="account-menu__avatar" src={avatar} alt="Profile" />
+        <span className="account-menu__triggername">{firstName}</span>
+        <svg
+          className="account-menu__chevron"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </button>
 
       {open && (
