@@ -40,7 +40,7 @@ export default async function AppLayout({
 
   return (
     <PotdPlayerProvider userId={user.id}>
-      <AppNav />
+      <AppNav profile={profile ?? null} />
       <div className="app-shell">
         <AppSidebar
           userId={user.id}

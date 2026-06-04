@@ -1,7 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { AccountMenu } from './AccountMenu'
 
-export function AppNav() {
+type AppNavProfile = {
+  full_name: string | null
+  role_title: string | null
+  avatar_url: string | null
+}
+
+export function AppNav({ profile }: { profile: AppNavProfile | null }) {
   return (
     <header className="site-header">
       <nav className="nav">
@@ -15,7 +22,13 @@ export function AppNav() {
             priority
           />
         </Link>
-        <div className="nav-actions" />
+        <div className="nav-actions">
+          <AccountMenu
+            fullName={profile?.full_name ?? null}
+            roleTitle={profile?.role_title ?? null}
+            avatarUrl={profile?.avatar_url ?? null}
+          />
+        </div>
       </nav>
     </header>
   )
