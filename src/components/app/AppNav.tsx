@@ -11,7 +11,7 @@ type AppNavProfile = {
 export function AppNav({ profile }: { profile: AppNavProfile | null }) {
   return (
     <header className="site-header">
-      <nav className="nav">
+      <nav className="nav nav--app">
         <Link className="nav-brand" href="/dashboard">
           <Image
             src="/logo/Umbrella_logo.png"
