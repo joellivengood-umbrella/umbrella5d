@@ -16,11 +16,11 @@ export function AppNav({ profile }: { profile: AppNavProfile | null }) {
         <div className="nav-left">
           <Link className="nav-brand" href="/dashboard">
             <Image
-              src="/logo/Umbrella_logo.png"
-              alt="Umbrella5D"
+              src="/logo/UmbrellaProgram_logo_Gray.png"
+              alt="Umbrella Program"
               className="nav-logo-img"
-              width={200}
-              height={52}
+              width={1453}
+              height={384}
               priority
             />
           </Link>
