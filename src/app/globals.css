@@ -115,14 +115,17 @@ img, svg { display: block; }
   -webkit-backdrop-filter: none;
 }
 
-/* Elevated, solid app header — sits above the light content with a
-   crisp border + soft shadow rather than blending in. */
-.site-header--app {
-  background: #0b0b15;
+/* Light, elevated app header — sits above the content with a crisp
+   border + soft shadow. The double-class selector beats the
+   `.page-dashboard .site-header` dark rule on specificity + source
+   order so the app header stays light on every app page. */
+.site-header.site-header--app {
+  background: #ffffff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
+  border-bottom: 1px solid var(--clr-border, #e6e8ef);
+  box-shadow: 0 1px 3px rgba(15, 17, 23, .06),
+              0 8px 24px rgba(15, 17, 23, .05);
 }
 
 .nav {
@@ -143,7 +146,7 @@ img, svg { display: block; }
   gap: 1rem;
 }
 .nav--app .nav-logo-img {
-  height: 40px;
+  height: 44px;
 }
 .nav--app .nav-actions {
   gap: .6rem;
@@ -161,7 +164,7 @@ img, svg { display: block; }
 .nav-divider {
   width: 1px;
   height: 22px;
-  background: rgba(255, 255, 255, .16);
+  background: rgba(0, 0, 0, .1);
   flex-shrink: 0;
 }
 
@@ -169,7 +172,7 @@ img, svg { display: block; }
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -.01em;
-  color: rgba(255, 255, 255, .92);
+  color: var(--clr-text, #111);
   white-space: nowrap;
 }
 
@@ -182,12 +185,12 @@ img, svg { display: block; }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, .7);
+  color: var(--clr-muted, #6b7280);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 .nav-iconbtn:hover {
-  background: rgba(255, 255, 255, .1);
-  color: #fff;
+  background: #f1f2f7;
+  color: var(--clr-text, #111);
 }
 .nav-iconbtn svg {
   width: 19px;
@@ -201,7 +204,7 @@ img, svg { display: block; }
   height: 7px;
   border-radius: 50%;
   background: #ff5b5b;
-  border: 2px solid #0b0b15;
+  border: 2px solid #ffffff;
 }
 
 /* Brand / logo */
@@ -262,17 +265,17 @@ img, svg { display: block; }
   align-items: center;
   gap: .5rem;
   padding: .28rem .6rem .28rem .32rem;
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid var(--clr-border, #e6e8ef);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .04);
+  background: #ffffff;
   cursor: pointer;
   transition: background var(--dur) var(--ease),
               border-color var(--dur) var(--ease);
 }
 .account-menu__trigger:hover,
 .account-menu__trigger.is-open {
-  background: rgba(255, 255, 255, .1);
-  border-color: rgba(255, 255, 255, .28);
+  background: #f4f5fb;
+  border-color: #d6d9e6;
 }
 
 .account-menu__avatar {
@@ -287,14 +290,14 @@ img, svg { display: block; }
 .account-menu__triggername {
   font-size: .85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, .92);
+  color: var(--clr-text, #111);
   white-space: nowrap;
 }
 
 .account-menu__chevron {
   width: 15px;
   height: 15px;
-  color: rgba(255, 255, 255, .55);
+  color: var(--clr-muted, #6b7280);
   transition: transform var(--dur) var(--ease);
 }
 .account-menu__trigger.is-open .account-menu__chevron {
