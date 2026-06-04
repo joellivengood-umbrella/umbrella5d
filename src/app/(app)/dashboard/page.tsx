@@ -104,7 +104,7 @@ export default async function DashboardPage() {
             <p className="dash-hero__greeting">Welcome back, {firstName}</p>
             <div className="dash-hero__glass">
               <div className="dash-hero__phead">
-                <span className="dash-hero__plabel">Overall Progress</span>
+                <span className="dash-hero__plabel">Program Progress</span>
                 <span className="dash-hero__ppct" aria-live="polite">
                   {pctProgram}%
                 </span>
@@ -135,6 +135,9 @@ export default async function DashboardPage() {
             unlockedThroughDay={unlockedThroughDay}
           />
 
+          {/* ── Continue Where You Left Off ── */}
+          {resumeTarget && <ResumeCard target={resumeTarget} />}
+
           {/* ── Today's Pod (bonus daily content) ── */}
           <TodayPodWidget
             orgId={profile?.org_id ?? null}
@@ -142,9 +145,6 @@ export default async function DashboardPage() {
             todayItem={todayPotdItem}
             todayItemDone={todayPotdDone}
           />
-
-          {/* ── Continue Where You Left Off ── */}
-          {resumeTarget && <ResumeCard target={resumeTarget} />}
 
           {/* ── Stat cards ── */}
           <div className="dash-stats">
