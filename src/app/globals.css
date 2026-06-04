@@ -173,6 +173,126 @@ img, svg { display: block; }
   flex-shrink: 0;
 }
 
+/* ── Account menu (top-right of app header) ── */
+.account-menu {
+  position: relative;
+}
+
+.account-menu__trigger {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, .25);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color var(--dur) var(--ease);
+}
+.account-menu__trigger:hover {
+  border-color: rgba(255, 255, 255, .6);
+}
+
+.account-menu__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.account-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 230px;
+  background: #fff;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  border-radius: 12px;
+  box-shadow: 0 14px 38px rgba(15, 17, 23, .18);
+  padding: .5rem;
+  z-index: 10;
+}
+
+.account-menu__head {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .5rem .6rem .65rem;
+}
+.account-menu__head-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.account-menu__head-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.account-menu__name {
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--clr-text, #111);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu__role {
+  font-size: .78rem;
+  color: var(--clr-muted, #6b7280);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__divider {
+  height: 1px;
+  background: var(--clr-border, #e6e8ef);
+  margin: .35rem .25rem .45rem;
+}
+
+.account-menu__item {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  width: 100%;
+  padding: .55rem .6rem;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .88rem;
+  color: var(--clr-text, #111);
+  text-decoration: none;
+  text-align: left;
+  transition: background var(--dur, .2s) var(--ease, ease);
+}
+.account-menu__item:hover {
+  background: #f4f5fb;
+}
+.account-menu__item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--clr-muted, #6b7280);
+}
+.account-menu__item--signout {
+  color: #c93030;
+}
+.account-menu__item--signout svg {
+  color: #c93030;
+}
+.account-menu__item--signout:hover {
+  background: rgba(255, 110, 110, .08);
+}
+
 .nav-signin {
   font-size: .9rem;
   font-weight: 500;
@@ -1701,24 +1821,8 @@ audio {
   transition: width .55s cubic-bezier(.4, 0, .2, 1);
 }
 
-/* Sidebar footer */
-.sidebar-footer {
-  /* margin-top: auto pushes Sign Out to the bottom of the sidebar
-     regardless of how tall the nav is. Used to live on .sidebar-progress
-     when the progress bar was the bottom-pinned element. */
-  margin-top: auto;
-  padding-top: .75rem;
-  border-top: 1px solid var(--clr-border);
-}
-
-/* Sign-out button shares sidebar-link styles; reset button chrome */
-button.sidebar-signout {
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-}
+/* Sign Out now lives in the header account menu (see .account-menu).
+   The sidebar footer + sidebar-signout button were removed. */
 
 /* ── App main ── */
 .app-main {
@@ -2544,13 +2648,6 @@ body.potd-player-active .app-main {
   .sidebar-nav {
     flex-direction: row;
     gap: .2rem;
-  }
-
-  .sidebar-footer {
-    border-top: none;
-    padding-top: 0;
-    margin-left: auto;
-    flex-shrink: 0;
   }
 
   .app-main .dash-header { padding: 2rem 1.5rem 1.75rem; }
