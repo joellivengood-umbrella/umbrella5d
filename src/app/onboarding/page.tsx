@@ -66,30 +66,17 @@ export default function OnboardingPage() {
           showError('Please enter an organization name.')
           return
         }
-        const { data: org, error: orgErr } = await supabase
-          .from('organizations')
-          .insert({ name, owner_id: userId, plan_tier: 'organization' })
-          .select()
-          .single()
-        if (orgErr || !org) {
+        // create_organization (SECURITY DEFINER RPC) atomically creates
+        // the org, adds the caller as its first manager, and updates
+        // their profile — no unguarded multi-write, no orphan org.
+        const { error: rpcErr } = await supabase.rpc('create_organization', {
+          _name: name,
+        })
+        if (rpcErr) {
+          console.error('create_organization error', rpcErr)
           showError('Could not create organization. Please try again.')
           return
         }
-        const { error: memberErr } = await supabase
-          .from('org_members')
-          .insert({ org_id: org.id, user_id: userId, role: 'manager' })
-        if (memberErr) {
-          showError('Organization created but could not assign role. Contact support.')
-          return
-        }
-        await supabase
-          .from('profiles')
-          .update({
-            org_id: org.id,
-            organization_name: name,
-            role_title: 'Account Manager',
-          })
-          .eq('id', userId)
         router.push('/dashboard')
         router.refresh()
       } else if (selectedPath === 'join') {
@@ -98,41 +85,23 @@ export default function OnboardingPage() {
           showError('Please enter your invite code.')
           return
         }
-        const { data: org, error: orgErr } = await supabase
-          .from('organizations')
-          .select('id, name')
-          .eq('invite_code', code)
-          .single()
-        if (orgErr || !org) {
-          showError('Invalid invite code. Please check with your account manager.')
+        // join_organization (SECURITY DEFINER RPC) validates the invite
+        // code server-side and adds the caller as a member. Idempotent
+        // if they're already in the org.
+        const { error: rpcErr } = await supabase.rpc('join_organization', {
+          _invite_code: code,
+        })
+        if (rpcErr) {
+          if (rpcErr.message?.includes('INVALID_INVITE_CODE')) {
+            showError(
+              'Invalid invite code. Please check with your account manager.'
+            )
+          } else {
+            console.error('join_organization error', rpcErr)
+            showError('Could not join organization. Please try again.')
+          }
           return
         }
-        const { data: existing } = await supabase
-          .from('org_members')
-          .select('id')
-          .eq('org_id', org.id)
-          .eq('user_id', userId)
-          .single()
-        if (existing) {
-          router.push('/dashboard')
-          router.refresh()
-          return
-        }
-        const { error: memberErr } = await supabase
-          .from('org_members')
-          .insert({ org_id: org.id, user_id: userId, role: 'member' })
-        if (memberErr) {
-          showError('Could not join organization. Please try again.')
-          return
-        }
-        await supabase
-          .from('profiles')
-          .update({
-            org_id: org.id,
-            organization_name: org.name,
-            role_title: 'Member',
-          })
-          .eq('id', userId)
         router.push('/dashboard')
         router.refresh()
       } else {
