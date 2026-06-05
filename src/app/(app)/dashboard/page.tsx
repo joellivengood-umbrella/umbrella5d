@@ -5,19 +5,15 @@ import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
 import { CourseCard } from '@/components/courses/CourseCard'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
 import { AssignmentsSection } from '@/components/dashboard/AssignmentsSection'
-import { TodayPodWidget } from '@/components/dashboard/TodayPodWidget'
+import { DailyPodWidget } from '@/components/dashboard/DailyPodWidget'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
   fetchCompletedItemIds,
-  fetchContentItem,
+  fetchContentItems,
   fetchResumeTarget,
 } from '@/lib/content-queries'
-import {
-  fetchOrgPotdLaunch,
-  fetchMemberAssignments,
-} from '@/lib/org-queries'
-import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
+import { fetchMemberAssignments } from '@/lib/org-queries'
 
 export const metadata = {
   title: 'Dashboard',
@@ -33,7 +29,7 @@ export default async function DashboardPage() {
   const [{ data: profile }, totals, doneCounts] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, org_id, timezone')
+      .select('full_name')
       .eq('id', user.id)
       .single(),
     fetchTotalsByType(supabase),
@@ -42,39 +38,34 @@ export default async function DashboardPage() {
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
 
-  // POTD launch state powers the TodayPodWidget. POTD is bonus content
-  // and intentionally excluded from program progress math below.
-  const launch = profile?.org_id
-    ? await fetchOrgPotdLaunch(supabase, profile.org_id)
-    : null
-  const unlockedThroughDay = computeUnlockedThroughDay({
-    launchedAt: launch?.launchedAt ?? null,
-    timezone: profile?.timezone ?? 'America/Chicago',
-  })
-
-  // Today's POTD episode = the highest unlocked sequence_num. Only
-  // fetch when there's actually something unlocked to show.
-  const todayPotdItem =
-    unlockedThroughDay > 0
-      ? await fetchContentItem(supabase, 'potd', unlockedThroughDay)
-      : null
-
-  // Resume card now scopes to Umbrella Program only — POTD is bonus
+  // Resume card scopes to Umbrella Program only — POTD is bonus
   // content, not "where you left off."
   const resumeTarget = await fetchResumeTarget(supabase, user.id)
 
-  // Pull the user's assignments + completed-item IDs in parallel.
+  // Assignments + completed-item IDs + all POTD episodes in parallel.
   // pendingAssignments = unfinished; powers the AssignmentsSection.
-  // completedItemIds also lets the TodayPodWidget show a "heard" state.
-  const [allAssignments, completedItemIds] = await Promise.all([
+  // The pod list + completions drive the Daily Pod widget below.
+  const [allAssignments, completedItemIds, potdEpisodes] = await Promise.all([
     fetchMemberAssignments(supabase, user.id),
     fetchCompletedItemIds(supabase, user.id),
+    fetchContentItems(supabase, 'potd'),
   ])
   const pendingAssignments = allAssignments.filter(
     (a) => !completedItemIds.has(a.contentItemId)
   )
-  const todayPotdDone = todayPotdItem
-    ? completedItemIds.has(todayPotdItem.id)
+
+  // Daily Pod widget: the next episode the user hasn't heard, or the
+  // latest one if they're all caught up. POTD is available to everyone
+  // now (no org launch / daily drip).
+  const nextUnheardPod =
+    potdEpisodes.find((e) => !completedItemIds.has(e.id)) ?? null
+  const featuredPod =
+    nextUnheardPod ??
+    (potdEpisodes.length > 0
+      ? potdEpisodes[potdEpisodes.length - 1]
+      : null)
+  const featuredPodDone = featuredPod
+    ? completedItemIds.has(featuredPod.id)
     : false
 
   // Program progress math — Umbrella Program only (BSS + EOS + Machine).
@@ -130,21 +121,13 @@ export default async function DashboardPage() {
           </section>
 
           {/* ── Assigned to you (manager-directed work) ── */}
-          <AssignmentsSection
-            assignments={pendingAssignments}
-            unlockedThroughDay={unlockedThroughDay}
-          />
+          <AssignmentsSection assignments={pendingAssignments} />
 
           {/* ── Continue Where You Left Off ── */}
           {resumeTarget && <ResumeCard target={resumeTarget} />}
 
-          {/* ── Today's Pod (bonus daily content) ── */}
-          <TodayPodWidget
-            orgId={profile?.org_id ?? null}
-            isLaunched={!!launch}
-            todayItem={todayPotdItem}
-            todayItemDone={todayPotdDone}
-          />
+          {/* ── Daily Pod (bonus content) ── */}
+          <DailyPodWidget episode={featuredPod} done={featuredPodDone} />
 
           {/* ── Stat cards ── */}
           <div className="dash-stats">

@@ -259,31 +259,7 @@ export async function fetchMemberAssignments(
   })
 }
 
-/**
- * The org's POTD launch row, or null if POTD hasn't been launched yet.
- * Returns the launch timestamp as an ISO string for easy serialization
- * across server -> client component boundaries.
- */
-export async function fetchOrgPotdLaunch(
-  supabase: MaybeClient,
-  orgId: string
-): Promise<{ launchedAt: string; launchedBy: string | null } | null> {
-  const { data, error } = await supabase
-    .from('org_potd_launches')
-    .select('launched_at, launched_by')
-    .eq('org_id', orgId)
-    .maybeSingle()
-  // Same reasoning as fetchUserOrgRole: .maybeSingle() already handles
-  // the "no launch row yet" case via { data: null, error: null }, so a
-  // real error must not be silently flattened into "POTD not launched."
-  if (error) {
-    console.error('fetchOrgPotdLaunch error', error)
-    throw new Error(`fetchOrgPotdLaunch failed: ${error.message}`)
-  }
-  if (!data) return null
-  return {
-    launchedAt: (data as { launched_at: string }).launched_at,
-    launchedBy:
-      ((data as { launched_by: string | null }).launched_by ?? null) || null,
-  }
-}
+// POTD launch / daily-drip removed — every published episode is
+// available to everyone now. fetchOrgPotdLaunch lived here; if the
+// staggered-release feature comes back, re-add it (the
+// org_potd_launches table is left dormant in the DB).
