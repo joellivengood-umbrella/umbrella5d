@@ -8,9 +8,9 @@ import type { OrgMember, TeamProgressRow } from '@/lib/org-queries'
  * same order as the roster, so the manager can scan top-to-bottom and
  * spot stragglers.
  *
- * Denominator is the same accessible-totals number every member sees
- * in their own sidebar (excludes locked POTD episodes), so what's
- * shown here matches what each member sees in their own UI.
+ * Denominator is the Umbrella Program total (BSS + EOS + Machine),
+ * matching what each member sees in their own sidebar. Bonus Daily Pod
+ * episodes are not counted toward program progress.
  *
  * Read-only.
  */
@@ -36,8 +36,9 @@ export function TeamProgress({
       <header className="settings-section__header">
         <h2>Team progress</h2>
         <p>
-          How each team member is doing across all available content.
-          Locked POTD episodes aren&rsquo;t counted in the totals.
+          How each team member is doing across the Umbrella Program.
+          Bonus Daily Pod episodes aren&rsquo;t counted toward program
+          totals.
         </p>
       </header>
 

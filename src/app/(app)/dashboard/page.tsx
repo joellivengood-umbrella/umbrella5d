@@ -10,7 +10,7 @@ import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
   fetchCompletedItemIds,
-  fetchContentItems,
+  fetchPotdEpisodeStubs,
   fetchResumeTarget,
 } from '@/lib/content-queries'
 import { fetchMemberAssignments } from '@/lib/org-queries'
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
   const [allAssignments, completedItemIds, potdEpisodes] = await Promise.all([
     fetchMemberAssignments(supabase, user.id),
     fetchCompletedItemIds(supabase, user.id),
-    fetchContentItems(supabase, 'potd'),
+    fetchPotdEpisodeStubs(supabase),
   ])
   const pendingAssignments = allAssignments.filter(
     (a) => !completedItemIds.has(a.contentItemId)
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
                 aria-valuemax={100}
               >
                 <div
-                  className="dash-hero__fill"
+                  className={`dash-hero__fill${pctProgram === 0 ? ' dash-hero__fill--empty' : ''}`}
                   style={{ width: `${pctProgram}%` }}
                 />
               </div>

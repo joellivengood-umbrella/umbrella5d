@@ -35,7 +35,7 @@ export async function fetchContentItems(
   const { data, error } = await query
   if (error) {
     console.error('fetchContentItems error', error)
-    return []
+    throw new Error(`fetchContentItems failed: ${error.message}`)
   }
   return (data ?? []) as ContentItem[]
 }
@@ -64,9 +64,38 @@ export async function fetchContentItem(
   const { data, error } = await query.maybeSingle()
   if (error) {
     console.error('fetchContentItem error', error)
-    return null
+    throw new Error(`fetchContentItem failed: ${error.message}`)
   }
   return (data as ContentItem) ?? null
+}
+
+/**
+ * Lightweight POTD episode list for the dashboard's Daily Pod widget —
+ * only the columns the widget needs. Skips the heavy description /
+ * metadata fields, which matter because the pod catalog grows
+ * unbounded over time. Ordered by sequence_num ascending so the caller
+ * can pick the first unheard episode.
+ */
+export type PotdEpisodeStub = Pick<
+  ContentItem,
+  'id' | 'sequence_num' | 'title' | 'media_url' | 'duration_mins'
+>
+
+export async function fetchPotdEpisodeStubs(
+  supabase: MaybeClient
+): Promise<PotdEpisodeStub[]> {
+  const { data, error } = await supabase
+    .from('content_items')
+    .select('id, sequence_num, title, media_url, duration_mins')
+    .eq('type', 'potd')
+    .eq('is_published', true)
+    .order('sequence_num', { ascending: true })
+
+  if (error) {
+    console.error('fetchPotdEpisodeStubs error', error)
+    throw new Error(`fetchPotdEpisodeStubs failed: ${error.message}`)
+  }
+  return (data ?? []) as PotdEpisodeStub[]
 }
 
 /**
@@ -84,7 +113,7 @@ export async function fetchCompletedItemIds(
 
   if (error) {
     console.error('fetchCompletedItemIds error', error)
-    return new Set()
+    throw new Error(`fetchCompletedItemIds failed: ${error.message}`)
   }
   return new Set((data ?? []).map((r: { content_item_id: string }) => r.content_item_id))
 }
@@ -109,7 +138,7 @@ export async function fetchTotalsByType(
   }
   if (error) {
     console.error('fetchTotalsByType error', error)
-    return totals
+    throw new Error(`fetchTotalsByType failed: ${error.message}`)
   }
   for (const row of data ?? []) {
     const t = (row as { type: ContentType }).type
@@ -139,7 +168,7 @@ export async function fetchCompletedCountsByType(
   }
   if (error) {
     console.error('fetchCompletedCountsByType error', error)
-    return counts
+    throw new Error(`fetchCompletedCountsByType failed: ${error.message}`)
   }
   // Supabase types the embedded relation as an array even when it's a
   // single parent via FK. Normalize to handle either shape.

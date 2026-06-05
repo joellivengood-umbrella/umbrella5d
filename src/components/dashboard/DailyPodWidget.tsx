@@ -1,4 +1,4 @@
-import type { ContentItem } from '@/lib/courses'
+import type { PotdEpisodeStub } from '@/lib/content-queries'
 import { PotdPlayButton } from '@/components/potd/PotdPlayButton'
 
 /**
@@ -15,7 +15,7 @@ export function DailyPodWidget({
   episode,
   done,
 }: {
-  episode: ContentItem | null
+  episode: PotdEpisodeStub | null
   done: boolean
 }) {
   if (!episode) return null

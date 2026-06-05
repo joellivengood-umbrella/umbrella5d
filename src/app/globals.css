@@ -1399,6 +1399,26 @@ img, svg { display: block; }
   );
   animation: shimmer 2.5s ease-in-out infinite;
 }
+/* At 0% the fill has no visible body, but its box-shadow glow would
+   still render as a stray pulsing sliver at the left of the track.
+   Suppress glow + sheen entirely when empty. */
+.dash-hero__fill--empty {
+  animation: none;
+  box-shadow: none;
+}
+.dash-hero__fill--empty::after {
+  display: none;
+}
+
+/* Respect reduced-motion: stop the infinite hero animations. */
+@media (prefers-reduced-motion: reduce) {
+  .dash-hero__fill {
+    animation: none;
+  }
+  .dash-hero__fill::after {
+    animation: none;
+  }
+}
 
 @keyframes heroGlowPulse {
   0%, 100% { box-shadow: 0 0 6px rgba(255, 255, 255, .4); }

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
- * Server-side reads against organizations / org_members / org_potd_launches.
+ * Server-side reads against organizations / org_members.
  * Kept separate from content-queries.ts because org/role concerns are
  * orthogonal to course content.
  */
@@ -108,9 +108,9 @@ export async function fetchOrgMembers(
 
 /**
  * Per-member completed-item count for the Team Progress section on
- * /team. Counts only items the user can actually access (i.e. excludes
- * POTD episodes beyond the org's current unlock window) so the
- * percentages match what each member sees in their own sidebar.
+ * /team. Counts only Umbrella Program items (BSS + EOS + Machine);
+ * bonus Daily Pod episodes are excluded, matching each member's own
+ * sidebar/dashboard progress.
  */
 export type TeamProgressRow = {
   userId: string
