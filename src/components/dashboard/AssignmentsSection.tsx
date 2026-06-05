@@ -11,15 +11,11 @@ import type { AssignmentEntry } from '@/lib/org-queries'
  * can also use the AssignmentEntry array's length to decide whether
  * to render at all.
  *
- * Locked POTD assignments are shown with a "Locked" badge but still
- * link to the lesson page (which has its own locked-state notice).
  */
 export function AssignmentsSection({
   assignments,
-  unlockedThroughDay,
 }: {
   assignments: AssignmentEntry[]
-  unlockedThroughDay: number
 }) {
   if (assignments.length === 0) return null
 
@@ -36,8 +32,6 @@ export function AssignmentsSection({
         {assignments.map((a) => {
           const courseLabel = formatCourseLabel(a.type, a.metadataVersion)
           const itemTitle = a.title ?? `${courseLabel} ${a.sequenceNum}`
-          const isLockedPotd =
-            a.type === 'potd' && a.sequenceNum > unlockedThroughDay
           const href = buildHref(a)
 
           return (
@@ -58,9 +52,6 @@ export function AssignmentsSection({
                     </span>
                   )}
                 </span>
-                {isLockedPotd && (
-                  <span className="assignments-section__locked">Locked</span>
-                )}
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"

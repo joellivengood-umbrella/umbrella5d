@@ -6,15 +6,9 @@ import {
   fetchCompletedItemIds,
   fetchUserSettings,
 } from '@/lib/content-queries'
-import {
-  fetchOrgPotdLaunch,
-  fetchUserOrgRole,
-  fetchMemberAssignments,
-} from '@/lib/org-queries'
-import { computeUnlockedThroughDay } from '@/lib/potd-unlock'
+import { fetchMemberAssignments } from '@/lib/org-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
-import { LaunchPotdButton } from '@/components/courses/LaunchPotdButton'
 
 export const metadata = { title: 'Daily Pod' }
 
@@ -35,27 +29,8 @@ export default async function PotdIndexPage() {
 
   const assignedItemIds = new Set(assignments.map((a) => a.contentItemId))
 
-  // Org-scoped POTD launch state. Individuals (no org_id) can't launch
-  // POTD yet — the manager flow assumes an org.
-  const [launch, role] = settings.orgId
-    ? await Promise.all([
-        fetchOrgPotdLaunch(supabase, settings.orgId),
-        fetchUserOrgRole(supabase, user.id, settings.orgId),
-      ])
-    : [null, null]
-
-  const unlockedThroughDay = computeUnlockedThroughDay({
-    launchedAt: launch?.launchedAt ?? null,
-    timezone: settings.timezone,
-  })
-
-  const isOrgManager = role === 'manager'
-  const isLaunched = !!launch
-
-  // "X / Y heard" — Y is the dynamic total of all published POTD
-  // episodes (whatever's in the DB, including ones not yet unlocked).
-  // X counts only this user's completed POTD episodes. The denominator
-  // grows naturally as the admin adds new pods.
+  // "X / Y heard" — every published POTD episode is available to
+  // everyone; Y grows naturally as the admin adds new pods.
   const totalEpisodes = items.length
   const heardEpisodes = items.filter((i) => completed.has(i.id)).length
 
@@ -78,65 +53,25 @@ export default async function PotdIndexPage() {
           <p className="section-eyebrow">Daily Pod · Bonus</p>
           <h1>{meta.title}</h1>
           <p className="courses-header__blurb">{meta.blurb}</p>
-          {isLaunched && totalEpisodes > 0 && (
+          {totalEpisodes > 0 && (
             <p className="potd-heard-count">
               You&apos;ve heard <strong>{heardEpisodes} / {totalEpisodes}</strong> episodes.
             </p>
           )}
         </div>
 
-        {!isLaunched && (
-          <div className="potd-launch-notice">
-            <div>
-              {!settings.orgId ? (
-                <>
-                  <strong>POTD runs at the team level.</strong>
-                  <p>
-                    Daily episodes unlock once your team launches POTD. If
-                    you&apos;re joining an organization, ask your account
-                    manager for an invite code.
-                  </p>
-                </>
-              ) : isOrgManager ? (
-                <>
-                  <strong>POTD isn&apos;t running for your team yet.</strong>
-                  <p>
-                    Launch the daily feed and episode 1 unlocks today. A new
-                    episode then unlocks each day, in your team&apos;s local
-                    time.
-                  </p>
-                  <LaunchPotdButton orgId={settings.orgId} userId={user.id} />
-                </>
-              ) : (
-                <>
-                  <strong>POTD isn&apos;t running for your team yet.</strong>
-                  <p>
-                    Once your account manager launches the daily feed, a new
-                    episode will unlock each day.
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
         <div className="content-item-list">
-          {visibleItems.map((item) => {
-            const isUnlocked = item.sequence_num <= unlockedThroughDay
-            return (
-              <ContentItemTile
-                key={item.id}
-                href={`/courses/potd/${item.sequence_num}`}
-                number={item.sequence_num}
-                title={item.title ?? `POTD ${item.sequence_num}`}
-                durationMins={item.duration_mins}
-                done={completed.has(item.id)}
-                locked={!isUnlocked}
-                lockedLabel="Locked"
-                assigned={assignedItemIds.has(item.id)}
-              />
-            )
-          })}
+          {visibleItems.map((item) => (
+            <ContentItemTile
+              key={item.id}
+              href={`/courses/potd/${item.sequence_num}`}
+              number={item.sequence_num}
+              title={item.title ?? `POTD ${item.sequence_num}`}
+              durationMins={item.duration_mins}
+              done={completed.has(item.id)}
+              assigned={assignedItemIds.has(item.id)}
+            />
+          ))}
         </div>
       </main>
     </>

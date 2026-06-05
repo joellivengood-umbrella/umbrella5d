@@ -2040,10 +2040,10 @@ audio {
   flex: 1;
 }
 
-/* Remove old max-width constraint; use padding + natural width */
+/* Center the column within the main area, matching .courses-main. */
 .app-main .dash-layout {
   max-width: 880px;
-  margin-inline: 0;
+  margin-inline: auto;
   padding-inline: 2.5rem;
 }
 
@@ -2153,18 +2153,6 @@ audio {
   white-space: nowrap;
 }
 
-.assignments-section__locked {
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  padding: .2rem .55rem;
-  border-radius: var(--radius-pill, 999px);
-  background: #f1f1f5;
-  color: #6b7280;
-  flex-shrink: 0;
-}
-
 .assignments-section__chevron {
   flex-shrink: 0;
   color: var(--clr-muted, #6b7280);
@@ -2202,12 +2190,6 @@ audio {
   border-left: 4px solid #22a322;
 }
 
-.today-pod--pending {
-  /* Softer treatment when POTD isn't launched yet — still visible
-     but doesn't shout for attention like the active widget. */
-  border-left-color: #c8e3c8;
-  background: #f7fbf7;
-}
 
 .today-pod--done {
   border-left-color: #1a8a1a;
@@ -2286,19 +2268,8 @@ audio {
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
-.today-pod--pending .today-pod__cta {
-  background: transparent;
-  color: #1a8a1a;
-  border: 1px solid #c8e3c8;
-}
-
 .today-pod__cta:hover {
   background: #1a8a1a;
-  transform: translateX(2px);
-}
-
-.today-pod--pending .today-pod__cta:hover {
-  background: rgba(104, 242, 104, .12);
   transform: translateX(2px);
 }
 
@@ -3195,7 +3166,7 @@ body.potd-player-active .app-main {
 
 .feed-layout {
   max-width: 720px;
-  margin-inline: 0;
+  margin-inline: auto;
   padding-inline: 2.5rem;
 }
 
@@ -4094,36 +4065,6 @@ body.potd-player-active .app-main {
   border-left-color: transparent;
   transform: none;
   box-shadow: none;
-}
-
-/* ── POTD launch notice ── */
-.potd-launch-notice {
-  display: flex;
-  gap: .85rem;
-  padding: 1rem 1.25rem;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-left: 4px solid #f97316;
-  border-radius: var(--radius-md);
-  margin: 1rem 0 1.25rem;
-  color: #7c2d12;
-}
-.potd-launch-notice strong { display: block; margin-bottom: .3rem; font-size: .95rem; }
-.potd-launch-notice p { margin: 0; font-size: .875rem; line-height: 1.55; color: #9a3412; }
-
-.potd-launch-cta {
-  margin-top: .85rem;
-}
-.potd-launch-cta .btn {
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  font-weight: 700;
-  font-size: .8rem;
-}
-.potd-launch-error {
-  margin: .5rem 0 0;
-  font-size: .8rem;
-  color: #b91c1c;
 }
 
 /* ── Media player wrappers ── */
