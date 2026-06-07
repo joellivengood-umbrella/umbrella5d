@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { AccountMenu } from './AccountMenu'
 import { HeaderPageTitle } from './HeaderPageTitle'
+import { MobileNavToggle } from './MobileNavToggle'
 
 type AppNavProfile = {
   full_name: string | null
@@ -14,6 +15,7 @@ export function AppNav({ profile }: { profile: AppNavProfile | null }) {
     <header className="site-header site-header--app">
       <nav className="nav nav--app">
         <div className="nav-left">
+          <MobileNavToggle />
           <Link className="nav-brand" href="/dashboard">
             <Image
               src="/logo/UmbrellaProgram_logo_Gray.png"

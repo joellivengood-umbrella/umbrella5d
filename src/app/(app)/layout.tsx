@@ -4,6 +4,7 @@ import { AppNav } from '@/components/app/AppNav'
 import { AppSidebar } from '@/components/app/AppSidebar'
 import { MarketingFooter } from '@/components/marketing/MarketingFooter'
 import { PotdPlayerProvider } from '@/components/potd/PotdPlayerProvider'
+import { MobileNavProvider } from '@/components/app/MobileNavProvider'
 import { fetchUserOrgRole } from '@/lib/org-queries'
 
 export default async function AppLayout({
@@ -40,18 +41,20 @@ export default async function AppLayout({
 
   return (
     <PotdPlayerProvider userId={user.id}>
-      <AppNav profile={profile ?? null} />
-      <div className="app-shell">
-        <AppSidebar
-          userId={user.id}
-          profile={profile ?? null}
-          orgRole={orgRole}
-        />
-        <div className="app-main">
-          {children}
-          <MarketingFooter />
+      <MobileNavProvider>
+        <AppNav profile={profile ?? null} />
+        <div className="app-shell">
+          <AppSidebar
+            userId={user.id}
+            profile={profile ?? null}
+            orgRole={orgRole}
+          />
+          <div className="app-main">
+            {children}
+            <MarketingFooter />
+          </div>
         </div>
-      </div>
+      </MobileNavProvider>
     </PotdPlayerProvider>
   )
 }

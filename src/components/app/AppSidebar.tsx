@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useMobileNav } from './MobileNavProvider'
 import type { OrgRole } from '@/lib/org-queries'
 
 type Profile = {
@@ -26,6 +27,7 @@ export function AppSidebar({
   orgRole: OrgRole | null
 }) {
   const pathname = usePathname()
+  const { isOpen, close } = useMobileNav()
   const [pct, setPct] = useState(0)
   const supabase = createClient()
 
@@ -75,7 +77,17 @@ export function AppSidebar({
     pathname === href || pathname.startsWith(`${href}/`)
 
   return (
-    <aside className="app-sidebar" aria-label="Dashboard navigation">
+    <>
+      {/* Mobile drawer backdrop — tap to close. Inert on desktop (CSS). */}
+      <div
+        className={`mobile-nav-backdrop${isOpen ? ' is-visible' : ''}`}
+        onClick={close}
+        aria-hidden="true"
+      />
+      <aside
+        className={`app-sidebar${isOpen ? ' is-open' : ''}`}
+        aria-label="Dashboard navigation"
+      >
       {/* User block */}
       <div className="sidebar-user">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -102,8 +114,9 @@ export function AppSidebar({
         </div>
       </div>
 
-      {/* Primary nav */}
-      <nav className="sidebar-nav">
+      {/* Primary nav. onClick closes the mobile drawer when a link is
+          tapped (covers same-page taps that don't trigger a nav change). */}
+      <nav className="sidebar-nav" onClick={close}>
         <p className="sidebar-section-label">Menu</p>
 
         <Link
@@ -199,6 +212,7 @@ export function AppSidebar({
           </Link>
         )}
       </nav>
-    </aside>
+      </aside>
+    </>
   )
 }

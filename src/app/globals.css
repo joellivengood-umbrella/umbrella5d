@@ -207,6 +207,11 @@ img, svg { display: block; }
   border: 2px solid #ffffff;
 }
 
+/* Mobile nav hamburger + drawer backdrop — both hidden on desktop and
+   switched on inside the <=768px media query (see the sidebar block). */
+.mobile-nav-toggle { display: none; }
+.mobile-nav-backdrop { display: none; }
+
 /* Brand / logo */
 .nav-brand {
   display: flex;
@@ -2848,36 +2853,67 @@ body.potd-player-active .app-main {
   .app-main .dash-header { padding: 2.25rem 2rem 2rem; }
 }
 
-/* Sidebar collapses to a top strip on tablet/mobile */
+/* On tablet/mobile the sidebar becomes an off-canvas LEFT drawer,
+   opened by the header hamburger. It keeps the full desktop content
+   (user block, progress, labelled links) — just slides in/out. */
 @media (max-width: 768px) {
-  .app-shell {
-    flex-direction: column;
-  }
-
-  .app-sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    flex-direction: row;
+  /* Hamburger visible in the (light) header. */
+  .mobile-nav-toggle {
+    display: inline-flex;
     align-items: center;
-    gap: .25rem;
-    padding: .6rem 1rem;
-    border-right: none;
-    border-bottom: 1px solid var(--clr-border);
-    overflow-x: auto;
-    /* Hide scrollbar on mobile strip */
-    scrollbar-width: none;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--clr-text, #111);
+    border-radius: 10px;
+    transition: background var(--dur) var(--ease);
   }
-  .app-sidebar::-webkit-scrollbar { display: none; }
+  .mobile-nav-toggle:hover { background: #f1f2f7; }
 
-  .sidebar-user,
-  .sidebar-section-label,
-  .sidebar-progress { display: none; }
-
-  .sidebar-nav {
-    flex-direction: row;
-    gap: .2rem;
+  /* Drawer: fixed, below the header, slid off-screen until opened. */
+  .app-sidebar {
+    position: fixed;
+    top: var(--nav-h);
+    left: 0;
+    bottom: 0;
+    width: 270px;
+    height: auto;
+    padding: 1.25rem 1rem;
+    border-right: 1px solid var(--clr-border);
+    border-bottom: none;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform .26s cubic-bezier(.4, 0, .2, 1);
+    z-index: 95;
+    box-shadow: 4px 0 24px rgba(15, 17, 23, .14);
   }
+  .app-sidebar.is-open { transform: translateX(0); }
+
+  /* Dim backdrop behind the open drawer. */
+  .mobile-nav-backdrop {
+    display: block;
+    position: fixed;
+    top: var(--nav-h);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 17, 23, .45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .26s ease;
+    z-index: 94;
+  }
+  .mobile-nav-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Lock background scroll while the drawer is open. */
+  body.mobile-nav-open { overflow: hidden; }
 
   .app-main .dash-header { padding: 2rem 1.5rem 1.75rem; }
   .app-main .dash-layout  { padding-inline: 1.5rem; max-width: none; }
@@ -2888,10 +2924,6 @@ body.potd-player-active .app-main {
 /* Stack stat cards on small phones */
 @media (max-width: 480px) {
   .dash-stats { grid-template-columns: 1fr 1fr; }
-
-  /* Icon-only sidebar links on very small screens */
-  .sidebar-link span { display: none; }
-  .sidebar-link { padding: .6rem; }
 }
 
 /* ══════════════════════════════════════════
