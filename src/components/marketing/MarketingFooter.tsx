@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 /**
- * Marketing-site footer. Includes brand, link groups, legal.
+ * Marketing-site footer. Doubles as the Contact anchor (#contact).
  */
 export function MarketingFooter() {
   return (
@@ -13,52 +13,46 @@ export function MarketingFooter() {
             <Link className="nav-brand footer-logo" href="/">
               <Image
                 src="/logo/Umbrella_logo.png"
-                alt="Umbrella5D"
+                alt="Umbrella"
                 className="nav-logo-img"
                 width={200}
                 height={52}
               />
             </Link>
-            <p className="footer-tagline">Revenue. Profits. Glory.</p>
+            <p className="footer-tagline">
+              The step by step system that turns any company into a
+              profit focused company.
+            </p>
+            <Link href="/signup" className="btn btn--primary btn--sm footer-cta">
+              Sign Up Now
+            </Link>
           </div>
 
           <div className="footer-links-group">
             <div className="footer-col">
-              <h4>Product</h4>
+              <h4>Program</h4>
               <ul>
-                <li><Link href="/features">Features</Link></li>
-                <li><Link href="#">Pricing</Link></li>
-                <li><Link href="#">Changelog</Link></li>
-                <li><Link href="#">Roadmap</Link></li>
+                <li><Link href="/5d-machine">5D Machine</Link></li>
+                <li><Link href="/faq">FAQ</Link></li>
+                <li><Link href="/signup">Create account</Link></li>
+                <li><Link href="/login">Sign in</Link></li>
               </ul>
             </div>
             <div className="footer-col">
-              <h4>Company</h4>
+              <h4>Contact</h4>
               <ul>
-                <li><Link href="#">About</Link></li>
-                <li><Link href="#">Blog</Link></li>
-                <li><Link href="#">Careers</Link></li>
-                <li><Link href="#">Press</Link></li>
-              </ul>
-            </div>
-            <div className="footer-col">
-              <h4>Support</h4>
-              <ul>
-                <li><Link href="#">Docs</Link></li>
-                <li><Link href="#">Community</Link></li>
-                <li><a href="mailto:hello@umbrella5d.com">Contact</a></li>
-                <li><Link href="#">Status</Link></li>
+                <li><a href="mailto:hello@bz5d.com">hello@bz5d.com</a></li>
+                <li><a href="mailto:support@bz5d.com">support@bz5d.com</a></li>
               </ul>
             </div>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; 2026 Umbrella5D, Inc. All rights reserved.</p>
+          <p>&copy; 2026 Umbrella. All rights reserved.</p>
           <div className="footer-legal">
             <Link href="#">Privacy Policy</Link>
             <Link href="#">Terms of Service</Link>
-            <Link href="#">Cookie Policy</Link>
           </div>
         </div>
       </div>
