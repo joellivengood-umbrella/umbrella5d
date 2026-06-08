@@ -5676,3 +5676,43 @@ body.potd-player-active .app-main {
 @media (prefers-reduced-motion: reduce) {
   .frag-node, .frag-line, .frag-line--main, .frag-focalglow { animation: none; }
 }
+
+/* ── 5D Machine top hero: centered statement over a box-grid texture ── */
+.mkt-tophero {
+  position: relative;
+  background: var(--mkt-bg);
+  padding: calc(var(--nav-h) + 5rem) 0 4rem;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+}
+/* Repeated rounded-box texture, faded toward the edges so it reads as
+   a subtle backdrop rather than a hard pattern. */
+.mkt-tophero__grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 50% 44%, #000 0%, transparent 80%);
+  mask-image: radial-gradient(ellipse 78% 72% at 50% 44%, #000 0%, transparent 80%);
+}
+.mkt-tophero__inner {
+  position: relative;
+  max-width: 880px;
+  margin-inline: auto;
+}
+.mkt-tophero__title {
+  font-size: clamp(1.85rem, 3.6vw, 2.95rem);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: 1.2;
+  color: var(--mkt-text);
+  margin: 0;
+}
+
+/* The fragmentation hero now follows the top hero, so it no longer
+   needs the extra top padding that cleared the fixed nav. */
+.mkt-hero--stacked {
+  padding-top: 3rem;
+}

@@ -63,7 +63,7 @@ export default function FaqPage() {
           <div className="container">
             <p className="mkt-eyebrow"></p>
             <h1 className="mkt-hero__title mkt-hero__title--page">
-              Frequently Asked, <span className="mkt-grad">Questions</span>.
+              Frequently Asked <span className="mkt-grad">Questions</span>.
             </h1>
             <p className="mkt-hero__sub mkt-hero__sub--wide">
               Everything you might want to know before you start. Still stuck?
