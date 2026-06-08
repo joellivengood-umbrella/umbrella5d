@@ -4,7 +4,7 @@ import { MarketingNav } from '@/components/marketing/MarketingNav'
 import { MarketingFooter } from '@/components/marketing/MarketingFooter'
 
 export const metadata: Metadata = {
-  title: 'Umbrella | Turn any company into a profit focused company',
+  title: 'Umbrella | Turn any company into a profit machine.',
   description:
     'The Umbrella Program and its 5D Machine walk every person in your business through the exact steps to find profit and act on it. One system, one direction, real results.',
 }
@@ -23,7 +23,7 @@ export default function LandingPage() {
               <p className="mkt-eyebrow">The Umbrella Program</p>
               <h1 className="mkt-hero__title">
                 Turn any company into a{' '}
-                <span className="mkt-grad">profit focused</span> company.
+                <span className="mkt-grad">profit machine</span>.
               </h1>
               <p className="mkt-hero__sub">
                 The 5D Machine walks every person in your business, from the
@@ -92,9 +92,8 @@ export default function LandingPage() {
           <div className="container mkt-split">
             <div className="mkt-split__lead">
               <p className="mkt-eyebrow">The problem</p>
-              <h2 className="mkt-h2">
-                Most companies don’t have a profit problem. They have an
-                alignment problem.
+              <h2 className="mkt-h2"> 
+				Your company isn't aligned. Profits suffer.
               </h2>
             </div>
             <ul className="mkt-problem__list">

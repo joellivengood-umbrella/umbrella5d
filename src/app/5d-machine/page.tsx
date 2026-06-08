@@ -3,11 +3,12 @@ import type { Metadata } from 'next'
 import { MarketingNav } from '@/components/marketing/MarketingNav'
 import { MarketingFooter } from '@/components/marketing/MarketingFooter'
 import { MachineGrid } from '@/components/marketing/MachineGrid'
+import { FragmentGraphic } from '@/components/marketing/FragmentGraphic'
 
 export const metadata: Metadata = {
   title: 'The 5D Machine | Umbrella',
   description:
-    'Thirty guided segments across the five dimensions of your business. Each one has a plain explanation, a task list, and short audio and video. A clear path from where you are to a profit focused company.',
+    'Thirty guided segments across the five dimensions of your business. Each one has a plain explanation, a task list, and short audio and video. A clear path from fragmentation, to profit focus.',
 }
 
 export default function MachinePage() {
@@ -19,22 +20,28 @@ export default function MachinePage() {
         {/* ── HERO ── */}
         <section className="mkt-hero mkt-hero--page">
           <div className="mkt-hero__glow" aria-hidden="true" />
-          <div className="container">
-            <p className="mkt-eyebrow">The 5D Machine</p>
-            <h1 className="mkt-hero__title mkt-hero__title--page">
-              A clear path from where you are to a{' '}
-              <span className="mkt-grad">profit focused</span> company.
-            </h1>
-            <p className="mkt-hero__sub mkt-hero__sub--wide">
-              The 5D Machine is the heart of the Umbrella Program. Thirty
-              segments, grouped into the five dimensions of your business. You
-              do not need a strategy degree or a consultant. You follow the
-              steps, do the work, and your company changes underneath you.
-            </p>
-            <div className="mkt-hero__actions">
-              <Link href="/signup" className="btn btn--primary btn--lg">
-                Sign Up Now
-              </Link>
+          <div className="container mkt-hero__grid">
+            <div className="mkt-hero__copy">
+              <p className="mkt-eyebrow">The 5D Machine</p>
+              <h1 className="mkt-hero__title">
+                A clear path from fragmentation, to{' '}
+                <span className="mkt-grad">profit focus</span>.
+              </h1>
+              <p className="mkt-hero__sub mkt-hero__sub--wide">
+                The 5D Machine is the heart of the Umbrella Program. Thirty
+                segments, grouped into the five dimensions of your business.
+                You do not need a strategy degree or a consultant. You follow
+                the steps, do the work, and your company changes underneath
+                you.
+              </p>
+              <div className="mkt-hero__actions">
+                <Link href="/signup" className="btn btn--primary btn--lg">
+                  Sign Up Now
+                </Link>
+              </div>
+            </div>
+            <div className="mkt-hero__art mkt-hero__art--frag" aria-hidden="true">
+              <FragmentGraphic />
             </div>
           </div>
         </section>

@@ -61,9 +61,9 @@ export default function FaqPage() {
         <section className="mkt-hero mkt-hero--page mkt-hero--short">
           <div className="mkt-hero__glow" aria-hidden="true" />
           <div className="container">
-            <p className="mkt-eyebrow">FAQ</p>
+            <p className="mkt-eyebrow"></p>
             <h1 className="mkt-hero__title mkt-hero__title--page">
-              Questions, <span className="mkt-grad">answered</span>.
+              Frequently Asked, <span className="mkt-grad">Questions</span>.
             </h1>
             <p className="mkt-hero__sub mkt-hero__sub--wide">
               Everything you might want to know before you start. Still stuck?
