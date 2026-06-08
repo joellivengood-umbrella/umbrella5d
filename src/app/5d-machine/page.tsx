@@ -17,22 +17,42 @@ export default function MachinePage() {
       <MarketingNav active="machine" />
 
       <main>
-        {/* ── TOP HERO: centered statement over a box-grid texture ── */}
+        {/* ── TOP HERO: full-screen, centered statement over a liquid-glass box grid ── */}
         <section className="mkt-tophero">
           <svg className="mkt-tophero__grid" aria-hidden="true" width="100%" height="100%">
             <defs>
-              <pattern id="boxGrid" x="0" y="0" width="72" height="72" patternUnits="userSpaceOnUse">
-                <rect x="8" y="8" width="56" height="56" rx="14" fill="none" stroke="#ffffff" strokeOpacity="0.07" strokeWidth="1" />
+              {/* Glassy tile face: soft sheen up top fading down. */}
+              <linearGradient id="glassFace" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.10" />
+                <stop offset="0.55" stopColor="#ffffff" stopOpacity="0.035" />
+                <stop offset="1" stopColor="#ffffff" stopOpacity="0.012" />
+              </linearGradient>
+              {/* Specular edge so each tile reads as a pane of glass. */}
+              <linearGradient id="glassEdge" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.3" />
+                <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.07" />
+                <stop offset="1" stopColor="#ffffff" stopOpacity="0.16" />
+              </linearGradient>
+              <pattern id="glassGrid" x="0" y="0" width="116" height="116" patternUnits="userSpaceOnUse">
+                <rect x="7" y="7" width="102" height="102" rx="26" fill="url(#glassFace)" stroke="url(#glassEdge)" strokeWidth="1" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#boxGrid)" />
+            <rect width="100%" height="100%" fill="url(#glassGrid)" />
           </svg>
+
           <div className="container mkt-tophero__inner">
             <h1 className="mkt-tophero__title">
-              The 5D Machine is a step by step procedural process to turn your
-              business into a <span className="mkt-grad">profit machine</span>.
+              The 5D Machine is a step by step<br className="mkt-tophero__br" />
+              procedural process to turn your business<br className="mkt-tophero__br" />
+              into a <span className="mkt-grad">profit machine</span>.
             </h1>
           </div>
+
+          <span className="mkt-tophero__scroll" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="30" height="30">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
         </section>
 
         {/* ── HERO ── */}
