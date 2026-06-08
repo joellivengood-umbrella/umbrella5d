@@ -5605,6 +5605,16 @@ body.potd-player-active .app-main {
 }
 
 /* ── 5D Machine hero graphic: fragmentation to focus ── */
+/* Give the (three-line) headline more room and a slightly smaller cap
+   so "from fragmentation," fits on one line instead of wrapping; the
+   fragment graphic takes the narrower right column. */
+.mkt-hero--page .mkt-hero__grid {
+  grid-template-columns: 1.2fr .8fr;
+}
+.mkt-hero--page .mkt-hero__grid .mkt-hero__title {
+  font-size: clamp(2.1rem, 4vw, 3.3rem);
+}
+
 .mkt-hero__art--frag {
   display: flex;
   align-items: center;
