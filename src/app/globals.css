@@ -5677,42 +5677,90 @@ body.potd-player-active .app-main {
   .frag-node, .frag-line, .frag-line--main, .frag-focalglow { animation: none; }
 }
 
-/* ── 5D Machine top hero: centered statement over a box-grid texture ── */
+/* ── 5D Machine top hero: full-screen, centered statement over a
+      liquid-glass box grid ── */
 .mkt-tophero {
   position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: var(--mkt-bg);
-  padding: calc(var(--nav-h) + 5rem) 0 4rem;
+  padding: calc(var(--nav-h) + 1.5rem) 1.5rem 5.5rem;
   overflow: hidden;
   isolation: isolate;
   text-align: center;
 }
-/* Repeated rounded-box texture, faded toward the edges so it reads as
-   a subtle backdrop rather than a hard pattern. */
+/* Soft brand-colored light that the glass tiles sit in, for the
+   "liquid" feel. Behind the grid. */
+.mkt-tophero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(58% 48% at 50% 36%, rgba(138, 123, 255, 0.22), transparent 72%),
+    radial-gradient(48% 42% at 73% 70%, rgba(95, 198, 255, 0.16), transparent 72%);
+}
+/* A gentle dark lens over the busiest part of the grid so the
+   headline stays crisp. In front of the grid, behind the text. */
+.mkt-tophero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(46% 40% at 50% 47%, rgba(7, 7, 15, 0.72), transparent 72%);
+  pointer-events: none;
+}
+/* Repeated liquid-glass tile texture, faded toward the edges. */
 .mkt-tophero__grid {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
-  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 50% 44%, #000 0%, transparent 80%);
-  mask-image: radial-gradient(ellipse 78% 72% at 50% 44%, #000 0%, transparent 80%);
+  z-index: 1;
+  -webkit-mask-image: radial-gradient(125% 95% at 50% 46%, #000 32%, transparent 84%);
+  mask-image: radial-gradient(125% 95% at 50% 46%, #000 32%, transparent 84%);
 }
 .mkt-tophero__inner {
   position: relative;
-  max-width: 880px;
+  z-index: 3;
+  max-width: 720px;
   margin-inline: auto;
 }
 .mkt-tophero__title {
-  font-size: clamp(1.85rem, 3.6vw, 2.95rem);
-  font-weight: 800;
-  letter-spacing: -.025em;
-  line-height: 1.2;
+  font-size: clamp(1.4rem, 2.5vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.4;
   color: var(--mkt-text);
   margin: 0;
+}
+/* Downward caret prompting the viewer to scroll, pinned near the
+   bottom of the full-screen hero with a soft bounce. */
+.mkt-tophero__scroll {
+  position: absolute;
+  z-index: 3;
+  bottom: 1.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  color: rgba(241, 241, 251, 0.5);
+  animation: topheroBounce 2.2s ease-in-out infinite;
+}
+@keyframes topheroBounce {
+  0%, 100% { transform: translate(-50%, 0); opacity: .5; }
+  50% { transform: translate(-50%, 9px); opacity: .9; }
 }
 
 /* The fragmentation hero now follows the top hero, so it no longer
    needs the extra top padding that cleared the fixed nav. */
 .mkt-hero--stacked {
   padding-top: 3rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-tophero__scroll { animation: none; }
 }
