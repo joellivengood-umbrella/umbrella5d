@@ -5299,8 +5299,39 @@ body.potd-player-active .app-main {
   background: rgba(255, 255, 255, .04);
   border: 1px solid var(--mkt-line);
 }
-.mock-seg__play { width: 28px; height: 28px; border-radius: 50%; background: var(--mkt-grad); flex-shrink: 0; }
-.mock-seg__track { flex: 1; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, .1); }
+.mock-seg__play {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--mkt-grad);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(138, 123, 255, .45);
+}
+.mock-seg__play svg { margin-left: 1px; }
+.mock-seg__track {
+  flex: 1;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .1);
+  position: relative;
+  overflow: hidden;
+}
+.mock-seg__fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 42%;
+  border-radius: 4px;
+  background: var(--mkt-grad);
+}
+.mock-seg__time {
+  width: 30px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .1);
+  flex-shrink: 0;
+}
 
 /* ── Generic sections ── */
 .mkt-section { background: var(--mkt-bg); padding: 5.5rem 0; }
@@ -5598,12 +5629,23 @@ body.potd-player-active .app-main {
   opacity: .6;
   transform-box: fill-box;
   transform-origin: center;
-  animation: fragPulse 3.4s ease-in-out infinite;
+  /* Pulse the opacity and gently float the position so the cluster
+     feels alive. The per-node animation-delay (set inline) staggers
+     both so they drift out of sync. */
+  animation: fragPulse 3.4s ease-in-out infinite,
+             fragFloat 7s ease-in-out infinite;
 }
 .frag-focalglow {
   transform-box: fill-box;
   transform-origin: center;
   animation: fragGlow 3.6s ease-in-out infinite;
+}
+@keyframes fragFloat {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(2.5px, -3px); }
+  50%  { transform: translate(-2.5px, 2px); }
+  75%  { transform: translate(2px, 2.5px); }
+  100% { transform: translate(0, 0); }
 }
 @keyframes fragPulse {
   0%, 100% { opacity: .45; }

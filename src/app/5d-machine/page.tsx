@@ -24,8 +24,9 @@ export default function MachinePage() {
             <div className="mkt-hero__copy">
               <p className="mkt-eyebrow">The 5D Machine</p>
               <h1 className="mkt-hero__title">
-                A clear path from fragmentation, to{' '}
-                <span className="mkt-grad">profit focus</span>.
+                A clear path<br />
+                from fragmentation,<br />
+                to <span className="mkt-grad">profit focus</span>.
               </h1>
               <p className="mkt-hero__sub mkt-hero__sub--wide">
                 The 5D Machine is the heart of the Umbrella Program. Thirty
@@ -92,8 +93,15 @@ export default function MachinePage() {
                     <span className="mock-task" />
                   </div>
                   <div className="mock-seg__player">
-                    <span className="mock-seg__play" />
-                    <span className="mock-seg__track" />
+                    <span className="mock-seg__play">
+                      <svg viewBox="0 0 24 24" fill="#fff" width="11" height="11" aria-hidden="true">
+                        <polygon points="7 5 19 12 7 19 7 5" />
+                      </svg>
+                    </span>
+                    <span className="mock-seg__track">
+                      <span className="mock-seg__fill" />
+                    </span>
+                    <span className="mock-seg__time" />
                   </div>
                 </div>
               </div>
