@@ -5485,11 +5485,14 @@ body.potd-player-active .app-main {
 /* ── Marketing responsive ── */
 @media (max-width: 900px) {
   .mkt-hero__grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .mkt-hero__art { order: -1; max-width: 420px; }
+  /* Text first, graphic under it on mobile. */
+  .mkt-hero__art { max-width: 420px; margin-inline: auto; }
   .mock--machine, .mock--grid, .mock--teams { transform: none; }
   .mkt-split { grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
   .mkt-zig__grid { grid-template-columns: 1fr; gap: 2.25rem; }
-  .mkt-zig--rev .mkt-zig__art { order: 0; }
+  /* In the reversed section the art is DOM-first (left on desktop);
+     on mobile push it below the copy so text leads. */
+  .mkt-zig--rev .mkt-zig__art { order: 1; }
   .mg-dim__list { grid-template-columns: repeat(2, 1fr); }
   .mkt-bonus__list li { grid-template-columns: 1fr; gap: .35rem; }
   .mkt-steplist li { grid-template-columns: 1fr; gap: .25rem; }
