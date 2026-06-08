@@ -17,17 +17,35 @@ export default function MachinePage() {
       <MarketingNav active="machine" />
 
       <main>
+        {/* ── TOP HERO: centered statement over a box-grid texture ── */}
+        <section className="mkt-tophero">
+          <svg className="mkt-tophero__grid" aria-hidden="true" width="100%" height="100%">
+            <defs>
+              <pattern id="boxGrid" x="0" y="0" width="72" height="72" patternUnits="userSpaceOnUse">
+                <rect x="8" y="8" width="56" height="56" rx="14" fill="none" stroke="#ffffff" strokeOpacity="0.07" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#boxGrid)" />
+          </svg>
+          <div className="container mkt-tophero__inner">
+            <h1 className="mkt-tophero__title">
+              The 5D Machine is a step by step procedural process to turn your
+              business into a <span className="mkt-grad">profit machine</span>.
+            </h1>
+          </div>
+        </section>
+
         {/* ── HERO ── */}
-        <section className="mkt-hero mkt-hero--page">
+        <section className="mkt-hero mkt-hero--page mkt-hero--stacked">
           <div className="mkt-hero__glow" aria-hidden="true" />
           <div className="container mkt-hero__grid">
             <div className="mkt-hero__copy">
               <p className="mkt-eyebrow">The 5D Machine</p>
-              <h1 className="mkt-hero__title">
+              <h2 className="mkt-hero__title">
                 A clear path<br />
                 from fragmentation,<br />
                 to <span className="mkt-grad">profit focus</span>.
-              </h1>
+              </h2>
               <p className="mkt-hero__sub mkt-hero__sub--wide">
                 The 5D Machine is the heart of the Umbrella Program. Thirty
                 segments, grouped into the five dimensions of your business.
