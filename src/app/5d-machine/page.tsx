@@ -21,20 +21,20 @@ export default function MachinePage() {
         <section className="mkt-tophero">
           <svg className="mkt-tophero__grid" aria-hidden="true" width="100%" height="100%">
             <defs>
-              {/* Glassy tile face: bright sheen up top fading down. */}
+              {/* Glassy tile face: soft sheen up top fading down. */}
               <linearGradient id="glassFace" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#ffffff" stopOpacity="0.16" />
-                <stop offset="0.55" stopColor="#ffffff" stopOpacity="0.05" />
-                <stop offset="1" stopColor="#ffffff" stopOpacity="0.02" />
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.10" />
+                <stop offset="0.55" stopColor="#ffffff" stopOpacity="0.035" />
+                <stop offset="1" stopColor="#ffffff" stopOpacity="0.012" />
               </linearGradient>
               {/* Specular edge so each tile reads as a pane of glass. */}
               <linearGradient id="glassEdge" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#ffffff" stopOpacity="0.5" />
-                <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.14" />
-                <stop offset="1" stopColor="#ffffff" stopOpacity="0.32" />
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.3" />
+                <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.07" />
+                <stop offset="1" stopColor="#ffffff" stopOpacity="0.16" />
               </linearGradient>
-              <pattern id="glassGrid" x="0" y="0" width="78" height="78" patternUnits="userSpaceOnUse">
-                <rect x="5" y="5" width="68" height="68" rx="18" fill="url(#glassFace)" stroke="url(#glassEdge)" strokeWidth="1.1" />
+              <pattern id="glassGrid" x="0" y="0" width="116" height="116" patternUnits="userSpaceOnUse">
+                <rect x="7" y="7" width="102" height="102" rx="26" fill="url(#glassFace)" stroke="url(#glassEdge)" strokeWidth="1" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#glassGrid)" />
@@ -42,8 +42,9 @@ export default function MachinePage() {
 
           <div className="container mkt-tophero__inner">
             <h1 className="mkt-tophero__title">
-              The 5D Machine is a step by step procedural process to turn your
-              business into a <span className="mkt-grad">profit machine</span>.
+              The 5D Machine is a step by step<br className="mkt-tophero__br" />
+              procedural process to turn your business<br className="mkt-tophero__br" />
+              into a <span className="mkt-grad">profit machine</span>.
             </h1>
           </div>
 

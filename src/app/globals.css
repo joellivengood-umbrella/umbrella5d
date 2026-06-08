@@ -5701,8 +5701,8 @@ body.potd-player-active .app-main {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(58% 48% at 50% 36%, rgba(138, 123, 255, 0.22), transparent 72%),
-    radial-gradient(48% 42% at 73% 70%, rgba(95, 198, 255, 0.16), transparent 72%);
+    radial-gradient(58% 48% at 50% 36%, rgba(138, 123, 255, 0.16), transparent 72%),
+    radial-gradient(48% 42% at 73% 70%, rgba(95, 198, 255, 0.11), transparent 72%);
 }
 /* A gentle dark lens over the busiest part of the grid so the
    headline stays crisp. In front of the grid, behind the text. */
@@ -5721,8 +5721,10 @@ body.potd-player-active .app-main {
   width: 100%;
   height: 100%;
   z-index: 1;
-  -webkit-mask-image: radial-gradient(125% 95% at 50% 46%, #000 32%, transparent 84%);
-  mask-image: radial-gradient(125% 95% at 50% 46%, #000 32%, transparent 84%);
+  /* Heavy vignette: only the center reads, falling off hard to the
+     dark background at the edges so the grid stays subtle. */
+  -webkit-mask-image: radial-gradient(96% 76% at 50% 45%, #000 16%, transparent 68%);
+  mask-image: radial-gradient(96% 76% at 50% 45%, #000 16%, transparent 68%);
 }
 .mkt-tophero__inner {
   position: relative;
@@ -5743,16 +5745,16 @@ body.potd-player-active .app-main {
 .mkt-tophero__scroll {
   position: absolute;
   z-index: 3;
-  bottom: 1.9rem;
+  bottom: 3rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  color: rgba(241, 241, 251, 0.5);
+  color: rgba(241, 241, 251, 0.92);
   animation: topheroBounce 2.2s ease-in-out infinite;
 }
 @keyframes topheroBounce {
-  0%, 100% { transform: translate(-50%, 0); opacity: .5; }
-  50% { transform: translate(-50%, 9px); opacity: .9; }
+  0%, 100% { transform: translate(-50%, 0); opacity: .78; }
+  50% { transform: translate(-50%, 9px); opacity: 1; }
 }
 
 /* The fragmentation hero now follows the top hero, so it no longer
@@ -5763,4 +5765,10 @@ body.potd-player-active .app-main {
 
 @media (prefers-reduced-motion: reduce) {
   .mkt-tophero__scroll { animation: none; }
+}
+
+/* On narrow phones the forced three-line breaks would overflow, so let
+   the headline wrap naturally instead. */
+@media (max-width: 640px) {
+  .mkt-tophero__br { display: none; }
 }
