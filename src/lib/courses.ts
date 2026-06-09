@@ -129,3 +129,85 @@ export type ContentItem = {
   metadata: Record<string, unknown> | null
   is_published: boolean
 }
+
+// ── 5D Machine: interactive course structure ──────────────────────
+//
+// The 5D Machine is richer than the other courses. Its lessons are
+// still content_items (type === 'machine'), but they are grouped into
+// Parts and their body is an ordered list of blocks (headings, rich
+// text, audio/video, and activity questions) rather than a single
+// description + media. See supabase/migrations/20260608_machine_*.sql.
+
+/** A "Part" groups machine lessons (Part One, Part Two, …). */
+export type MachinePart = {
+  id: string
+  sortIndex: number // 1-based; renders as "Part One", "Part Two", …
+  title: string
+  subtitle: string | null
+  isPublished: boolean
+}
+
+export type LessonSection = 'content' | 'activity'
+
+export type LessonBlockType =
+  | 'heading'
+  | 'rich_text'
+  | 'audio'
+  | 'video'
+  | 'question'
+
+/**
+ * Type-specific payload stored in lesson_blocks.data (jsonb). Only the
+ * fields relevant to a given block_type are populated.
+ */
+export type LessonBlockData = {
+  text?: string // heading: the section title
+  html?: string // rich_text: sanitized HTML
+  url?: string // audio | video: Supabase Storage URL
+  title?: string // audio | video: caption / label
+  prompts?: string[] // question: one answer box per prompt
+}
+
+/**
+ * One ordered block in a lesson body. `isCheckpoint` marks the blocks
+ * the learner manually ticks off (numbered content-section headings and
+ * activity question items); a lesson is complete when all of its
+ * checkpoints are checked.
+ */
+export type LessonBlock = {
+  id: string
+  lessonId: string
+  section: LessonSection
+  sortIndex: number
+  blockType: LessonBlockType
+  data: LessonBlockData
+  isCheckpoint: boolean
+}
+
+/** A machine lesson (content_items row) with its Part link and blocks. */
+export type MachineLesson = {
+  id: string
+  partId: string | null
+  partSortIndex: number | null // the "L" in the Part.Lesson address (e.g. the 2 in 1.2)
+  sequenceNum: number // global machine order / route key
+  title: string | null
+  isPublished: boolean
+  blocks: LessonBlock[]
+}
+
+/**
+ * A learner's free-text answer to one prompt of an activity question.
+ * Client-facing shape only; the row's id, user_id, and timestamps are
+ * internal and intentionally omitted here.
+ */
+export type ActivityAnswer = {
+  blockId: string
+  promptIndex: number
+  answerText: string
+}
+
+/** A learner's manual checkmark on a checkpoint block. */
+export type BlockCheck = {
+  blockId: string
+  checkedAt: string
+}
