@@ -343,69 +343,98 @@ export type StreakData = {
   weekDays: StreakDay[]
 }
 
+const WEEK_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+
+function emptyWeek(): StreakDay[] {
+  return WEEK_LABELS.map((label) => ({ label, state: 'missed' as const }))
+}
+
+/**
+ * Never throws — a streak widget must not be able to take down the whole
+ * dashboard. Any query/Intl failure degrades to a zero streak.
+ */
 export async function fetchStreak(
   supabase: MaybeClient,
   userId: string,
   timezone: string
 ): Promise<StreakData> {
-  // 120 days back is plenty to measure any realistic current streak.
-  const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString()
-  const { data, error } = await supabase
-    .from('content_progress')
-    .select('completed_at')
-    .eq('user_id', userId)
-    .gte('completed_at', since)
-
-  if (error) {
-    console.error('fetchStreak error', error)
-    throw new Error(`fetchStreak failed: ${error.message}`)
-  }
-
   const tz = timezone || 'America/Chicago'
-  // A timestamp → the calendar date (YYYY-MM-DD) it falls on in `tz`.
-  const dayStr = (d: Date) => {
+
+  // Stable integer day-index for the calendar day a timestamp falls on
+  // in `tz`. Uses formatToParts (no locale string-format assumptions),
+  // falling back to UTC if Intl can't resolve the zone. Pure calendar
+  // math, so DST-proof.
+  const dayIdx = (date: Date): number => {
+    let y = date.getUTCFullYear()
+    let m = date.getUTCMonth() + 1
+    let d = date.getUTCDate()
     try {
-      return d.toLocaleDateString('en-CA', { timeZone: tz })
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(date)
+      const pick = (t: string) => Number(parts.find((p) => p.type === t)?.value)
+      const py = pick('year')
+      const pm = pick('month')
+      const pd = pick('day')
+      if (Number.isFinite(py) && Number.isFinite(pm) && Number.isFinite(pd)) {
+        y = py
+        m = pm
+        d = pd
+      }
     } catch {
-      return d.toLocaleDateString('en-CA')
+      /* keep the UTC fallback */
     }
-  }
-  // A calendar date string → a stable integer day index (pure calendar
-  // math, DST-proof since the time component is already discarded).
-  const toIdx = (s: string) => {
-    const [y, m, d] = s.split('-').map(Number)
     return Math.floor(Date.UTC(y, m - 1, d) / 86400000)
   }
 
-  const activeIdx = new Set<number>()
-  for (const row of data ?? []) {
-    const ts = (row as { completed_at: string | null }).completed_at
-    if (ts) activeIdx.add(toIdx(dayStr(new Date(ts))))
+  try {
+    const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString()
+    const { data, error } = await supabase
+      .from('content_progress')
+      .select('completed_at')
+      .eq('user_id', userId)
+      .gte('completed_at', since)
+
+    if (error) {
+      // Degrade rather than break the dashboard.
+      console.error('fetchStreak query error (non-fatal)', error)
+    }
+
+    const activeIdx = new Set<number>()
+    for (const row of data ?? []) {
+      const ts = (row as { completed_at: string | null }).completed_at
+      if (ts) activeIdx.add(dayIdx(new Date(ts)))
+    }
+
+    const todayIdx = dayIdx(new Date())
+
+    let streak = 0
+    let cursor = activeIdx.has(todayIdx) ? todayIdx : todayIdx - 1
+    while (activeIdx.has(cursor)) {
+      streak += 1
+      cursor -= 1
+    }
+
+    // Day-of-week straight from the day index (1970-01-01 was a Thursday),
+    // avoiding any date-string parsing. 0=Sun … 6=Sat.
+    const dow = (((todayIdx + 4) % 7) + 7) % 7
+    const mondayOffset = (dow + 6) % 7
+    const weekStart = todayIdx - mondayOffset
+    const weekDays: StreakDay[] = WEEK_LABELS.map((label, i) => {
+      const idx = weekStart + i
+      let state: StreakDay['state']
+      if (idx > todayIdx) state = 'future'
+      else if (idx === todayIdx) state = activeIdx.has(idx) ? 'done' : 'today'
+      else state = activeIdx.has(idx) ? 'done' : 'missed'
+      return { label, state }
+    })
+
+    return { streak, activeToday: activeIdx.has(todayIdx), weekDays }
+  } catch (e) {
+    console.error('fetchStreak failed (non-fatal)', e)
+    return { streak: 0, activeToday: false, weekDays: emptyWeek() }
   }
-
-  const todayStr = dayStr(new Date())
-  const todayIdx = toIdx(todayStr)
-
-  let streak = 0
-  let cursor = activeIdx.has(todayIdx) ? todayIdx : todayIdx - 1
-  while (activeIdx.has(cursor)) {
-    streak += 1
-    cursor -= 1
-  }
-
-  // Mon–Sun strip for the current week.
-  const todayDow = new Date(todayStr + 'T00:00:00Z').getUTCDay() // 0=Sun..6=Sat
-  const mondayOffset = (todayDow + 6) % 7 // Mon=0..Sun=6
-  const weekStart = todayIdx - mondayOffset
-  const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-  const weekDays: StreakDay[] = labels.map((label, i) => {
-    const idx = weekStart + i
-    let state: StreakDay['state']
-    if (idx > todayIdx) state = 'future'
-    else if (idx === todayIdx) state = activeIdx.has(idx) ? 'done' : 'today'
-    else state = activeIdx.has(idx) ? 'done' : 'missed'
-    return { label, state }
-  })
-
-  return { streak, activeToday: activeIdx.has(todayIdx), weekDays }
 }
