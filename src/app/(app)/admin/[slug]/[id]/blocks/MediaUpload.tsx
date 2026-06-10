@@ -45,8 +45,23 @@ export function MediaUpload({
     setError(null)
 
     const supabase = createClient()
-    const ext = (file.name.split('.').pop() ?? 'bin').toLowerCase()
-    const path = `${kind}/${crypto.randomUUID()}.${ext}`
+
+    // Readable, collision-proof name: a sanitized version of the
+    // original filename + a short random tag, inside the per-type folder
+    // (e.g. image/essential-prerequisites-a1b2c3d4.png). Keeps the
+    // bucket easy to browse and hand-organize later.
+    const dot = file.name.lastIndexOf('.')
+    const ext = (dot > 0 ? file.name.slice(dot + 1) : 'bin').toLowerCase()
+    const base =
+      (dot > 0 ? file.name.slice(0, dot) : file.name)
+        .normalize('NFKD')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60)
+        .replace(/-+$/, '') || 'file'
+    const tag = crypto.randomUUID().slice(0, 8)
+    const path = `${kind}/${base}-${tag}.${ext}`
 
     const { error: upErr } = await supabase.storage
       .from('lesson-media')
