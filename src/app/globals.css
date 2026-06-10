@@ -6050,6 +6050,25 @@ body.potd-player-active .app-main {
   color: var(--clr-muted);
 }
 
+/* ── Inline image ── */
+.m-image {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.m-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.m-image__caption {
+  font-size: .8rem;
+  color: var(--clr-muted);
+}
+
 /* ── Answer boxes ── */
 .m-answer {
   display: flex;
