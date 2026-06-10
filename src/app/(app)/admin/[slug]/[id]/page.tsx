@@ -6,6 +6,7 @@ import {
   getCourseMeta,
   type CourseSlug,
 } from '@/lib/courses'
+import { fetchMachinePartsList } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemForm, type ContentItemDraft } from '../ContentItemForm'
 
@@ -35,7 +36,7 @@ export default async function AdminEditItemPage({
   const { data, error } = await supabase
     .from('content_items')
     .select(
-      'id, type, sequence_num, title, description, media_url, duration_mins, is_published, metadata'
+      'id, type, sequence_num, title, description, media_url, duration_mins, is_published, metadata, part_id, part_sort_index'
     )
     .eq('id', id)
     .eq('type', courseSlug)
@@ -53,7 +54,18 @@ export default async function AdminEditItemPage({
     duration_mins: data.duration_mins,
     is_published: data.is_published,
     metadata: (data.metadata as Record<string, unknown> | null) ?? null,
+    part_id: (data.part_id as string | null) ?? null,
+    part_sort_index: (data.part_sort_index as number | null) ?? null,
   }
+
+  const parts =
+    courseSlug === 'machine'
+      ? (await fetchMachinePartsList(supabase)).map((p) => ({
+          id: p.id,
+          sortIndex: p.sortIndex,
+          title: p.title,
+        }))
+      : []
 
   return (
     <>
@@ -103,7 +115,7 @@ export default async function AdminEditItemPage({
         )}
 
         <section className="settings-section">
-          <ContentItemForm courseSlug={courseSlug} initial={draft} />
+          <ContentItemForm courseSlug={courseSlug} initial={draft} parts={parts} />
         </section>
       </main>
     </>
