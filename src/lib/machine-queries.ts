@@ -253,3 +253,31 @@ export async function fetchActivityAnswers(
     })
   )
 }
+
+/**
+ * All Parts, ordered, for admin use (RLS shows admins drafts too). Used
+ * by the Parts manager and the lesson Part-assignment dropdown.
+ */
+export async function fetchMachinePartsList(
+  supabase: MaybeClient
+): Promise<MachinePart[]> {
+  const { data, error } = await supabase
+    .from('machine_parts')
+    .select('id, sort_index, title, subtitle, is_published')
+    .order('sort_index', { ascending: true })
+
+  if (error) {
+    console.error('fetchMachinePartsList error', error)
+    throw new Error(`fetchMachinePartsList failed: ${error.message}`)
+  }
+  return (data ?? []).map((p) => {
+    const r = p as Record<string, unknown>
+    return {
+      id: r.id as string,
+      sortIndex: r.sort_index as number,
+      title: r.title as string,
+      subtitle: (r.subtitle as string | null) ?? null,
+      isPublished: r.is_published as boolean,
+    }
+  })
+}

@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { BSS_VERSIONS, type CourseSlug, type BssVersion } from '@/lib/courses'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
+
+export type PartOption = { id: string; sortIndex: number; title: string }
 
 type FormValues = {
   sequence_num: string
@@ -15,6 +18,8 @@ type FormValues = {
   duration_mins: string
   is_published: boolean
   bss_version: BssVersion | ''
+  part_id: string
+  part_sort_index: string
 }
 
 export type ContentItemDraft = {
@@ -27,14 +32,18 @@ export type ContentItemDraft = {
   duration_mins: number | null
   is_published: boolean
   metadata: Record<string, unknown> | null
+  part_id?: string | null
+  part_sort_index?: number | null
 }
 
 export function ContentItemForm({
   courseSlug,
   initial,
+  parts = [],
 }: {
   courseSlug: CourseSlug
   initial: ContentItemDraft
+  parts?: PartOption[]
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -58,6 +67,8 @@ export function ContentItemForm({
     duration_mins: initial.duration_mins?.toString() ?? '',
     is_published: initial.is_published,
     bss_version: initialVersion,
+    part_id: initial.part_id ?? '',
+    part_sort_index: initial.part_sort_index?.toString() ?? '',
   })
 
   function update<K extends keyof FormValues>(key: K, val: FormValues[K]) {
@@ -68,14 +79,52 @@ export function ContentItemForm({
     e.preventDefault()
     setStatus(null)
 
-    const seq = parseInt(values.sequence_num, 10)
-    if (Number.isNaN(seq) || seq < 1) {
-      setStatus({ type: 'error', msg: 'Sequence # must be a positive integer' })
-      return
+    // Machine lessons are addressed by Part.Lesson, so their global
+    // sequence_num is just an internal route key — auto-assigned on
+    // create, preserved on edit. Other courses keep the manual field.
+    let seq: number
+    if (courseSlug === 'machine') {
+      if (initial.id && initial.sequence_num != null) {
+        seq = initial.sequence_num
+      } else {
+        const { data: maxRow } = await supabase
+          .from('content_items')
+          .select('sequence_num')
+          .eq('type', 'machine')
+          .order('sequence_num', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        seq = ((maxRow?.sequence_num as number | undefined) ?? 0) + 1
+      }
+    } else {
+      seq = parseInt(values.sequence_num, 10)
+      if (Number.isNaN(seq) || seq < 1) {
+        setStatus({ type: 'error', msg: 'Sequence # must be a positive integer' })
+        return
+      }
     }
+
     if (courseSlug === 'bss' && !values.bss_version) {
       setStatus({ type: 'error', msg: 'BSS items require a version' })
       return
+    }
+
+    // A machine lesson assigned to a Part needs its order within it.
+    let partId: string | null = null
+    let partSortIndex: number | null = null
+    if (courseSlug === 'machine') {
+      partId = values.part_id || null
+      if (partId) {
+        const psi = parseInt(values.part_sort_index, 10)
+        if (Number.isNaN(psi) || psi < 1) {
+          setStatus({
+            type: 'error',
+            msg: 'Set the lesson’s order number within its Part (1, 2, 3…).',
+          })
+          return
+        }
+        partSortIndex = psi
+      }
     }
 
     const dur = values.duration_mins.trim()
@@ -91,7 +140,7 @@ export function ContentItemForm({
         ? { ...(initial.metadata ?? {}), version: values.bss_version }
         : initial.metadata
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       type: courseSlug,
       sequence_num: seq,
       title: values.title.trim() || null,
@@ -100,6 +149,10 @@ export function ContentItemForm({
       duration_mins: dur,
       is_published: values.is_published,
       metadata,
+    }
+    if (courseSlug === 'machine') {
+      payload.part_id = partId
+      payload.part_sort_index = partSortIndex
     }
 
     setSaving(true)
@@ -159,17 +212,55 @@ export function ContentItemForm({
 
   return (
     <form onSubmit={handleSubmit} className="settings-form admin-form">
+      {courseSlug === 'machine' && (
+        <div className="admin-form-row">
+          <label className="settings-field">
+            <span>Part</span>
+            <select
+              value={values.part_id}
+              onChange={(e) => update('part_id', e.target.value)}
+            >
+              <option value="">— Unassigned —</option>
+              {parts.map((p) => (
+                <option key={p.id} value={p.id}>
+                  Part {p.sortIndex}: {p.title}
+                </option>
+              ))}
+            </select>
+            <p className="settings-hint">
+              Which Part this lesson belongs to.{' '}
+              <Link href="/admin/machine/parts">Manage Parts</Link>
+            </p>
+          </label>
+          <label className="settings-field">
+            <span>Order within Part</span>
+            <input
+              type="number"
+              min={1}
+              value={values.part_sort_index}
+              onChange={(e) => update('part_sort_index', e.target.value)}
+              placeholder="e.g. 1"
+            />
+            <p className="settings-hint">
+              Its position in the Part — the &ldquo;2&rdquo; in 1.2.
+            </p>
+          </label>
+        </div>
+      )}
+
       <div className="admin-form-row">
-        <label className="settings-field">
-          <span>Sequence #</span>
-          <input
-            type="number"
-            min={1}
-            value={values.sequence_num}
-            onChange={(e) => update('sequence_num', e.target.value)}
-            required
-          />
-        </label>
+        {courseSlug !== 'machine' && (
+          <label className="settings-field">
+            <span>Sequence #</span>
+            <input
+              type="number"
+              min={1}
+              value={values.sequence_num}
+              onChange={(e) => update('sequence_num', e.target.value)}
+              required
+            />
+          </label>
+        )}
 
         {courseSlug === 'bss' && (
           <label className="settings-field">

@@ -6418,3 +6418,71 @@ body.potd-player-active .app-main {
   .lbe-cta { flex-direction: column; align-items: flex-start; }
   .lbe-media__url { min-width: 0; width: 100%; }
 }
+
+/* ── 5D Machine Parts manager (.mpm-*) ── */
+.mpm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.mpm__empty {
+  color: var(--clr-muted);
+  font-size: .9rem;
+}
+.mpm__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding: 0;
+  margin: 0;
+}
+.mpm-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  background: var(--clr-surface);
+}
+.mpm-row__order {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.mpm-row__num {
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--ct-text, var(--clr-primary));
+  min-width: 4.75rem;
+  text-align: center;
+}
+.mpm-row__title {
+  flex: 1;
+  min-width: 8rem;
+}
+.mpm-row__pub {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  color: var(--clr-muted);
+  white-space: nowrap;
+}
+.mpm-new {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  padding-top: .85rem;
+  border-top: 1px solid var(--clr-border);
+}
+.mpm-new .lbe-input {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .mpm-row { flex-wrap: wrap; }
+  .mpm-row__title { order: 5; flex-basis: 100%; }
+}

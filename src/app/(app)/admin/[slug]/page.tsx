@@ -85,6 +85,11 @@ export default async function AdminCoursePage({
           <Link href={`/admin/${courseSlug}/new`} className="btn btn--primary">
             + New item
           </Link>
+          {courseSlug === 'machine' && (
+            <Link href="/admin/machine/parts" className="btn btn--secondary">
+              Manage Parts
+            </Link>
+          )}
         </div>
 
         <div className="admin-table-wrap">

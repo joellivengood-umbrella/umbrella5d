@@ -5,6 +5,8 @@ import {
   getCourseMeta,
   type CourseSlug,
 } from '@/lib/courses'
+import { createClient } from '@/lib/supabase/server'
+import { fetchMachinePartsList } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemForm } from '../ContentItemForm'
 
@@ -21,6 +23,16 @@ export default async function AdminNewItemPage({
   if (!isValidCourseSlug(slug)) notFound()
   const courseSlug = slug as CourseSlug
   const meta = getCourseMeta(courseSlug)
+
+  const supabase = await createClient()
+  const parts =
+    courseSlug === 'machine'
+      ? (await fetchMachinePartsList(supabase)).map((p) => ({
+          id: p.id,
+          sortIndex: p.sortIndex,
+          title: p.title,
+        }))
+      : []
 
   return (
     <>
@@ -51,6 +63,7 @@ export default async function AdminNewItemPage({
         <section className="settings-section">
           <ContentItemForm
             courseSlug={courseSlug}
+            parts={parts}
             initial={{
               id: null,
               type: courseSlug,
