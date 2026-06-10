@@ -281,3 +281,71 @@ export async function fetchMachinePartsList(
     }
   })
 }
+
+/**
+ * Full machine structure for the admin: every Part with its lessons (in
+ * order), plus the lessons that aren't in any Part yet. Like
+ * fetchMachineLanding but it also surfaces the unassigned lessons so the
+ * admin can spot and slot them.
+ */
+export async function fetchMachineAdminStructure(supabase: MaybeClient): Promise<{
+  parts: MachinePartWithLessons[]
+  unassigned: MachineLessonSummary[]
+}> {
+  const [partsRes, lessonsRes] = await Promise.all([
+    supabase
+      .from('machine_parts')
+      .select('id, sort_index, title, subtitle, is_published')
+      .order('sort_index', { ascending: true }),
+    supabase
+      .from('content_items')
+      .select('id, sequence_num, title, part_id, part_sort_index, is_published')
+      .eq('type', 'machine')
+      .order('part_sort_index', { ascending: true })
+      .order('sequence_num', { ascending: true }),
+  ])
+
+  if (partsRes.error) {
+    console.error('fetchMachineAdminStructure parts error', partsRes.error)
+    throw new Error(`fetchMachineAdminStructure failed: ${partsRes.error.message}`)
+  }
+  if (lessonsRes.error) {
+    console.error('fetchMachineAdminStructure lessons error', lessonsRes.error)
+    throw new Error(`fetchMachineAdminStructure failed: ${lessonsRes.error.message}`)
+  }
+
+  const byPart = new Map<string, MachineLessonSummary[]>()
+  const unassigned: MachineLessonSummary[] = []
+  for (const row of lessonsRes.data ?? []) {
+    const r = row as Record<string, unknown>
+    const lesson: MachineLessonSummary = {
+      id: r.id as string,
+      sequenceNum: r.sequence_num as number,
+      title: (r.title as string | null) ?? null,
+      partId: (r.part_id as string | null) ?? null,
+      partSortIndex: (r.part_sort_index as number | null) ?? null,
+      isPublished: r.is_published as boolean,
+    }
+    if (lesson.partId) {
+      const arr = byPart.get(lesson.partId) ?? []
+      arr.push(lesson)
+      byPart.set(lesson.partId, arr)
+    } else {
+      unassigned.push(lesson)
+    }
+  }
+
+  const parts: MachinePartWithLessons[] = (partsRes.data ?? []).map((p) => {
+    const r = p as Record<string, unknown>
+    return {
+      id: r.id as string,
+      sortIndex: r.sort_index as number,
+      title: r.title as string,
+      subtitle: (r.subtitle as string | null) ?? null,
+      isPublished: r.is_published as boolean,
+      lessons: byPart.get(r.id as string) ?? [],
+    }
+  })
+
+  return { parts, unassigned }
+}

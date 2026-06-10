@@ -6,7 +6,9 @@ import {
   getCourseMeta,
   type CourseSlug,
 } from '@/lib/courses'
+import { fetchMachineAdminStructure } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
+import { MachineAdminList } from './MachineAdminList'
 
 type RouteParams = { slug: string }
 
@@ -41,6 +43,40 @@ export default async function AdminCoursePage({
   const meta = getCourseMeta(courseSlug)
 
   const supabase = await createClient()
+
+  // 5D Machine gets a structure-aware admin: Parts grouped with their
+  // lessons, plus an "Unassigned" section. Other courses keep the flat
+  // table below.
+  if (courseSlug === 'machine') {
+    const { parts, unassigned } = await fetchMachineAdminStructure(supabase)
+    const lessonCount =
+      parts.reduce((n, p) => n + p.lessons.length, 0) + unassigned.length
+    return (
+      <>
+        <BodyClass className="page-dashboard" />
+        <main className="courses-main course-theme-machine">
+          <Link href="/admin" className="lesson-back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            All admin
+          </Link>
+
+          <div className="courses-header">
+            <p className="section-eyebrow">{meta.shortTitle} · admin</p>
+            <h1>{meta.title}</h1>
+            <p className="courses-header__blurb">
+              {parts.length} part{parts.length === 1 ? '' : 's'}, {lessonCount}{' '}
+              lesson{lessonCount === 1 ? '' : 's'}.
+            </p>
+          </div>
+
+          <MachineAdminList parts={parts} unassigned={unassigned} />
+        </main>
+      </>
+    )
+  }
+
   const { data, error } = await supabase
     .from('content_items')
     .select(
@@ -85,11 +121,6 @@ export default async function AdminCoursePage({
           <Link href={`/admin/${courseSlug}/new`} className="btn btn--primary">
             + New item
           </Link>
-          {courseSlug === 'machine' && (
-            <Link href="/admin/machine/parts" className="btn btn--secondary">
-              Manage Parts
-            </Link>
-          )}
         </div>
 
         <div className="admin-table-wrap">
