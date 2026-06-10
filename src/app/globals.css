@@ -6486,3 +6486,125 @@ body.potd-player-active .app-main {
   .mpm-row { flex-wrap: wrap; }
   .mpm-row__title { order: 5; flex-basis: 100%; }
 }
+
+/* ── 5D Machine structure-aware admin (.mas-*) ── */
+.mas-part {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  background: var(--clr-surface);
+}
+.mas-part__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .75rem;
+}
+.mas-part__eyebrow {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ct-text, var(--clr-primary));
+}
+.mas-part__eyebrow--warn {
+  color: #b45309;
+}
+.mas-part__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  margin-top: .1rem;
+}
+.mas-empty,
+.mas-unassigned__note {
+  font-size: .85rem;
+  color: var(--clr-muted);
+}
+.mas-unassigned {
+  border-color: rgba(245, 158, 11, .45);
+  background: rgba(245, 158, 11, .05);
+}
+.mas-unassigned__note {
+  margin-bottom: .65rem;
+}
+.mas-lessons {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+}
+.mas-lesson {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .5rem .65rem;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+.mas-lesson__num {
+  font-size: .78rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ct-text, var(--clr-primary));
+  min-width: 2.5rem;
+}
+.mas-lesson__title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--clr-text);
+  text-decoration: none;
+}
+.mas-lesson__title:hover {
+  text-decoration: underline;
+}
+.mas-lesson__actions {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  white-space: nowrap;
+}
+.mas-lesson__actions a {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--clr-muted);
+  text-decoration: none;
+}
+.mas-lesson__actions a:hover {
+  color: var(--ct-text, var(--clr-primary));
+}
+.mas-lesson__content {
+  color: var(--ct-text, var(--clr-primary)) !important;
+}
+.mas-assign {
+  font: inherit;
+  font-size: .8rem;
+  padding: .3rem .5rem;
+  border: 1.5px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--clr-text);
+  cursor: pointer;
+}
+.mas-nopart {
+  font-size: .8rem;
+}
+
+@media (max-width: 640px) {
+  .mas-lesson {
+    flex-wrap: wrap;
+  }
+  .mas-lesson__title {
+    flex-basis: 100%;
+    order: -1;
+  }
+  .mas-lesson__actions {
+    flex-wrap: wrap;
+  }
+}
