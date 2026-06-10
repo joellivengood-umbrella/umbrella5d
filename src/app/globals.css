@@ -6608,3 +6608,108 @@ body.potd-player-active .app-main {
     flex-wrap: wrap;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Dashboard streak banner — the habit focal point (warm / flame).
+   ══════════════════════════════════════════════════════════════════ */
+.streak {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #fff4e3, #ffe7c8);
+  border: 1px solid #f6d6a8;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+}
+.streak__flame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff;
+  color: #f97316;
+  box-shadow: 0 1px 4px rgba(193, 108, 41, .22);
+  flex-shrink: 0;
+  transform-origin: 50% 72%;
+  animation: streakFlicker 2.6s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes streakFlicker {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  35%  { transform: scale(1.07) rotate(-2.5deg); }
+  55%  { transform: scale(1.02) rotate(1.5deg); }
+  78%  { transform: scale(1.05) rotate(-1deg); }
+}
+.streak__count { flex-shrink: 0; }
+.streak__countline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+.streak__num {
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: .95;
+  letter-spacing: -.02em;
+  color: #c2410c;
+}
+.streak__unit {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #9a3412;
+}
+.streak__start {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: #c2410c;
+}
+.streak__nudge {
+  font-size: .82rem;
+  color: #b45309;
+  margin: 5px 0 0;
+}
+.streak__week {
+  margin-left: auto;
+  display: flex;
+  gap: 9px;
+}
+.streak__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.streak__daylabel {
+  font-size: .72rem;
+  font-weight: 600;
+  color: #b07a44;
+}
+.streak__dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+}
+.streak__dot--done   { background: #f97316; }
+.streak__dot--today  { background: #fff; border: 2px solid #f97316; }
+.streak__dot--missed { background: #f1e1cc; }
+.streak__dot--future { background: #f3e7d6; opacity: .55; }
+
+@media (prefers-reduced-motion: reduce) {
+  .streak__flame { animation: none; }
+}
+@media (max-width: 640px) {
+  .streak__week {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+}
