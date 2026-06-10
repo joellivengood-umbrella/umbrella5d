@@ -6,12 +6,14 @@ import { CourseCard } from '@/components/courses/CourseCard'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
 import { AssignmentsSection } from '@/components/dashboard/AssignmentsSection'
 import { DailyPodWidget } from '@/components/dashboard/DailyPodWidget'
+import { StreakBanner } from '@/components/dashboard/StreakBanner'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
   fetchCompletedItemIds,
   fetchPotdEpisodeStubs,
   fetchResumeTarget,
+  fetchStreak,
 } from '@/lib/content-queries'
 import { fetchMemberAssignments } from '@/lib/org-queries'
 
@@ -29,7 +31,7 @@ export default async function DashboardPage() {
   const [{ data: profile }, totals, doneCounts] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name')
+      .select('full_name, timezone')
       .eq('id', user.id)
       .single(),
     fetchTotalsByType(supabase),
@@ -37,6 +39,8 @@ export default async function DashboardPage() {
   ])
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
+  const timezone =
+    (profile?.timezone as string | undefined) || 'America/Chicago'
 
   // Resume card scopes to Umbrella Program only — POTD is bonus
   // content, not "where you left off."
@@ -45,11 +49,13 @@ export default async function DashboardPage() {
   // Assignments + completed-item IDs + all POTD episodes in parallel.
   // pendingAssignments = unfinished; powers the AssignmentsSection.
   // The pod list + completions drive the Daily Pod widget below.
-  const [allAssignments, completedItemIds, potdEpisodes] = await Promise.all([
-    fetchMemberAssignments(supabase, user.id),
-    fetchCompletedItemIds(supabase, user.id),
-    fetchPotdEpisodeStubs(supabase),
-  ])
+  const [allAssignments, completedItemIds, potdEpisodes, streakData] =
+    await Promise.all([
+      fetchMemberAssignments(supabase, user.id),
+      fetchCompletedItemIds(supabase, user.id),
+      fetchPotdEpisodeStubs(supabase),
+      fetchStreak(supabase, user.id, timezone),
+    ])
   const pendingAssignments = allAssignments.filter(
     (a) => !completedItemIds.has(a.contentItemId)
   )
@@ -120,6 +126,9 @@ export default async function DashboardPage() {
             </div>
           </section>
 
+          {/* ── Streak (habit focal point) ── */}
+          <StreakBanner data={streakData} />
+
           {/* ── Assigned to you (manager-directed work) ── */}
           <AssignmentsSection assignments={pendingAssignments} />
 
@@ -128,47 +137,6 @@ export default async function DashboardPage() {
 
           {/* ── Daily Pod (bonus content) ── */}
           <DailyPodWidget episode={featuredPod} done={featuredPodDone} />
-
-          {/* ── Stat cards ── */}
-          <div className="dash-stats">
-            <div className="stat-card">
-              <div className="stat-card__icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              </div>
-              <p className="stat-card__value">
-                {doneProgram} / {totalProgram}
-              </p>
-              <p className="stat-card__label">Items Completed</p>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-card__icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="18" y1="20" x2="18" y2="10" />
-                  <line x1="12" y1="20" x2="12" y2="4" />
-                  <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-              </div>
-              <p className="stat-card__value">{pctProgram}%</p>
-              <p className="stat-card__label">Overall Progress</p>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-card__icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
-              </div>
-              <p className="stat-card__value">
-                {UMBRELLA_PROGRAM_COURSES.length}
-              </p>
-              <p className="stat-card__label">Courses Available</p>
-            </div>
-          </div>
 
           {/* ── Umbrella Program courses ── */}
           <div className="modules-header">
