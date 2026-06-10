@@ -139,31 +139,43 @@ export async function fetchMachineLessonBySequence(
   supabase: MaybeClient,
   sequenceNum: number
 ): Promise<MachineLessonFull | null> {
-  const { data: item, error } = await supabase
+  // No .maybeSingle(): a seeded rich lesson can share a sequence_num
+  // with a legacy flat machine item, and maybeSingle() throws on more
+  // than one row. Fetch all matches and prefer the Part-linked (rich)
+  // one. No relationship embed either — the Part is resolved with a
+  // plain follow-up query, sidestepping any PostgREST FK detection.
+  const { data: rows, error } = await supabase
     .from('content_items')
     .select(
-      'id, sequence_num, title, description, media_url, is_published, part_id, part_sort_index, machine_parts(sort_index, title)'
+      'id, sequence_num, title, description, media_url, is_published, part_id, part_sort_index'
     )
     .eq('type', 'machine')
     .eq('sequence_num', sequenceNum)
-    .maybeSingle()
 
   if (error) {
     console.error('fetchMachineLessonBySequence item error', error)
     throw new Error(`fetchMachineLessonBySequence failed: ${error.message}`)
   }
-  if (!item) return null
+  const list = (rows ?? []) as Record<string, unknown>[]
+  if (list.length === 0) return null
 
-  const row = item as Record<string, unknown>
-
-  // Supabase types a to-one embed as object-or-array; normalize.
-  const rawPart = row.machine_parts as
-    | { sort_index: number; title: string }
-    | { sort_index: number; title: string }[]
-    | null
-  const part = Array.isArray(rawPart) ? rawPart[0] : rawPart
-
+  const row = list.find((r) => r.part_id) ?? list[0]
   const lessonId = row.id as string
+
+  // Resolve the Part on its own (only when the lesson belongs to one).
+  let part: { sort_index: number; title: string } | null = null
+  if (row.part_id) {
+    const { data: partRow, error: partErr } = await supabase
+      .from('machine_parts')
+      .select('sort_index, title')
+      .eq('id', row.part_id as string)
+      .maybeSingle()
+    if (partErr) {
+      console.error('fetchMachineLessonBySequence part error', partErr)
+      throw new Error(`fetchMachineLessonBySequence failed: ${partErr.message}`)
+    }
+    part = (partRow as { sort_index: number; title: string } | null) ?? null
+  }
 
   const { data: blockRows, error: blocksErr } = await supabase
     .from('lesson_blocks')
