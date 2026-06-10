@@ -177,6 +177,11 @@ export function MachineLessonView({
         <div className="m-progress__track" aria-hidden="true">
           <div className="m-progress__fill" style={{ width: `${pct}%` }} />
         </div>
+        {!isComplete && (
+          <p className="m-progress__hint">
+            Click each numbered tag to check it off as you complete it.
+          </p>
+        )}
       </div>
 
       {/* ── Content ── */}
@@ -297,15 +302,16 @@ function CheckPill({
       onClick={onToggle}
       disabled={pending}
       aria-pressed={checked}
-      aria-label={checked ? `Mark ${number} not done` : `Mark ${number} done`}
-      className={'m-pill' + (checked ? ' is-checked' : '')}
+      aria-label={checked ? `${number} — done, click to undo` : `Mark ${number} done`}
+      title={checked ? 'Done — click to undo' : 'Click to check off'}
+      className={'m-check' + (checked ? ' is-checked' : '')}
     >
-      {checked && (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" width="13" height="13" aria-hidden="true">
+      <span className="m-check__box" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
           <polyline points="20 6 9 17 4 12" />
         </svg>
-      )}
-      <span className="m-pill__num">{number}</span>
+      </span>
+      <span className="m-check__num">{number}</span>
     </button>
   )
 }
