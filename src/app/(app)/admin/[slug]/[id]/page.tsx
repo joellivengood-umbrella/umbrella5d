@@ -86,6 +86,22 @@ export default async function AdminEditItemPage({
           </p>
         </div>
 
+        {courseSlug === 'machine' && (
+          <Link href={`/admin/machine/${draft.id}/blocks`} className="lbe-cta">
+            <div>
+              <strong>Edit lesson content</strong>
+              <span>
+                Build the body and activity — text, media, and the checkable
+                steps and questions.
+              </span>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </Link>
+        )}
+
         <section className="settings-section">
           <ContentItemForm courseSlug={courseSlug} initial={draft} />
         </section>
