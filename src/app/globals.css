@@ -5894,6 +5894,11 @@ body.potd-player-active .app-main {
 .m-progress.is-complete .m-progress__fill {
   background: #16a34a;
 }
+.m-progress__hint {
+  margin-top: .6rem;
+  font-size: .78rem;
+  color: var(--clr-muted);
+}
 
 /* ── Numbered items (content sections + activity questions) ── */
 .m-content,
@@ -5904,9 +5909,14 @@ body.potd-player-active .app-main {
 }
 .m-item {
   display: grid;
-  grid-template-columns: 3.5rem 1fr;
-  gap: .9rem;
+  grid-template-columns: 5.25rem 1fr;
+  gap: 1.25rem;
   align-items: start;
+}
+/* Activity tags read "5D X.Y.N", wider than content tags ("X.Y.N"), so
+   give them a roomier gutter to stay aligned and uncramped. */
+.m-activity .m-item {
+  grid-template-columns: 7rem 1fr;
 }
 .m-item__gutter {
   display: flex;
@@ -5927,37 +5937,73 @@ body.potd-player-active .app-main {
   text-transform: uppercase;
 }
 
-/* The numbered pill that doubles as the checkbox. */
-.m-pill {
+/* The numbered tag that doubles as the checkbox. A visible checkbox
+   square on the left makes it obvious the tag is clickable. */
+.m-check {
   display: inline-flex;
   align-items: center;
-  gap: .2rem;
-  min-width: 2.9rem;
-  padding: .3rem .5rem;
+  gap: .5rem;
+  padding: .45rem .8rem .45rem .5rem;
   border: 1.5px solid var(--clr-border);
   border-radius: 999px;
   background: var(--clr-surface);
-  color: var(--clr-muted);
-  font-size: .72rem;
+  color: var(--clr-text);
+  font-size: .82rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  cursor: pointer;
   white-space: nowrap;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
-              color var(--dur) var(--ease), transform var(--dur) var(--ease);
+              color var(--dur) var(--ease), transform var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease);
 }
-.m-pill:hover:not(:disabled) {
+.m-check:hover:not(:disabled) {
   border-color: var(--ct-border-h, var(--clr-primary));
+  background: var(--ct-hover-bg, rgba(0, 0, 0, .03));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.m-check:active:not(:disabled) {
+  transform: translateY(0);
+}
+.m-check:disabled {
+  cursor: default;
+  opacity: .6;
+}
+.m-check__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--clr-border);
+  border-radius: 6px;
+  color: var(--ct-done-text, #111);
+  flex-shrink: 0;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.m-check__box svg {
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.m-check:hover:not(:disabled) .m-check__box {
+  border-color: var(--ct-text, var(--clr-primary));
+}
+.m-check__num {
+  line-height: 1;
+}
+.m-check.is-checked {
+  border-color: transparent;
+  background: var(--ct-tint, rgba(91, 79, 255, .12));
   color: var(--ct-text, var(--clr-primary));
 }
-.m-pill:disabled {
-  cursor: default;
-  opacity: .7;
-}
-.m-pill.is-checked {
+.m-check.is-checked .m-check__box {
   background: linear-gradient(150deg, var(--ct-from), var(--ct-to));
   border-color: transparent;
-  color: var(--ct-done-text, #111);
+}
+.m-check.is-checked .m-check__box svg {
+  opacity: 1;
 }
 
 /* ── Activity section ── */
@@ -6081,6 +6127,12 @@ body.potd-player-active .app-main {
 }
 
 @media (max-width: 640px) {
-  .m-item { grid-template-columns: 2.7rem 1fr; gap: .6rem; }
+  /* Stack the tag above its content so the wider checkbox tags get full
+     width instead of squeezing a narrow gutter. */
+  .m-item,
+  .m-activity .m-item {
+    grid-template-columns: 1fr;
+    gap: .5rem;
+  }
   .m-part__grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
 }
