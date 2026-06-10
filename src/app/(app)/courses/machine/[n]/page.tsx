@@ -1,10 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { fetchContentItem } from '@/lib/content-queries'
+import {
+  fetchMachineLessonBySequence,
+  fetchBlockChecks,
+  fetchActivityAnswers,
+  partOrdinal,
+} from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { MarkCompleteButton } from '@/components/courses/MarkCompleteButton'
+import { MachineLessonView } from '@/components/courses/machine/MachineLessonView'
 
 type RouteParams = { n: string }
 
@@ -14,7 +20,7 @@ export async function generateMetadata({
   params: Promise<RouteParams>
 }) {
   const { n } = await params
-  return { title: `5D Machine — Segment ${n}` }
+  return { title: `5D Machine — Lesson ${n}` }
 }
 
 export default async function MachineItemPage({
@@ -32,15 +38,32 @@ export default async function MachineItemPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const item = await fetchContentItem(supabase, 'machine', n)
-  if (!item) notFound()
+  const lesson = await fetchMachineLessonBySequence(supabase, n)
+  if (!lesson) notFound()
 
-  const { data: progress } = await supabase
-    .from('content_progress')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('content_item_id', item.id)
-    .maybeSingle()
+  const hasBlocks = lesson.blocks.length > 0
+  const address =
+    lesson.partNumber != null && lesson.lessonNumber != null
+      ? `${lesson.partNumber}.${lesson.lessonNumber}`
+      : null
+
+  // Per-user state (rich lessons only).
+  const blockIds = lesson.blocks.map((b) => b.id)
+  const [checkedIds, answers, progress] = await Promise.all([
+    hasBlocks
+      ? fetchBlockChecks(supabase, user.id, blockIds)
+      : Promise.resolve(new Set<string>()),
+    hasBlocks
+      ? fetchActivityAnswers(supabase, user.id, blockIds)
+      : Promise.resolve([]),
+    supabase
+      .from('content_progress')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('content_item_id', lesson.id)
+      .maybeSingle(),
+  ])
+  const initiallyComplete = !!progress.data
 
   return (
     <>
@@ -54,27 +77,54 @@ export default async function MachineItemPage({
         </Link>
 
         <div className="lesson-header">
-          <p className="section-eyebrow">5D Machine</p>
-          <h1>{item.title ?? `Segment ${item.sequence_num}`}</h1>
+          <p className="section-eyebrow">
+            {lesson.partNumber != null
+              ? `Part ${partOrdinal(lesson.partNumber)}${lesson.partTitle ? ` · ${lesson.partTitle}` : ''}`
+              : '5D Machine'}
+          </p>
+          <h1>
+            {address ? <span className="lesson-address">{address}</span> : null}
+            {lesson.title ?? `Lesson ${lesson.sequenceNum}`}
+          </h1>
+          {!lesson.isPublished && (
+            <span className="lesson-draft-badge">
+              Draft preview — only admins can see this
+            </span>
+          )}
         </div>
 
-        <div className="lesson-body">
-          <ContentPlayer
-            mediaUrl={item.media_url}
-            mediaKind="video"
-            title={item.title ?? `5D Machine Segment ${item.sequence_num}`}
+        {hasBlocks ? (
+          <MachineLessonView
+            userId={user.id}
+            lessonId={lesson.id}
+            partNumber={lesson.partNumber}
+            lessonNumber={lesson.lessonNumber}
+            blocks={lesson.blocks}
+            initialCheckedIds={[...checkedIds]}
+            initialAnswers={answers}
+            initiallyComplete={initiallyComplete}
           />
-          {item.description && (
-            <p className="content-description">{item.description}</p>
-          )}
-          <div className="lesson-complete-section">
-            <MarkCompleteButton
-              userId={user.id}
-              contentItemId={item.id}
-              initialDone={!!progress}
+        ) : (
+          // Legacy / not-yet-authored machine lesson: the original simple
+          // view (single media + description + one Mark Complete button).
+          <div className="lesson-body">
+            <ContentPlayer
+              mediaUrl={lesson.mediaUrl}
+              mediaKind="video"
+              title={lesson.title ?? `5D Machine Lesson ${lesson.sequenceNum}`}
             />
+            {lesson.description && (
+              <p className="content-description">{lesson.description}</p>
+            )}
+            <div className="lesson-complete-section">
+              <MarkCompleteButton
+                userId={user.id}
+                contentItemId={lesson.id}
+                initialDone={initiallyComplete}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </>
   )

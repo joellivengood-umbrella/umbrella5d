@@ -5772,3 +5772,315 @@ body.potd-player-active .app-main {
 @media (max-width: 640px) {
   .mkt-tophero__br { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   5D Machine — interactive course (Parts grid + rich lesson body).
+   Inherits the gold course-theme-machine tokens (--ct-*).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Landing: Parts → numbered lesson boxes ── */
+.m-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+}
+.m-part__head {
+  margin-bottom: 1rem;
+}
+.m-part__eyebrow {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ct-text, var(--clr-primary));
+  margin-bottom: .15rem;
+}
+.m-part__draft {
+  color: var(--clr-muted);
+  font-weight: 600;
+}
+.m-part__title {
+  font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--clr-text);
+}
+.m-part__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: .85rem;
+  max-width: 560px;
+}
+.m-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(150deg, var(--ct-from), var(--ct-to));
+  color: var(--ct-done-text, #111);
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.m-box:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.m-box__num {
+  font-size: 1.2rem;
+  letter-spacing: -.02em;
+}
+.m-box.is-done {
+  background: #16a34a;
+  color: #fff;
+}
+.m-box.is-draft {
+  opacity: .62;
+  outline: 2px dashed rgba(0, 0, 0, .2);
+  outline-offset: -4px;
+}
+
+/* ── Lesson body shell + progress ── */
+.m-lesson {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+.m-progress {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: .7rem .9rem;
+  box-shadow: var(--shadow-sm);
+}
+.m-progress__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: .5rem;
+}
+.m-progress__label {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--clr-muted);
+}
+.m-progress.is-complete .m-progress__label {
+  color: #16a34a;
+}
+.m-progress__count {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  font-variant-numeric: tabular-nums;
+}
+.m-progress__track {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--clr-border);
+  overflow: hidden;
+}
+.m-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ct-from), var(--ct-to));
+  transition: width .35s var(--ease);
+}
+.m-progress.is-complete .m-progress__fill {
+  background: #16a34a;
+}
+
+/* ── Numbered items (content sections + activity questions) ── */
+.m-content,
+.m-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+.m-item {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: .9rem;
+  align-items: start;
+}
+.m-item__gutter {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: .15rem;
+}
+.m-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+.m-item__heading {
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: var(--clr-text);
+  text-transform: uppercase;
+}
+
+/* The numbered pill that doubles as the checkbox. */
+.m-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  min-width: 2.9rem;
+  padding: .3rem .5rem;
+  border: 1.5px solid var(--clr-border);
+  border-radius: 999px;
+  background: var(--clr-surface);
+  color: var(--clr-muted);
+  font-size: .72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+              color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.m-pill:hover:not(:disabled) {
+  border-color: var(--ct-border-h, var(--clr-primary));
+  color: var(--ct-text, var(--clr-primary));
+}
+.m-pill:disabled {
+  cursor: default;
+  opacity: .7;
+}
+.m-pill.is-checked {
+  background: linear-gradient(150deg, var(--ct-from), var(--ct-to));
+  border-color: transparent;
+  color: var(--ct-done-text, #111);
+}
+
+/* ── Activity section ── */
+.m-activity {
+  border-top: 1px solid var(--clr-border);
+  padding-top: 1.75rem;
+}
+.m-activity__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+  color: var(--ct-text, var(--clr-text));
+}
+.m-item--note .m-item__body {
+  color: var(--clr-muted);
+}
+
+/* ── Prose (rich text) ── */
+.m-prose {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+}
+.m-prose p {
+  line-height: 1.7;
+  color: var(--clr-text);
+}
+.m-prose strong {
+  font-weight: 700;
+}
+.m-subheading {
+  font-weight: 800;
+}
+
+/* ── Inline media ── */
+.m-media {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.m-media__caption {
+  font-size: .8rem;
+  color: var(--clr-muted);
+}
+
+/* ── Answer boxes ── */
+.m-answer {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.m-answer__prompt {
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--clr-text);
+}
+.m-answer__input {
+  width: 100%;
+  border: 1.5px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: .7rem .8rem;
+  font: inherit;
+  font-size: .95rem;
+  color: var(--clr-text);
+  background: var(--clr-surface);
+  resize: vertical;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.m-answer__input:focus {
+  outline: none;
+  border-color: var(--ct-border-h, var(--clr-primary));
+  box-shadow: 0 0 0 3px var(--ct-tint, rgba(91, 79, 255, .12));
+}
+.m-answer__status {
+  font-size: .72rem;
+  color: var(--clr-muted);
+  min-height: 1em;
+  align-self: flex-end;
+}
+
+/* ── Completion banner ── */
+.m-complete {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .9rem 1.1rem;
+  border-radius: var(--radius-md);
+  background: rgba(22, 163, 74, .1);
+  border: 1px solid rgba(22, 163, 74, .3);
+  color: #15803d;
+  font-weight: 700;
+  animation: mPop .4s var(--ease);
+}
+@keyframes mPop {
+  from { transform: scale(.96); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* ── Lesson header extras ── */
+.lesson-address {
+  color: var(--ct-text, var(--clr-primary));
+  margin-right: .5rem;
+}
+.lesson-draft-badge {
+  display: inline-block;
+  margin-top: .5rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: #b45309;
+  background: rgba(245, 158, 11, .14);
+  border: 1px solid rgba(245, 158, 11, .3);
+  padding: .25rem .6rem;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-complete { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .m-item { grid-template-columns: 2.7rem 1fr; gap: .6rem; }
+  .m-part__grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+}
