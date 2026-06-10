@@ -154,6 +154,7 @@ export type LessonBlockType =
   | 'rich_text'
   | 'audio'
   | 'video'
+  | 'image'
   | 'question'
 
 /**
@@ -163,8 +164,8 @@ export type LessonBlockType =
 export type LessonBlockData = {
   text?: string // heading: the section title
   html?: string // rich_text: sanitized HTML
-  url?: string // audio | video: Supabase Storage URL
-  title?: string // audio | video: caption / label
+  url?: string // audio | video | image: Supabase Storage URL
+  title?: string // audio | video: caption / label; image: caption / alt text
   prompts?: string[] // question: one answer box per prompt
 }
 

@@ -340,6 +340,19 @@ function BlockBody({ block }: { block: LessonBlock }) {
       </div>
     )
   }
+  if (block.blockType === 'image') {
+    if (!block.data.url) return null
+    return (
+      <figure className="m-image">
+        {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary
+            Supabase Storage URLs; next/image would need per-host config. */}
+        <img src={block.data.url} alt={block.data.title ?? ''} loading="lazy" />
+        {block.data.title ? (
+          <figcaption className="m-image__caption">{block.data.title}</figcaption>
+        ) : null}
+      </figure>
+    )
+  }
   // A non-checkpoint heading sitting in a body (uncommon) — render plain.
   if (block.blockType === 'heading' && block.data.text) {
     return <h3 className="m-subheading">{block.data.text}</h3>
