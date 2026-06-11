@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, type ChangeEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { DEFAULT_SECTION_TITLES } from '@/lib/courses'
@@ -43,10 +44,12 @@ export function MachineLessonView({
   initialAnswers: ActivityAnswer[]
   initiallyComplete: boolean
 }) {
+  const router = useRouter()
   const [checked, setChecked] = useState<Set<string>>(
     () => new Set(initialCheckedIds)
   )
   const [pending, setPending] = useState<Set<string>>(new Set())
+  const [finishing, setFinishing] = useState(false)
   const completeRef = useRef(initiallyComplete)
 
   // The "X.Y." address prefix (e.g. "1.2.") for numbered items.
@@ -62,6 +65,11 @@ export function MachineLessonView({
   const totalCheckpoints = checkpointBlocks.length
   const checkedCount = checkpointBlocks.filter((b) => checked.has(b.id)).length
   const isComplete = totalCheckpoints > 0 && checkedCount === totalCheckpoints
+  const remaining = totalCheckpoints - checkedCount
+  // The final "Complete Lesson" button unlocks once every checkpoint is
+  // ticked. A lesson with no checkpoints has nothing to gate on, so it's
+  // finishable immediately.
+  const canFinish = totalCheckpoints === 0 || isComplete
   const pct = totalCheckpoints
     ? Math.round((checkedCount / totalCheckpoints) * 100)
     : 0
@@ -132,6 +140,24 @@ export function MachineLessonView({
       n.delete(blockId)
       return n
     })
+  }
+
+  // Finish the lesson and return to the lesson picker. Disabled in the UI
+  // until every checkpoint is ticked; the guard here is belt-and-braces.
+  async function completeLesson() {
+    if (!canFinish || finishing) return
+    setFinishing(true)
+    // The last toggle already rolls completion up to content_progress, but
+    // upsert again (idempotent) so navigating away can't outrun that write
+    // — and so a checkpoint-free lesson still records as done.
+    const supabase = createClient()
+    await supabase
+      .from('content_progress')
+      .upsert(
+        { user_id: userId, content_item_id: lessonId },
+        { onConflict: 'user_id,content_item_id' }
+      )
+    router.push('/courses/machine')
   }
 
   // ── Split blocks into the three sections. ──
@@ -310,6 +336,24 @@ export function MachineLessonView({
           <span>Lesson complete. Nice work.</span>
         </div>
       )}
+
+      <div className="m-finish">
+        <button
+          type="button"
+          className="m-finish__btn"
+          onClick={completeLesson}
+          disabled={!canFinish || finishing}
+        >
+          {finishing ? 'Saving…' : 'Complete Lesson'}
+        </button>
+        {!canFinish && (
+          <p className="m-finish__hint">
+            {remaining === 1
+              ? '1 item left to check off before you can finish.'
+              : `${remaining} items left to check off before you can finish.`}
+          </p>
+        )}
+      </div>
     </div>
   )
 }

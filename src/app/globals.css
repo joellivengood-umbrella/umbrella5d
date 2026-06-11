@@ -5898,6 +5898,12 @@ body.potd-player-active .app-main {
   gap: 2.25rem;
 }
 .m-progress {
+  /* Follows the reader down the lesson: starts in place, then locks just
+     below the fixed top nav once it would scroll past it. The page itself
+     is the scroll container (no clipping ancestor), so plain sticky works. */
+  position: sticky;
+  top: calc(var(--nav-h) + .5rem);
+  z-index: 40;
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
   border-radius: var(--radius-md);
@@ -6171,6 +6177,47 @@ body.potd-player-active .app-main {
   to   { transform: scale(1);   opacity: 1; }
 }
 
+/* ── Final "Complete Lesson" button ──
+   Unlocks (green) only once every checkpoint is ticked; muted + not-allowed
+   until then. Green matches the lesson's "done" semantics (the progress bar
+   and banner both go green on completion). */
+.m-finish {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .6rem;
+}
+.m-finish__btn {
+  min-width: 240px;
+  padding: .85rem 2rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: #16a34a;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: background var(--dur, .2s) var(--ease, ease),
+              transform var(--dur, .2s) var(--ease, ease);
+}
+.m-finish__btn:hover:not(:disabled) {
+  background: #15803d;
+}
+.m-finish__btn:active:not(:disabled) {
+  transform: scale(.98);
+}
+.m-finish__btn:disabled {
+  background: var(--clr-surface);
+  border-color: var(--clr-border);
+  color: var(--clr-muted);
+  cursor: not-allowed;
+}
+.m-finish__hint {
+  font-size: .8rem;
+  color: var(--clr-muted);
+}
+
 /* ── Lesson header extras ── */
 .lesson-address {
   color: var(--ct-text, var(--clr-primary));
@@ -6203,6 +6250,8 @@ body.potd-player-active .app-main {
     gap: .5rem;
   }
   .m-part__grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+  /* Full-width finish button — bigger tap target on phones. */
+  .m-finish__btn { width: 100%; min-width: 0; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
