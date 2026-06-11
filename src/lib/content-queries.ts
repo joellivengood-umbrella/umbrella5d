@@ -61,12 +61,17 @@ export async function fetchContentItem(
     query = query.eq('metadata->>version', bssVersion)
   }
 
-  const { data, error } = await query.maybeSingle()
+  // NOT .maybeSingle(): two published items can share a (type,
+  // sequence_num) and maybeSingle() throws on >1 row. Take the first.
+  const { data, error } = await query
+    .order('id', { ascending: true })
+    .limit(1)
   if (error) {
     console.error('fetchContentItem error', error)
     throw new Error(`fetchContentItem failed: ${error.message}`)
   }
-  return (data as ContentItem) ?? null
+  const rows = (data ?? []) as ContentItem[]
+  return rows[0] ?? null
 }
 
 /**
@@ -229,8 +234,9 @@ export async function fetchResumeTarget(
     .limit(1)
 
   if (lastErr) {
+    // The resume card is non-essential — never let it crash the page.
     console.error('fetchResumeTarget last completion error', lastErr)
-    throw new Error(`fetchResumeTarget failed: ${lastErr.message}`)
+    return null
   }
   if (!rows || rows.length === 0) return null
 
@@ -273,12 +279,19 @@ export async function fetchResumeTarget(
     nextQuery = nextQuery.eq('metadata->>version', bssVersion)
   }
 
-  const { data: nextItem, error: nextErr } = await nextQuery.maybeSingle()
+  // NOT .maybeSingle(): published items can share a (type, sequence_num)
+  // — e.g. a seeded 5D Machine lesson colliding with other content — and
+  // maybeSingle() throws on >1 row, which previously 500'd the whole
+  // dashboard. Take the first match; degrade to no-resume on any error.
+  const { data: nextRows, error: nextErr } = await nextQuery
+    .order('sequence_num', { ascending: true })
+    .limit(1)
 
   if (nextErr) {
     console.error('fetchResumeTarget next item error', nextErr)
-    throw new Error(`fetchResumeTarget failed: ${nextErr.message}`)
+    return null
   }
+  const nextItem = (nextRows ?? [])[0]
   if (!nextItem) return null
 
   return {
