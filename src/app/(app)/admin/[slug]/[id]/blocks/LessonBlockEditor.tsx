@@ -3,7 +3,14 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { LessonBlock, LessonBlockType, LessonSection } from '@/lib/courses'
+import {
+  DEFAULT_SECTION_TITLES,
+  LESSON_SECTIONS,
+  type LessonBlock,
+  type LessonBlockType,
+  type LessonSection,
+  type SectionTitles,
+} from '@/lib/courses'
 import { RichTextEditor } from './RichTextEditor'
 import { MediaUpload } from './MediaUpload'
 
@@ -21,19 +28,33 @@ type EditBlock = {
   prompts: string[]
 }
 
-const CONTENT_TYPES: { type: LessonBlockType; label: string }[] = [
-  { type: 'heading', label: 'Section heading' },
+// Block menus per section. The two read sections have no Question
+// button; questions (answer boxes) live only in Instructions, which the
+// DB also enforces.
+const READ_TYPES: { type: LessonBlockType; label: string }[] = [
+  { type: 'heading', label: 'Step heading' },
   { type: 'rich_text', label: 'Text' },
   { type: 'image', label: 'Image' },
   { type: 'audio', label: 'Audio' },
   { type: 'video', label: 'Video' },
 ]
-const ACTIVITY_TYPES: { type: LessonBlockType; label: string }[] = [
-  { type: 'heading', label: 'Heading' },
+const INSTRUCTION_TYPES: { type: LessonBlockType; label: string }[] = [
   { type: 'question', label: 'Question' },
   { type: 'rich_text', label: 'Text' },
+  { type: 'heading', label: 'Sub-heading' },
   { type: 'image', label: 'Image' },
+  { type: 'audio', label: 'Audio' },
+  { type: 'video', label: 'Video' },
 ]
+
+const SECTION_HINTS: Record<LessonSection, string> = {
+  prerequisites:
+    'Read-and-watch content. Step headings are the numbered, checkable items (1.1.1, 1.1.2…).',
+  objectives:
+    'Read-and-watch content. Step numbering continues from the section above.',
+  instructions:
+    'The to-do questions (numbered 5D 1.1.1…). Each Question is checkable and may hold more than one answer box.',
+}
 
 function toEdit(b: LessonBlock): EditBlock {
   return {
@@ -52,10 +73,13 @@ function newBlock(type: LessonBlockType, section: LessonSection): EditBlock {
   return {
     id: crypto.randomUUID(),
     blockType: type,
-    // Content headings are numbered/checkable sections by default;
-    // activity headings are plain titles; questions are always checkpoints.
+    // Questions are always checkpoints; headings in the read sections
+    // default to numbered/checkable steps; instructions sub-headings
+    // are plain titles.
     isCheckpoint:
-      type === 'question' ? true : type === 'heading' ? section === 'content' : false,
+      type === 'question'
+        ? true
+        : type === 'heading' && section !== 'instructions',
     text: '',
     html: '',
     url: '',
@@ -64,48 +88,71 @@ function newBlock(type: LessonBlockType, section: LessonSection): EditBlock {
   }
 }
 
+function emptySections(): Record<LessonSection, EditBlock[]> {
+  return { prerequisites: [], objectives: [], instructions: [] }
+}
+
 export function LessonBlockEditor({
   lessonId,
   initialBlocks,
+  initialTitles,
 }: {
   lessonId: string
   initialBlocks: LessonBlock[]
+  initialTitles: SectionTitles | null
 }) {
   const router = useRouter()
-  const [content, setContent] = useState<EditBlock[]>(() =>
-    initialBlocks.filter((b) => b.section === 'content').map(toEdit)
+  const [sections, setSections] = useState<Record<LessonSection, EditBlock[]>>(
+    () => {
+      const init = emptySections()
+      for (const b of initialBlocks) init[b.section].push(toEdit(b))
+      return init
+    }
   )
-  const [activity, setActivity] = useState<EditBlock[]>(() =>
-    initialBlocks.filter((b) => b.section === 'activity').map(toEdit)
-  )
+  const [titles, setTitles] = useState<Record<LessonSection, string>>({
+    prerequisites: initialTitles?.prerequisites ?? '',
+    objectives: initialTitles?.objectives ?? '',
+    instructions: initialTitles?.instructions ?? '',
+  })
   const savedIds = useRef(new Set(initialBlocks.map((b) => b.id)))
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<Status>(null)
 
-  const setter = (section: LessonSection) =>
-    section === 'content' ? setContent : setActivity
-
   function update(section: LessonSection, id: string, patch: Partial<EditBlock>) {
-    setter(section)((arr) => arr.map((b) => (b.id === id ? { ...b, ...patch } : b)))
+    setSections((s) => ({
+      ...s,
+      [section]: s[section].map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    }))
     setStatus(null)
   }
   function add(section: LessonSection, type: LessonBlockType) {
-    setter(section)((arr) => [...arr, newBlock(type, section)])
+    setSections((s) => ({
+      ...s,
+      [section]: [...s[section], newBlock(type, section)],
+    }))
     setStatus(null)
   }
   function remove(section: LessonSection, id: string) {
-    setter(section)((arr) => arr.filter((b) => b.id !== id))
+    setSections((s) => ({
+      ...s,
+      [section]: s[section].filter((b) => b.id !== id),
+    }))
     setStatus(null)
   }
   function move(section: LessonSection, id: string, dir: -1 | 1) {
-    setter(section)((arr) => {
+    setSections((s) => {
+      const arr = s[section]
       const i = arr.findIndex((b) => b.id === id)
       const j = i + dir
-      if (i < 0 || j < 0 || j >= arr.length) return arr
+      if (i < 0 || j < 0 || j >= arr.length) return s
       const next = arr.slice()
       ;[next[i], next[j]] = [next[j], next[i]]
-      return next
+      return { ...s, [section]: next }
     })
+    setStatus(null)
+  }
+  function setTitle(section: LessonSection, value: string) {
+    setTitles((t) => ({ ...t, [section]: value }))
     setStatus(null)
   }
 
@@ -117,13 +164,13 @@ export function LessonBlockEditor({
       data = { prompts: b.prompts.map((p) => p.trim()).filter(Boolean) }
     else data = { url: b.url.trim(), title: b.title.trim() } // audio | video | image
 
-    // Only content-section headings and questions are checkpoints. An
-    // activity heading is a plain title (the learner view renders it as
-    // one), so it must never count toward completion.
+    // Checkpoints: questions, or headings in the read sections. An
+    // instructions heading is a plain title (matches the DB constraint
+    // and the learner view, which gives it no checkbox).
     const is_checkpoint =
       b.blockType === 'question'
         ? true
-        : b.blockType === 'heading' && section === 'content'
+        : b.blockType === 'heading' && section !== 'instructions'
           ? b.isCheckpoint
           : false
 
@@ -142,10 +189,9 @@ export function LessonBlockEditor({
     setSaving(true)
     setStatus(null)
 
-    const payload = [
-      ...content.map((b, i) => toPayload(b, 'content', i)),
-      ...activity.map((b, i) => toPayload(b, 'activity', i)),
-    ]
+    const payload = LESSON_SECTIONS.flatMap((s) =>
+      sections[s].map((b, i) => toPayload(b, s, i))
+    )
     const currentIds = new Set(payload.map((p) => p.id))
     const toDelete = [...savedIds.current].filter((id) => !currentIds.has(id))
 
@@ -172,6 +218,31 @@ export function LessonBlockEditor({
       }
     }
 
+    // Persist section-title overrides (only names that differ from the
+    // defaults; null clears the column back to all-defaults).
+    const overrides: Record<string, string> = {}
+    for (const s of LESSON_SECTIONS) {
+      const t = titles[s].trim()
+      if (t && t !== DEFAULT_SECTION_TITLES[s]) overrides[s] = t
+    }
+    const { error: titlesErr } = await supabase
+      .from('content_items')
+      .update({
+        section_titles: Object.keys(overrides).length ? overrides : null,
+      })
+      .eq('id', lessonId)
+    if (titlesErr) {
+      setSaving(false)
+      // 42703 = column doesn't exist: the three-sections migration
+      // hasn't been run on this database yet.
+      const msg =
+        titlesErr.code === '42703'
+          ? 'Blocks saved. Section titles need the latest database migration (20260610) before they can be customized.'
+          : `Blocks saved, but section titles failed: ${titlesErr.message}`
+      setStatus({ type: 'error', msg })
+      return
+    }
+
     savedIds.current = currentIds
     setSaving(false)
     setStatus({ type: 'success', msg: 'Saved' })
@@ -180,28 +251,20 @@ export function LessonBlockEditor({
 
   return (
     <div className="lbe">
-      <Section
-        title="Lesson content"
-        hint="The body learners read, watch, and listen to. Section headings are the numbered, checkable steps."
-        section="content"
-        blocks={content}
-        types={CONTENT_TYPES}
-        onUpdate={update}
-        onAdd={add}
-        onRemove={remove}
-        onMove={move}
-      />
-      <Section
-        title="Activity"
-        hint="The to-do questions. Each Question is a numbered, checkable item and may hold more than one answer box."
-        section="activity"
-        blocks={activity}
-        types={ACTIVITY_TYPES}
-        onUpdate={update}
-        onAdd={add}
-        onRemove={remove}
-        onMove={move}
-      />
+      {LESSON_SECTIONS.map((s) => (
+        <Section
+          key={s}
+          section={s}
+          title={titles[s]}
+          blocks={sections[s]}
+          types={s === 'instructions' ? INSTRUCTION_TYPES : READ_TYPES}
+          onTitle={setTitle}
+          onUpdate={update}
+          onAdd={add}
+          onRemove={remove}
+          onMove={move}
+        />
+      ))}
 
       <div className="lbe-savebar">
         <button
@@ -223,21 +286,21 @@ export function LessonBlockEditor({
 }
 
 function Section({
-  title,
-  hint,
   section,
+  title,
   blocks,
   types,
+  onTitle,
   onUpdate,
   onAdd,
   onRemove,
   onMove,
 }: {
-  title: string
-  hint: string
   section: LessonSection
+  title: string
   blocks: EditBlock[]
   types: { type: LessonBlockType; label: string }[]
+  onTitle: (s: LessonSection, value: string) => void
   onUpdate: (s: LessonSection, id: string, patch: Partial<EditBlock>) => void
   onAdd: (s: LessonSection, t: LessonBlockType) => void
   onRemove: (s: LessonSection, id: string) => void
@@ -246,8 +309,20 @@ function Section({
   return (
     <section className="lbe-section">
       <header className="lbe-section__head">
-        <h2 className="lbe-section__title">{title}</h2>
-        <p className="lbe-section__hint">{hint}</p>
+        <label className="lbe-section__titlefield">
+          <span>Section title</span>
+          <input
+            type="text"
+            className="lbe-input"
+            value={title}
+            onChange={(e) => onTitle(section, e.target.value)}
+            placeholder={DEFAULT_SECTION_TITLES[section]}
+            maxLength={80}
+          />
+        </label>
+        <p className="lbe-section__hint">
+          {SECTION_HINTS[section]} Empty sections are hidden from learners.
+        </p>
       </header>
 
       {blocks.length === 0 ? (
@@ -304,7 +379,7 @@ function BlockCard({
   onMove: (s: LessonSection, id: string, dir: -1 | 1) => void
 }) {
   const TYPE_LABEL: Record<LessonBlockType, string> = {
-    heading: 'Heading',
+    heading: section === 'instructions' ? 'Sub-heading' : 'Step heading',
     rich_text: 'Text',
     audio: 'Audio',
     video: 'Video',
@@ -334,9 +409,11 @@ function BlockCard({
               className="lbe-input"
               value={block.text}
               onChange={(e) => onUpdate(section, block.id, { text: e.target.value })}
-              placeholder={section === 'content' ? 'Section heading' : 'Activity title'}
+              placeholder={
+                section === 'instructions' ? 'Sub-heading' : 'Step heading'
+              }
             />
-            {section === 'content' && (
+            {section !== 'instructions' && (
               <label className="lbe-toggle">
                 <input
                   type="checkbox"
@@ -345,7 +422,7 @@ function BlockCard({
                     onUpdate(section, block.id, { isCheckpoint: e.target.checked })
                   }
                 />
-                <span>Numbered, checkable section (a step learners tick off)</span>
+                <span>Numbered, checkable step (learners tick it off)</span>
               </label>
             )}
           </>

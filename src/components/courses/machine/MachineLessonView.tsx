@@ -3,22 +3,31 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
-import type { ActivityAnswer, LessonBlock } from '@/lib/courses'
+import { DEFAULT_SECTION_TITLES } from '@/lib/courses'
+import type {
+  ActivityAnswer,
+  LessonBlock,
+  LessonSection,
+  SectionTitles,
+} from '@/lib/courses'
 
 /**
  * The interactive body of a 5D Machine lesson.
  *
- * Renders the lesson's blocks (content sections + an activity), each
- * numbered item carrying a manual checkbox (Option A). A slim progress
- * bar tracks how many checkpoints are done; when all are checked the
- * lesson rolls up to content_progress (feeding Program Progress) and a
- * completion banner appears. Activity answer boxes autosave.
+ * Renders the three lesson sections in order — Essential Prerequisites
+ * and Objectives (read-and-watch, with numbered checkable step headings
+ * sharing one continuous counter), then Instructions (numbered "5D"
+ * question items with autosaving answer boxes). Empty sections are
+ * hidden. A slim progress bar tracks the checkpoints; when all are
+ * checked the lesson rolls up to content_progress (feeding Program
+ * Progress) and a completion banner appears.
  */
 export function MachineLessonView({
   userId,
   lessonId,
   partNumber,
   lessonNumber,
+  sectionTitles,
   blocks,
   initialCheckedIds,
   initialAnswers,
@@ -28,6 +37,7 @@ export function MachineLessonView({
   lessonId: string
   partNumber: number | null
   lessonNumber: number | null
+  sectionTitles: SectionTitles | null
   blocks: LessonBlock[]
   initialCheckedIds: string[]
   initialAnswers: ActivityAnswer[]
@@ -44,6 +54,9 @@ export function MachineLessonView({
     partNumber != null && lessonNumber != null
       ? `${partNumber}.${lessonNumber}.`
       : ''
+
+  const titleFor = (s: LessonSection) =>
+    sectionTitles?.[s]?.trim() || DEFAULT_SECTION_TITLES[s]
 
   const checkpointBlocks = blocks.filter((b) => b.isCheckpoint)
   const totalCheckpoints = checkpointBlocks.length
@@ -121,34 +134,53 @@ export function MachineLessonView({
     })
   }
 
-  // ── Group content blocks into numbered sections (a checkpoint heading
-  //    plus the blocks that follow it until the next heading). ──
-  const contentBlocks = blocks.filter((b) => b.section === 'content')
-  const activityBlocks = blocks.filter((b) => b.section === 'activity')
+  // ── Split blocks into the three sections. ──
+  const bySection: Record<LessonSection, LessonBlock[]> = {
+    prerequisites: [],
+    objectives: [],
+    instructions: [],
+  }
+  for (const b of blocks) bySection[b.section].push(b)
 
-  type Group = { checkpoint: LessonBlock | null; number: string | null; body: LessonBlock[] }
-  const groups: Group[] = []
+  // Group the read sections into numbered steps (a checkpoint heading
+  // plus the blocks that follow it until the next heading). The step
+  // counter runs CONTINUOUSLY across prerequisites + objectives, so the
+  // lesson never has two steps with the same number.
+  type Group = {
+    checkpoint: LessonBlock | null
+    number: string | null
+    body: LessonBlock[]
+  }
   let headingCount = 0
-  let current: Group | null = null
-  for (const b of contentBlocks) {
-    if (b.blockType === 'heading' && b.isCheckpoint) {
-      headingCount += 1
-      current = { checkpoint: b, number: `${prefix}${headingCount}`, body: [] }
-      groups.push(current)
-    } else {
-      if (!current) {
-        current = { checkpoint: null, number: null, body: [] }
+  const readSections: { section: LessonSection; groups: Group[] }[] = []
+  for (const section of ['prerequisites', 'objectives'] as const) {
+    const list = bySection[section]
+    if (list.length === 0) continue // empty sections are hidden
+    const groups: Group[] = []
+    let current: Group | null = null
+    for (const b of list) {
+      if (b.blockType === 'heading' && b.isCheckpoint) {
+        headingCount += 1
+        current = { checkpoint: b, number: `${prefix}${headingCount}`, body: [] }
         groups.push(current)
+      } else {
+        if (!current) {
+          current = { checkpoint: null, number: null, body: [] }
+          groups.push(current)
+        }
+        current.body.push(b)
       }
-      current.body.push(b)
     }
+    readSections.push({ section, groups })
   }
 
-  // Activity question items get the "5D X.Y.N" numbering. Built in a
-  // plain loop (not a .map callback) to keep render free of mutation.
+  // Instructions: question items get the "5D X.Y.N" numbering; headings
+  // render as plain sub-headings. Built in a plain loop (not a .map
+  // callback) to keep render free of mutation.
+  const instructionBlocks = bySection.instructions
   const activityItems: { block: LessonBlock; number: string | null }[] = []
   let questionCount = 0
-  for (const b of activityBlocks) {
+  for (const b of instructionBlocks) {
     if (b.blockType === 'question') {
       questionCount += 1
       activityItems.push({ block: b, number: `5D ${prefix}${questionCount}` })
@@ -184,49 +216,46 @@ export function MachineLessonView({
         )}
       </div>
 
-      {/* ── Content ── */}
-      <div className="m-content">
-        {groups.map((g, gi) => (
-          <section
-            key={g.checkpoint?.id ?? `lead-${gi}`}
-            className={
-              'm-item' +
-              (g.checkpoint && checked.has(g.checkpoint.id) ? ' is-checked' : '')
-            }
-          >
-            <div className="m-item__gutter">
-              {g.checkpoint && g.number ? (
-                <CheckPill
-                  number={g.number}
-                  checked={checked.has(g.checkpoint.id)}
-                  pending={pending.has(g.checkpoint.id)}
-                  onToggle={() => toggle(g.checkpoint!.id)}
-                />
-              ) : null}
-            </div>
-            <div className="m-item__body">
-              {g.checkpoint?.data.text ? (
-                <h2 className="m-item__heading">{g.checkpoint.data.text}</h2>
-              ) : null}
-              {g.body.map((b) => (
-                <BlockBody key={b.id} block={b} />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+      {/* ── Read sections (Essential Prerequisites, Objectives) ── */}
+      {readSections.map(({ section, groups }) => (
+        <div key={section} className="m-content">
+          <h2 className="m-sectitle">{titleFor(section)}</h2>
+          {groups.map((g, gi) => (
+            <section
+              key={g.checkpoint?.id ?? `${section}-lead-${gi}`}
+              className={
+                'm-item' +
+                (g.checkpoint && checked.has(g.checkpoint.id) ? ' is-checked' : '')
+              }
+            >
+              <div className="m-item__gutter">
+                {g.checkpoint && g.number ? (
+                  <CheckPill
+                    number={g.number}
+                    checked={checked.has(g.checkpoint.id)}
+                    pending={pending.has(g.checkpoint.id)}
+                    onToggle={() => toggle(g.checkpoint!.id)}
+                  />
+                ) : null}
+              </div>
+              <div className="m-item__body">
+                {g.checkpoint?.data.text ? (
+                  <h3 className="m-item__heading">{g.checkpoint.data.text}</h3>
+                ) : null}
+                {g.body.map((b) => (
+                  <BlockBody key={b.id} block={b} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ))}
 
-      {/* ── Activity ── */}
-      {activityItems.length > 0 && (
+      {/* ── Instructions (the interactive to-do) ── */}
+      {instructionBlocks.length > 0 && (
         <div className="m-activity">
+          <h2 className="m-sectitle">{titleFor('instructions')}</h2>
           {activityItems.map(({ block: b, number }) => {
-            if (b.blockType === 'heading') {
-              return (
-                <h2 key={b.id} className="m-activity__title">
-                  {b.data.text}
-                </h2>
-              )
-            }
             if (b.blockType === 'question') {
               const prompts = b.data.prompts ?? []
               return (
@@ -259,7 +288,8 @@ export function MachineLessonView({
                 </section>
               )
             }
-            // rich_text / media note inside the activity, aligned to the body column
+            // Sub-headings, rich text, and media inside the
+            // instructions, aligned to the body column.
             return (
               <div key={b.id} className="m-item m-item--note">
                 <div className="m-item__gutter" />
@@ -284,7 +314,7 @@ export function MachineLessonView({
   )
 }
 
-/** A numbered pill that doubles as the checkbox for a section/item. */
+/** A numbered pill that doubles as the checkbox for a step/item. */
 function CheckPill({
   number,
   checked,
@@ -353,7 +383,8 @@ function BlockBody({ block }: { block: LessonBlock }) {
       </figure>
     )
   }
-  // A non-checkpoint heading sitting in a body (uncommon) — render plain.
+  // A non-checkpoint heading sitting in a body (e.g. an instructions
+  // sub-heading) — render plain.
   if (block.blockType === 'heading' && block.data.text) {
     return <h3 className="m-subheading">{block.data.text}</h3>
   }

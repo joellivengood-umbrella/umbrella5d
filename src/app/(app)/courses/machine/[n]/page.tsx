@@ -99,6 +99,7 @@ export default async function MachineItemPage({
             lessonId={lesson.id}
             partNumber={lesson.partNumber}
             lessonNumber={lesson.lessonNumber}
+            sectionTitles={lesson.sectionTitles}
             blocks={lesson.blocks}
             initialCheckedIds={[...checkedIds]}
             initialAnswers={answers}
