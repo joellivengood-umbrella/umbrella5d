@@ -2379,11 +2379,11 @@ audio {
   right: 0;
   bottom: 0;
   z-index: 80;
-  min-height: 72px;
+  min-height: 92px;
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  padding: .75rem 1.5rem;
+  gap: 1.25rem;
+  padding: 1rem 1.75rem;
   background: #fff;
   border-top: 1px solid var(--clr-border, #e6e8ef);
   box-shadow: 0 -6px 24px rgba(15, 17, 23, .08);
@@ -2392,18 +2392,18 @@ audio {
 .potd-miniplayer__info {
   display: flex;
   align-items: center;
-  gap: .75rem;
-  width: 240px;
+  gap: .85rem;
+  width: 264px;
   min-width: 0;
   flex-shrink: 0;
 }
 
 .potd-miniplayer__icon {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   border-radius: var(--radius-md, 10px);
-  background: rgba(104, 242, 104, .14);
-  color: #1a8a1a;
+  background: rgba(91, 79, 255, .12);
+  color: var(--clr-primary, #5b4fff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2417,15 +2417,15 @@ audio {
 }
 
 .potd-miniplayer__eyebrow {
-  font-size: .65rem;
+  font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .08em;
-  color: #1a8a1a;
+  color: var(--clr-primary, #5b4fff);
 }
 
 .potd-miniplayer__title {
-  font-size: .85rem;
+  font-size: .98rem;
   font-weight: 600;
   color: var(--clr-text, #111);
   overflow: hidden;
@@ -2436,19 +2436,19 @@ audio {
 .potd-miniplayer__controls {
   display: flex;
   align-items: center;
-  gap: .85rem;
+  gap: 1rem;
   flex: 1;
   min-width: 0;
 }
 
 .potd-miniplayer__playbtn {
-  width: 46px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  background: #22a322;
+  background: var(--clr-primary, #5b4fff);
   color: #fff;
   display: flex;
   align-items: center;
@@ -2456,15 +2456,15 @@ audio {
   transition: background var(--dur, .2s) var(--ease, ease);
 }
 .potd-miniplayer__playbtn:hover {
-  background: #1a8a1a;
+  background: var(--clr-primary-h, #4338e0);
 }
 
-/* Rewind-15 button */
+/* Rewind-/forward-15 buttons */
 .potd-miniplayer__skipbtn {
   position: relative;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border: none;
   background: none;
   cursor: pointer;
@@ -2472,7 +2472,7 @@ audio {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: background var(--dur, .2s) var(--ease, ease);
 }
 .potd-miniplayer__skipbtn:hover {
@@ -2480,8 +2480,8 @@ audio {
 }
 .potd-miniplayer__skiplabel {
   position: absolute;
-  bottom: 6px;
-  font-size: .52rem;
+  bottom: 7px;
+  font-size: .6rem;
   font-weight: 800;
   letter-spacing: .02em;
 }
@@ -2495,7 +2495,7 @@ audio {
 }
 
 .potd-miniplayer__time {
-  font-size: .72rem;
+  font-size: .8rem;
   color: var(--clr-muted, #6b7280);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
@@ -2503,7 +2503,7 @@ audio {
 
 .potd-miniplayer__track {
   flex: 1;
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
   background: #e6e8ef;
   cursor: pointer;
@@ -2513,13 +2513,35 @@ audio {
 .potd-miniplayer__fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #68F268, #22a322);
+  background: linear-gradient(90deg, var(--clr-accent-from, #818cf8), var(--clr-primary, #5b4fff));
+}
+
+/* Playback-speed cycle button (1× → 1.25× → … → 2×) */
+.potd-miniplayer__ratebtn {
+  flex-shrink: 0;
+  min-width: 46px;
+  height: 36px;
+  padding: 0 .55rem;
+  border: 1px solid var(--clr-border, #e6e8ef);
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--clr-primary, #5b4fff);
+  transition: background var(--dur, .2s) var(--ease, ease),
+              border-color var(--dur, .2s) var(--ease, ease);
+}
+.potd-miniplayer__ratebtn:hover {
+  background: rgba(91, 79, 255, .08);
+  border-color: var(--clr-primary, #5b4fff);
 }
 
 .potd-miniplayer__close {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border: none;
   background: none;
   cursor: pointer;
@@ -2545,8 +2567,8 @@ audio {
 }
 
 .potd-miniplayer__volbtn {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border: none;
   background: none;
   cursor: pointer;
@@ -2564,27 +2586,32 @@ audio {
 }
 
 .potd-miniplayer__volslider {
-  width: 80px;
+  width: 90px;
   height: 6px;
   cursor: pointer;
-  accent-color: #22a322;
+  accent-color: var(--clr-primary, #5b4fff);
 }
 
 /* Reserve space so the fixed bar doesn't cover content / footer. */
 body.potd-player-active .app-main {
-  padding-bottom: 96px;
+  padding-bottom: 116px;
 }
 
 /* Mobile: sidebar collapses to a top strip, so the bar spans full width. */
 @media (max-width: 768px) {
   .potd-miniplayer {
     left: 0;
-    gap: .85rem;
-    padding: .6rem .85rem;
+    gap: .55rem;
+    padding: .7rem .85rem;
+    min-height: 80px;
   }
   .potd-miniplayer__info {
     width: auto;
     flex: 1;
+  }
+  /* The mic glyph is decorative — drop it to reclaim width for controls. */
+  .potd-miniplayer__icon {
+    display: none;
   }
   .potd-miniplayer__time {
     display: none;
@@ -2593,6 +2620,26 @@ body.potd-player-active .app-main {
      Mobile users use their device volume buttons. */
   .potd-miniplayer__volume {
     display: none;
+  }
+  /* Tighten the transport so rewind / play / forward + speed all fit. */
+  .potd-miniplayer__playbtn {
+    width: 48px;
+    height: 48px;
+  }
+  .potd-miniplayer__skipbtn {
+    width: 42px;
+    height: 42px;
+  }
+  .potd-miniplayer__ratebtn {
+    min-width: 42px;
+    padding: 0 .4rem;
+  }
+}
+
+/* Reserve a touch less space below content on mobile (shorter bar). */
+@media (max-width: 768px) {
+  body.potd-player-active .app-main {
+    padding-bottom: 104px;
   }
 }
 

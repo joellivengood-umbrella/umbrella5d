@@ -66,6 +66,14 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+// Podcast-style playback speeds the rate button cycles through.
+const PLAYBACK_RATES = [1, 1.25, 1.5, 1.75, 2] as const
+
+function formatRate(rate: number): string {
+  // 1 → "1×", 1.5 → "1.5×" (no trailing zeros).
+  return `${rate}×`
+}
+
 export function PotdPlayerProvider({
   userId,
   children,
@@ -81,9 +89,15 @@ export function PotdPlayerProvider({
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
+  const [rate, setRate] = useState<number>(1)
 
   // Remembers the last non-zero volume so the mute toggle can restore it.
   const lastVolumeRef = useRef(1)
+
+  // Mirrors `rate` so the track-load effect can re-apply the chosen speed
+  // without taking `rate` as a dependency (which would restart playback
+  // every time the speed changes).
+  const rateRef = useRef(1)
 
   // Tracks which itemIds we've already auto-completed this session, so a
   // replay doesn't spam the DB / router.refresh on every 'ended'.
@@ -111,6 +125,8 @@ export function PotdPlayerProvider({
       audio.src = current.mediaUrl
       audio.load()
     }
+    // Re-assert the chosen speed; load() resets playbackRate in some browsers.
+    audio.playbackRate = rateRef.current
     audio.play().catch(() => {})
   }, [current])
 
@@ -143,11 +159,32 @@ export function PotdPlayerProvider({
     if (audioRef.current) audioRef.current.volume = volume
   }, [volume])
 
+  // Keep the element's playback speed in sync with state.
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.playbackRate = rate
+  }, [rate])
+
   function rewind15() {
     const audio = audioRef.current
     if (!audio) return
     audio.currentTime = Math.max(0, audio.currentTime - 15)
     setCurrentTime(audio.currentTime)
+  }
+
+  function forward15() {
+    const audio = audioRef.current
+    if (!audio) return
+    const max = Number.isFinite(audio.duration) ? audio.duration : Infinity
+    audio.currentTime = Math.min(max, audio.currentTime + 15)
+    setCurrentTime(audio.currentTime)
+  }
+
+  function cycleRate() {
+    const idx = PLAYBACK_RATES.indexOf(rateRef.current as (typeof PLAYBACK_RATES)[number])
+    const next = PLAYBACK_RATES[(idx + 1) % PLAYBACK_RATES.length]
+    rateRef.current = next
+    setRate(next)
+    if (audioRef.current) audioRef.current.playbackRate = next
   }
 
   function changeVolume(v: number) {
@@ -218,7 +255,7 @@ export function PotdPlayerProvider({
         <div className="potd-miniplayer" role="region" aria-label="Daily Pod player">
           <div className="potd-miniplayer__info">
             <div className="potd-miniplayer__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="22" height="22">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                 <line x1="12" y1="19" x2="12" y2="23" />
@@ -240,7 +277,7 @@ export function PotdPlayerProvider({
               onClick={rewind15}
               aria-label="Rewind 15 seconds"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24" aria-hidden="true">
                 <polyline points="11 17 6 12 11 7" />
                 <path d="M6 12h9a5 5 0 0 1 0 10h-1" />
               </svg>
@@ -254,15 +291,28 @@ export function PotdPlayerProvider({
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26" aria-hidden="true">
                   <rect x="6" y="5" width="4" height="14" rx="1" />
                   <rect x="14" y="5" width="4" height="14" rx="1" />
                 </svg>
               ) : (
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26" aria-hidden="true">
                   <polygon points="6 4 20 12 6 20 6 4" />
                 </svg>
               )}
+            </button>
+
+            <button
+              type="button"
+              className="potd-miniplayer__skipbtn"
+              onClick={forward15}
+              aria-label="Forward 15 seconds"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24" aria-hidden="true">
+                <polyline points="13 17 18 12 13 7" />
+                <path d="M18 12H9a5 5 0 0 0 0 10h1" />
+              </svg>
+              <span className="potd-miniplayer__skiplabel">15</span>
             </button>
 
             <div className="potd-miniplayer__scrubber">
@@ -281,6 +331,15 @@ export function PotdPlayerProvider({
             </div>
           </div>
 
+          <button
+            type="button"
+            className="potd-miniplayer__ratebtn"
+            onClick={cycleRate}
+            aria-label={`Playback speed ${formatRate(rate)}. Tap to change.`}
+          >
+            {formatRate(rate)}
+          </button>
+
           <div className="potd-miniplayer__volume">
             <button
               type="button"
@@ -289,18 +348,18 @@ export function PotdPlayerProvider({
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
             >
               {volume === 0 ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="22" height="22" aria-hidden="true">
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                   <line x1="23" y1="9" x2="17" y2="15" />
                   <line x1="17" y1="9" x2="23" y2="15" />
                 </svg>
               ) : volume < 0.5 ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="22" height="22" aria-hidden="true">
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                   <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
                 </svg>
               ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="22" height="22" aria-hidden="true">
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                   <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
                 </svg>
