@@ -1,12 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type {
-  LessonBlock,
-  LessonSection,
-  LessonBlockType,
-  LessonBlockData,
-} from '@/lib/courses'
+import { normalizeLessonSection } from '@/lib/courses'
+import type { LessonBlock, LessonBlockType, LessonBlockData } from '@/lib/courses'
+import { fetchSectionTitles } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { LessonBlockEditor } from './LessonBlockEditor'
 
@@ -33,12 +30,16 @@ export default async function LessonBlocksPage({
     .maybeSingle()
   if (error || !item) notFound()
 
-  const { data: blockRows, error: blocksErr } = await supabase
-    .from('lesson_blocks')
-    .select('id, lesson_id, section, sort_index, block_type, data, is_checkpoint')
-    .eq('lesson_id', id)
-    .order('sort_index', { ascending: true })
-    .order('id', { ascending: true })
+  const [{ data: blockRows, error: blocksErr }, sectionTitles] =
+    await Promise.all([
+      supabase
+        .from('lesson_blocks')
+        .select('id, lesson_id, section, sort_index, block_type, data, is_checkpoint')
+        .eq('lesson_id', id)
+        .order('sort_index', { ascending: true })
+        .order('id', { ascending: true }),
+      fetchSectionTitles(supabase, id),
+    ])
   if (blocksErr) notFound()
 
   const blocks: LessonBlock[] = (blockRows ?? []).map((b) => {
@@ -46,7 +47,7 @@ export default async function LessonBlocksPage({
     return {
       id: r.id as string,
       lessonId: r.lesson_id as string,
-      section: r.section as LessonSection,
+      section: normalizeLessonSection(r.section as string),
       sortIndex: r.sort_index as number,
       blockType: r.block_type as LessonBlockType,
       data: (r.data as LessonBlockData) ?? {},
@@ -69,8 +70,8 @@ export default async function LessonBlocksPage({
           <p className="section-eyebrow">5D Machine · admin</p>
           <h1>{item.title || `Lesson #${item.sequence_num}`} — content</h1>
           <p className="courses-header__blurb">
-            Build the lesson body and activity. Click <strong>Save changes</strong>{' '}
-            when you&apos;re done.{' '}
+            Build the three lesson sections, then click{' '}
+            <strong>Save changes</strong>.{' '}
             <Link href={`/courses/machine/${item.sequence_num}`} className="lbe-preview-link">
               Preview lesson ↗
             </Link>
@@ -82,7 +83,11 @@ export default async function LessonBlocksPage({
           )}
         </div>
 
-        <LessonBlockEditor lessonId={item.id} initialBlocks={blocks} />
+        <LessonBlockEditor
+          lessonId={item.id}
+          initialBlocks={blocks}
+          initialTitles={sectionTitles}
+        />
       </main>
     </>
   )

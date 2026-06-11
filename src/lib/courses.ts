@@ -147,7 +147,39 @@ export type MachinePart = {
   isPublished: boolean
 }
 
-export type LessonSection = 'content' | 'activity'
+/**
+ * The three fixed sections of a machine lesson, in display order.
+ * prerequisites + objectives are read-and-watch; instructions holds the
+ * interactive question/answer items.
+ */
+export type LessonSection = 'prerequisites' | 'objectives' | 'instructions'
+
+export const LESSON_SECTIONS: ReadonlyArray<LessonSection> = [
+  'prerequisites',
+  'objectives',
+  'instructions',
+]
+
+/** Canonical section titles; lessons may override via section_titles. */
+export const DEFAULT_SECTION_TITLES: Record<LessonSection, string> = {
+  prerequisites: 'Essential Prerequisites',
+  objectives: 'Objectives',
+  instructions: 'Instructions',
+}
+
+/** Per-lesson title overrides stored in content_items.section_titles. */
+export type SectionTitles = Partial<Record<LessonSection, string>>
+
+/**
+ * Tolerates rows written before 20260610_machine_three_sections ran:
+ * legacy 'content' reads as prerequisites and 'activity' as
+ * instructions, so the app works either side of the migration.
+ */
+export function normalizeLessonSection(raw: string): LessonSection {
+  if (raw === 'activity' || raw === 'instructions') return 'instructions'
+  if (raw === 'objectives') return 'objectives'
+  return 'prerequisites' // 'prerequisites' or legacy 'content'
+}
 
 export type LessonBlockType =
   | 'heading'
@@ -171,9 +203,9 @@ export type LessonBlockData = {
 
 /**
  * One ordered block in a lesson body. `isCheckpoint` marks the blocks
- * the learner manually ticks off (numbered content-section headings and
- * activity question items); a lesson is complete when all of its
- * checkpoints are checked.
+ * the learner manually ticks off (numbered step headings in the read
+ * sections, and question items in instructions); a lesson is complete
+ * when all of its checkpoints are checked.
  */
 export type LessonBlock = {
   id: string

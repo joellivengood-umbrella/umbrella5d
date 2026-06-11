@@ -6011,7 +6011,9 @@ body.potd-player-active .app-main {
   border-top: 1px solid var(--clr-border);
   padding-top: 1.75rem;
 }
-.m-activity__title {
+/* Title shared by all three lesson sections (Essential Prerequisites /
+   Objectives / Instructions). */
+.m-sectitle {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -.01em;
@@ -6211,6 +6213,19 @@ body.potd-player-active .app-main {
   color: var(--clr-muted);
   margin-top: .15rem;
   max-width: 60ch;
+}
+.lbe-section__titlefield {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  max-width: 420px;
+}
+.lbe-section__titlefield span {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--clr-muted);
 }
 .lbe-section__empty {
   font-size: .9rem;

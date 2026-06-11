@@ -168,8 +168,11 @@ create table if not exists public.lesson_blocks (
   is_checkpoint boolean not null default false,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
+  -- Accepts both the original two section names and the three named
+  -- sections introduced later; 20260610_machine_three_sections.sql
+  -- remaps legacy rows and tightens this to the three names only.
   constraint lesson_blocks_section_chk
-    check (section in ('content', 'activity')),
+    check (section in ('content', 'activity', 'prerequisites', 'objectives', 'instructions')),
   constraint lesson_blocks_block_type_chk
     check (block_type in ('heading', 'rich_text', 'audio', 'video', 'question')),
   -- Only headings and question items can be checkpoints.

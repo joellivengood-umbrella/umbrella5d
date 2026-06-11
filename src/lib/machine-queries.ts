@@ -1,11 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { normalizeLessonSection } from './courses'
 import type {
   MachinePart,
   LessonBlock,
-  LessonSection,
   LessonBlockType,
   LessonBlockData,
   ActivityAnswer,
+  SectionTitles,
 } from './courses'
 
 /**
@@ -47,7 +48,29 @@ export type MachineLessonFull = {
   partTitle: string | null
   partNumber: number | null // machine_parts.sort_index → the X in X.Y.Z
   lessonNumber: number | null // content_items.part_sort_index → the Y in X.Y.Z
+  sectionTitles: SectionTitles | null // per-lesson overrides; null = defaults
   blocks: LessonBlock[]
+}
+
+/**
+ * Per-lesson section-title overrides. Fetched separately and
+ * failure-tolerant: the section_titles column only exists once
+ * 20260610_machine_three_sections has run, and a missing column must
+ * not take the lesson page down — it just means default titles.
+ */
+export async function fetchSectionTitles(
+  supabase: MaybeClient,
+  lessonId: string
+): Promise<SectionTitles | null> {
+  const { data, error } = await supabase
+    .from('content_items')
+    .select('section_titles')
+    .eq('id', lessonId)
+    .maybeSingle()
+  if (error || !data) return null
+  return (
+    ((data as { section_titles: SectionTitles | null }).section_titles) ?? null
+  )
 }
 
 /** "Part One", "Part Two"… (falls back to the digit past twelve). */
@@ -63,7 +86,9 @@ function toLessonBlock(row: Record<string, unknown>): LessonBlock {
   return {
     id: row.id as string,
     lessonId: row.lesson_id as string,
-    section: row.section as LessonSection,
+    // normalize tolerates legacy 'content'/'activity' rows written
+    // before the three-section migration ran.
+    section: normalizeLessonSection(row.section as string),
     sortIndex: row.sort_index as number,
     blockType: row.block_type as LessonBlockType,
     data: (row.data as LessonBlockData) ?? {},
@@ -177,16 +202,21 @@ export async function fetchMachineLessonBySequence(
     part = (partRow as { sort_index: number; title: string } | null) ?? null
   }
 
-  const { data: blockRows, error: blocksErr } = await supabase
-    .from('lesson_blocks')
-    .select('id, lesson_id, section, sort_index, block_type, data, is_checkpoint')
-    .eq('lesson_id', lessonId)
-    .order('sort_index', { ascending: true })
-    .order('id', { ascending: true })
+  const [blocksRes, sectionTitles] = await Promise.all([
+    supabase
+      .from('lesson_blocks')
+      .select('id, lesson_id, section, sort_index, block_type, data, is_checkpoint')
+      .eq('lesson_id', lessonId)
+      .order('sort_index', { ascending: true })
+      .order('id', { ascending: true }),
+    fetchSectionTitles(supabase, lessonId),
+  ])
 
-  if (blocksErr) {
-    console.error('fetchMachineLessonBySequence blocks error', blocksErr)
-    throw new Error(`fetchMachineLessonBySequence failed: ${blocksErr.message}`)
+  if (blocksRes.error) {
+    console.error('fetchMachineLessonBySequence blocks error', blocksRes.error)
+    throw new Error(
+      `fetchMachineLessonBySequence failed: ${blocksRes.error.message}`
+    )
   }
 
   return {
@@ -200,7 +230,10 @@ export async function fetchMachineLessonBySequence(
     partTitle: part?.title ?? null,
     partNumber: part?.sort_index ?? null,
     lessonNumber: (row.part_sort_index as number | null) ?? null,
-    blocks: (blockRows ?? []).map((b) => toLessonBlock(b as Record<string, unknown>)),
+    sectionTitles,
+    blocks: (blocksRes.data ?? []).map((b) =>
+      toLessonBlock(b as Record<string, unknown>)
+    ),
   }
 }
 
