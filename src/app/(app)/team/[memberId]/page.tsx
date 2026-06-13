@@ -16,7 +16,7 @@ import { AssignmentForm } from './AssignmentForm'
 
 type RouteParams = { memberId: string }
 
-export const metadata = { title: 'Team Member' }
+export const metadata = { title: 'Organization Member' }
 
 export default async function ManageMemberPage({
   params,
@@ -126,7 +126,7 @@ export default async function ManageMemberPage({
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back to team
+          Back to My Organization
         </Link>
 
         <div className="member-detail__header">

@@ -1,43 +1,67 @@
+import { notFound } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
+import {
+  fetchUserOrgRole,
+  fetchOrgMembers,
+  fetchTeams,
+  fetchTeamMemberships,
+} from '@/lib/org-queries'
+import { OrgTeamsManager } from './OrgTeamsManager'
 
-export const metadata = { title: 'Team' }
+export const metadata = { title: 'My Organization' }
+export const dynamic = 'force-dynamic'
 
 /**
- * Team management is shelved behind a "coming soon" placeholder for
- * now. The full implementation (roster, invite code, member progress,
- * per-member detail + assignments) still lives in this folder
- * (TeamRoster / TeamProgress / TeamInviteCode / MemberActions /
- * [memberId]) and in git history — when we turn the feature back on we
- * restore the data-driven page. This placeholder does no data fetching,
- * so it can't error.
+ * "My Organization" — a manager's wide workspace for their org: the full
+ * member roster beside a Teams panel for creating teams and tagging
+ * members into them.
  *
- * Header + sidebar come from the (app) layout automatically.
+ * Manager-gated: the sidebar link only renders for managers, and this
+ * page 404s anyone who isn't a manager of an org (matching /team/[id]).
  */
-export default function TeamPage() {
+export default async function OrganizationPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('org_id, organization_name')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.org_id) notFound()
+
+  const role = await fetchUserOrgRole(supabase, user.id, profile.org_id)
+  if (role !== 'manager') notFound()
+
+  const [members, teams, memberships] = await Promise.all([
+    fetchOrgMembers(supabase, profile.org_id),
+    fetchTeams(supabase, profile.org_id),
+    fetchTeamMemberships(supabase, profile.org_id),
+  ])
+
+  const orgName = profile.organization_name ?? 'My Organization'
+
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main settings-main">
+      <main className="org-main">
         <div className="courses-header">
-          <p className="section-eyebrow">Team</p>
-          <h1>Team Management</h1>
+          <p className="section-eyebrow">My Organization</p>
+          <h1>{orgName}</h1>
         </div>
 
-        <div className="coming-soon-panel">
-          <div className="coming-soon-panel__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <h2 className="coming-soon-panel__title">Coming soon</h2>
-          <p className="coming-soon-panel__text">
-            Team management — invites, your member roster, and team
-            progress — is on the way. Check back shortly.
-          </p>
-        </div>
+        <OrgTeamsManager
+          orgId={profile.org_id}
+          currentUserId={user.id}
+          members={members}
+          initialTeams={teams}
+          initialMemberships={memberships}
+        />
       </main>
     </>
   )

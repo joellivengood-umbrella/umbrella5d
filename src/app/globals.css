@@ -6824,3 +6824,267 @@ body.potd-player-active .app-main {
     justify-content: space-between;
   }
 }
+
+/* ══════════════════════════════════════════
+   MY ORGANIZATION  (members roster + teams)
+   ══════════════════════════════════════════ */
+.org-main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 4rem;
+}
+
+.org-status { margin: 0 0 1.1rem; }
+
+.org-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+.org-panel { margin: 0; }
+.org-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ── Roster ── */
+.org-roster {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.org-member {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  padding: .7rem .55rem;
+  border-radius: var(--radius-md);
+}
+.org-member:hover { background: #fafaff; }
+.org-member__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.org-member__main { flex: 1; min-width: 0; }
+.org-member__name-line {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.org-member__name {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--clr-text);
+}
+.org-member__you {
+  font-size: .6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--clr-primary);
+  background: rgba(91, 79, 255, .1);
+  padding: .1rem .4rem;
+  border-radius: 999px;
+}
+.org-member__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .45rem;
+}
+.org-member__role {
+  flex-shrink: 0;
+  font-size: .6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+}
+.org-member__role--manager { color: #3C3489; background: rgba(91, 79, 255, .12); }
+.org-member__role--member  { color: #5F5E5A; background: #F1EFE8; }
+.org-roster__empty {
+  padding: 1.1rem .55rem;
+  font-size: .85rem;
+  color: var(--clr-muted);
+}
+
+/* ── Team chips ── */
+.org-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .74rem;
+  font-weight: 600;
+  padding: .22rem .5rem .22rem .45rem;
+  border-radius: 999px;
+  line-height: 1.35;
+  border: 1px solid transparent;
+}
+.org-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+/* Keep pathologically long team names from blowing out the row. */
+.org-chip { max-width: 100%; }
+.org-chip__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 13rem;
+}
+.org-chip__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: inherit;
+  opacity: .5;
+  cursor: pointer;
+  padding: 0;
+  margin-left: .05rem;
+  border-radius: 50%;
+}
+.org-chip__x:hover { opacity: 1; }
+.org-chip__x:disabled { opacity: .25; cursor: default; }
+.org-chip--add {
+  background: #fff;
+  border: 1px dashed #c7c9d6;
+  color: var(--clr-muted);
+  cursor: pointer;
+}
+.org-chip--add:hover { border-color: var(--clr-primary); color: var(--clr-primary); }
+.org-chip--pick {
+  background: #fff;
+  cursor: pointer;
+}
+.org-chip--pick:hover { background: #fafaff; }
+
+/* ── Teams panel ── */
+.org-newteam {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: .25rem;
+}
+.org-newteam__input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 0 .75rem;
+  font-size: .9rem;
+  color: var(--clr-text);
+}
+.org-newteam__input:focus {
+  outline: none;
+  border-color: var(--clr-primary);
+  box-shadow: 0 0 0 3px rgba(91, 79, 255, .15);
+}
+.org-teams {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin-top: .85rem;
+}
+.org-team {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  border: 1px solid #eef0f4;
+  border-radius: var(--radius-md);
+  padding: .12rem .3rem .12rem .12rem;
+}
+.org-team.is-selected { border-color: var(--clr-primary); background: #fafaff; }
+.org-team__select {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: .5rem .45rem;
+  border-radius: 8px;
+  text-align: left;
+}
+.org-team__dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.org-team__name {
+  flex: 1;
+  min-width: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.org-team__count {
+  font-size: .8rem;
+  color: var(--clr-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.org-team__actions { display: flex; gap: .1rem; flex-shrink: 0; }
+.org-team__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  color: var(--clr-muted);
+  cursor: pointer;
+  border-radius: 7px;
+}
+.org-team__action:hover { background: #f1f2f7; color: var(--clr-text); }
+.org-team__action--danger:hover { background: rgba(220, 38, 38, .1); color: #dc2626; }
+.org-team__editinput {
+  flex: 1;
+  height: 38px;
+  border: 1px solid var(--clr-primary);
+  border-radius: 8px;
+  padding: 0 .6rem;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  margin: .15rem;
+}
+.org-team__editinput:focus { outline: none; box-shadow: 0 0 0 3px rgba(91, 79, 255, .15); }
+.org-teams__empty {
+  padding: 1rem .2rem;
+  font-size: .85rem;
+  color: var(--clr-muted);
+  line-height: 1.5;
+}
+
+/* Visible keyboard focus on the icon/chip buttons (they strip the
+   default chrome, so the UA outline is easy to miss). */
+.org-chip__x:focus-visible,
+.org-chip--add:focus-visible,
+.org-chip--pick:focus-visible,
+.org-team__select:focus-visible,
+.org-team__action:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .org-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .org-main { padding: 1.5rem 1rem 4rem; }
+}
