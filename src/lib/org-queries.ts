@@ -70,11 +70,13 @@ export async function fetchOrgMembers(
   supabase: MaybeClient,
   orgId: string
 ): Promise<OrgMember[]> {
-  const { data, error } = await supabase
+  // org_members.user_id and profiles.id both reference auth.users, with NO
+  // direct foreign key between the two tables — so PostgREST cannot embed
+  // profiles (it errors PGRST200, "no relationship in the schema cache").
+  // Fetch the members, then their profiles, and join in memory.
+  const { data: memberData, error } = await supabase
     .from('org_members')
-    .select(
-      'user_id, role, created_at, profiles!inner(full_name, avatar_url)'
-    )
+    .select('user_id, role, created_at')
     .eq('org_id', orgId)
     .order('role', { ascending: true }) // managers ('manager') sort before members ('member') alphabetically
     .order('created_at', { ascending: true })
@@ -84,24 +86,44 @@ export async function fetchOrgMembers(
     throw new Error(`fetchOrgMembers failed: ${error.message}`)
   }
 
-  return (data ?? []).map((row) => {
-    // Supabase types embedded relations as either an object or an array.
-    // org_members -> profiles is many-to-one (each member has one
-    // profile), so this is normally an object — but normalize defensively.
-    const rawProfile = (row as {
-      profiles: { full_name: string | null; avatar_url: string | null }
-        | { full_name: string | null; avatar_url: string | null }[]
-        | null
-    }).profiles
-    const profile = Array.isArray(rawProfile) ? rawProfile[0] : rawProfile
+  const memberRows = (memberData ?? []) as {
+    user_id: string
+    role: string
+    created_at: string
+  }[]
+  if (memberRows.length === 0) return []
 
-    const role = (row as { role: string }).role
+  // Manager reads each member's profile via the "managers can view team
+  // profiles" RLS policy (is_managed_team_member), and their own via the
+  // own-row policy — so every org member's profile is visible here.
+  const { data: profileData, error: profileErr } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', memberRows.map((r) => r.user_id))
+
+  if (profileErr) {
+    console.error('fetchOrgMembers profiles error', profileErr)
+    throw new Error(`fetchOrgMembers failed: ${profileErr.message}`)
+  }
+
+  const profileById = new Map(
+    (
+      (profileData ?? []) as {
+        id: string
+        full_name: string | null
+        avatar_url: string | null
+      }[]
+    ).map((p) => [p.id, p])
+  )
+
+  return memberRows.map((row) => {
+    const profile = profileById.get(row.user_id)
     return {
-      userId: (row as { user_id: string }).user_id,
+      userId: row.user_id,
       fullName: profile?.full_name ?? null,
       avatarUrl: profile?.avatar_url ?? null,
-      role: role === 'manager' ? 'manager' : 'member',
-      joinedAt: (row as { created_at: string }).created_at,
+      role: row.role === 'manager' ? 'manager' : 'member',
+      joinedAt: row.created_at,
     }
   })
 }
