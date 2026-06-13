@@ -259,6 +259,79 @@ export async function fetchMemberAssignments(
   })
 }
 
+/**
+ * A team (named sub-group) within an organization.
+ */
+export type Team = {
+  id: string
+  name: string
+  createdAt: string
+}
+
+/**
+ * One person<->team edge from team_members, camel-cased.
+ */
+export type TeamMembership = {
+  teamId: string
+  userId: string
+}
+
+/**
+ * Every team in the given org, ordered alphabetically by name.
+ *
+ * RLS: manager-only via the "managers read teams" policy on
+ * public.teams — the My Organization page is manager-gated.
+ */
+export async function fetchTeams(
+  supabase: MaybeClient,
+  orgId: string
+): Promise<Team[]> {
+  const { data, error } = await supabase
+    .from('teams')
+    .select('id, name, created_at')
+    .eq('org_id', orgId)
+    .order('name', { ascending: true })
+
+  if (error) {
+    console.error('fetchTeams error', error)
+    throw new Error(`fetchTeams failed: ${error.message}`)
+  }
+
+  return (data ?? []).map((row) => ({
+    id: (row as { id: string }).id,
+    name: (row as { name: string }).name,
+    createdAt: (row as { created_at: string }).created_at,
+  }))
+}
+
+/**
+ * Every person<->team membership edge in the org, so the roster can
+ * render each member's team chips without an N+1 query. The page joins
+ * these against fetchOrgMembers / fetchTeams in memory.
+ *
+ * RLS: manager-only via the "managers read team members" policy on
+ * public.team_members.
+ */
+export async function fetchTeamMemberships(
+  supabase: MaybeClient,
+  orgId: string
+): Promise<TeamMembership[]> {
+  const { data, error } = await supabase
+    .from('team_members')
+    .select('team_id, user_id')
+    .eq('org_id', orgId)
+
+  if (error) {
+    console.error('fetchTeamMemberships error', error)
+    throw new Error(`fetchTeamMemberships failed: ${error.message}`)
+  }
+
+  return (data ?? []).map((row) => ({
+    teamId: (row as { team_id: string }).team_id,
+    userId: (row as { user_id: string }).user_id,
+  }))
+}
+
 // POTD launch / daily-drip removed — every published episode is
 // available to everyone now. fetchOrgPotdLaunch lived here; if the
 // staggered-release feature comes back, re-add it (the
