@@ -48,7 +48,7 @@ export function TeamRoster({
               <div className="team-roster__info">
                 <div className="team-roster__name-line">
                   <Link
-                    href={`/team/${m.userId}`}
+                    href={`/organization/${m.userId}`}
                     className="team-roster__name team-roster__name--link"
                   >
                     {displayName}
