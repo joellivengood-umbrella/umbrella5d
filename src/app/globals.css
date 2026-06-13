@@ -1863,7 +1863,10 @@ audio {
 
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  /* Fill exactly the viewport: this min-height plus the nav-h padding
+     below sums to 100vh (content-box), so a short page's footer lands at
+     the very bottom with no phantom scroll. */
+  min-height: calc(100vh - var(--nav-h));
   padding-top: var(--nav-h);
 }
 
@@ -2052,6 +2055,44 @@ audio {
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Slim in-app footer. margin-top:auto pins it to the bottom of the
+   flex-column app-main, so short pages no longer leave a white gap. */
+.app-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: .85rem 2rem;
+  border-top: 1px solid var(--clr-border);
+  background: var(--clr-surface);
+  font-size: .8rem;
+  color: var(--clr-muted);
+}
+.app-footer__copy {
+  color: var(--clr-muted);
+}
+.app-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.app-footer__links a {
+  color: var(--clr-muted);
+  transition: color var(--dur, .2s) var(--ease, ease);
+}
+.app-footer__links a:hover {
+  color: var(--clr-text);
+}
+@media (max-width: 560px) {
+  .app-footer {
+    justify-content: center;
+    text-align: center;
+    padding: .85rem 1rem;
+  }
 }
 
 /* Override dash-header padding inside the shell (no nav offset needed) */
