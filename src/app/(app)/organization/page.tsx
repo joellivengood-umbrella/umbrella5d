@@ -18,7 +18,8 @@ export const dynamic = 'force-dynamic'
  * members into them.
  *
  * Manager-gated: the sidebar link only renders for managers, and this
- * page 404s anyone who isn't a manager of an org (matching /team/[id]).
+ * page 404s anyone who isn't a manager of an org (matching
+ * /organization/[memberId]).
  */
 export default async function OrganizationPage() {
   const supabase = await createClient()

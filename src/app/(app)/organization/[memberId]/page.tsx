@@ -31,8 +31,8 @@ export default async function ManageMemberPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Caller must be in an org and a manager of it. Same gating as /team
-  // — non-managers and orphans get a 404.
+  // Caller must be in an org and a manager of it. Same gating as
+  // /organization — non-managers and orphans get a 404.
   const { data: callerProfile } = await supabase
     .from('profiles')
     .select('org_id')
@@ -112,7 +112,7 @@ export default async function ManageMemberPage({
     <>
       <BodyClass className="page-dashboard" />
       <main className="courses-main settings-main">
-        <Link href="/team" className="lesson-back-btn">
+        <Link href="/organization" className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
             fill="none"

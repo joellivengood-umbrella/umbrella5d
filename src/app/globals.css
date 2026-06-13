@@ -2317,7 +2317,7 @@ audio {
 }
 
 /* ══════════════════════════════════════════
-   COMING SOON placeholder (e.g. /team)
+   COMING SOON placeholder (generic)
    ══════════════════════════════════════════ */
 .coming-soon-panel {
   display: flex;
@@ -4682,7 +4682,7 @@ body.potd-player-active .app-main {
 }
 
 /* ══════════════════════════════════════════
-   MEMBER DETAIL PAGE  (/team/[memberId])
+   MEMBER DETAIL PAGE  (/organization/[memberId])
    ══════════════════════════════════════════ */
 .member-detail__header {
   display: flex;

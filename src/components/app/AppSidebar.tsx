@@ -161,9 +161,9 @@ export function AppSidebar({
 
         {orgRole === 'manager' && (
           <Link
-            href="/team"
-            className={`sidebar-link${isActive('/team') ? ' is-active' : ''}`}
-            aria-current={isActive('/team') ? 'page' : undefined}
+            href="/organization"
+            className={`sidebar-link${isActive('/organization') ? ' is-active' : ''}`}
+            aria-current={isActive('/organization') ? 'page' : undefined}
           >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

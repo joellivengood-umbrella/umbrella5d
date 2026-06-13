@@ -129,8 +129,8 @@ export async function fetchOrgMembers(
 }
 
 /**
- * Per-member completed-item count for the Team Progress section on
- * /team. Counts only Umbrella Program items (BSS + EOS + Machine);
+ * Per-member completed-item count for the Team Progress section on the
+ * My Organization page. Counts only Umbrella Program items (BSS + EOS + Machine);
  * bonus Daily Pod episodes are excluded, matching each member's own
  * sidebar/dashboard progress.
  */

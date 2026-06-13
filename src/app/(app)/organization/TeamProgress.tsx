@@ -1,7 +1,7 @@
 import type { OrgMember, TeamProgressRow } from '@/lib/org-queries'
 
 /**
- * "Team Progress" section on the manager's /team page.
+ * "Team Progress" section on the manager's My Organization page.
  *
  * One row per member showing a horizontal progress bar plus a
  * percentage and (completed / total) count. Members are listed in the
