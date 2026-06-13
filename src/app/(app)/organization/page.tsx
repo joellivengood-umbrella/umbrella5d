@@ -13,9 +13,9 @@ export const metadata = { title: 'My Organization' }
 export const dynamic = 'force-dynamic'
 
 /**
- * "My Organization" — a manager's wide workspace for their org: the full
- * member roster beside a Teams panel for creating teams and tagging
- * members into them.
+ * "My Organization" — a manager's wide workspace for their org: a Teams
+ * list on the left and, on the right, the selected team's roster with a
+ * search field to add anyone in the org into it.
  *
  * Manager-gated: the sidebar link only renders for managers, and this
  * page 404s anyone who isn't a manager of an org (matching
