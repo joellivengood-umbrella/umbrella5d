@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppNav } from '@/components/app/AppNav'
 import { AppSidebar } from '@/components/app/AppSidebar'
-import { MarketingFooter } from '@/components/marketing/MarketingFooter'
+import { AppFooter } from '@/components/app/AppFooter'
 import { PotdPlayerProvider } from '@/components/potd/PotdPlayerProvider'
 import { MobileNavProvider } from '@/components/app/MobileNavProvider'
 import { fetchUserOrgRole } from '@/lib/org-queries'
@@ -51,7 +51,7 @@ export default async function AppLayout({
           />
           <div className="app-main">
             {children}
-            <MarketingFooter />
+            <AppFooter />
           </div>
         </div>
       </MobileNavProvider>
