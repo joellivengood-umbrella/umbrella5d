@@ -6870,12 +6870,13 @@ body.potd-player-active .app-main {
    MY ORGANIZATION  (members roster + teams)
    ══════════════════════════════════════════ */
 .org-main {
-  /* Wide workspace — uses the big-screen real estate. The thin Teams
-     column (19rem, set on .org-grid) stays fixed, so the extra width all
-     flows into the right-hand member column. */
-  max-width: 1600px;
+  /* Match the Courses page's content column exactly (.courses-main:
+     1080px / 1.5rem padding) — the comfortable, well-filled width the
+     rest of the app uses. The thin Teams column (19rem on .org-grid)
+     stays fixed, so the rest goes to the member column. */
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 2.25rem 2rem 4rem;
+  padding: 2.25rem 1.5rem 4rem;
 }
 
 .org-status { margin: 0 0 1.1rem; }
