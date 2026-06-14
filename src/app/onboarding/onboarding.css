@@ -144,3 +144,27 @@
 .onboarding-status.is-success {
   color: #4ade80;
 }
+
+/* Shown when a partner code is recognised in the join flow. */
+.onboarding-partner-note {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--clr-muted);
+  margin: 0 0 0.85rem;
+}
+.onboarding-partner-note strong {
+  color: var(--clr-text);
+}
+.onboarding-backlink {
+  margin-top: 0.65rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  color: var(--clr-muted);
+  cursor: pointer;
+}
+.onboarding-backlink:hover {
+  color: var(--clr-text);
+  text-decoration: underline;
+}

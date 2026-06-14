@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -21,6 +21,18 @@ export default function OnboardingPage() {
   const [status, setStatus] = useState('')
   const [statusType, setStatusType] = useState<'error' | 'success' | ''>('')
   const [loading, setLoading] = useState(false)
+  // When a typed code turns out to be a PARTNER code, the join flow switches
+  // into "name your new org (owned by the partner)" mode.
+  const [partnerContext, setPartnerContext] = useState<{
+    code: string
+    name: string
+  } | null>(null)
+  const orgNameRef = useRef<HTMLInputElement>(null)
+
+  // When the partner step appears, move focus to the org-name field.
+  useEffect(() => {
+    if (partnerContext) orgNameRef.current?.focus()
+  }, [partnerContext])
 
   // Auth guard
   useEffect(() => {
@@ -42,13 +54,18 @@ export default function OnboardingPage() {
     setSelectedPath(path)
     setStatus('')
     setStatusType('')
+    setPartnerContext(null)
+    setOrgName('')
+    setInviteCode('')
   }
 
   const continueLabel =
     selectedPath === 'create'
       ? 'Create Organization'
       : selectedPath === 'join'
-        ? 'Join Organization'
+        ? partnerContext
+          ? 'Create Organization'
+          : 'Continue'
         : selectedPath === 'individual'
           ? 'Continue as Individual'
           : 'Select an option above'
@@ -80,14 +97,65 @@ export default function OnboardingPage() {
         router.push('/dashboard')
         router.refresh()
       } else if (selectedPath === 'join') {
+        // Step 2: a partner code was already recognised — create the caller's
+        // new org owned by that partner (they become its manager).
+        if (partnerContext) {
+          const name = orgName.trim()
+          if (!name) {
+            showError('Please name your organization.')
+            return
+          }
+          const { error: rpcErr } = await supabase.rpc('create_organization', {
+            _name: name,
+            _partner_code: partnerContext.code,
+          })
+          if (rpcErr) {
+            if (rpcErr.message?.includes('INVALID_PARTNER_CODE')) {
+              // Code went stale (e.g. the partner was removed since lookup).
+              setPartnerContext(null)
+              showError(
+                'That partner code is no longer valid. Please re-enter your code.'
+              )
+            } else {
+              console.error('create_organization (partner) error', rpcErr)
+              showError('Could not create your organization. Please try again.')
+            }
+            return
+          }
+          router.push('/dashboard')
+          router.refresh()
+          return
+        }
+
+        // Step 1: classify the typed code (org vs partner vs invalid).
         const code = inviteCode.trim()
         if (!code) {
           showError('Please enter your invite code.')
           return
         }
-        // join_organization (SECURITY DEFINER RPC) validates the invite
-        // code server-side and adds the caller as a member. Idempotent
-        // if they're already in the org.
+        const { data, error: lookupErr } = await supabase.rpc(
+          'lookup_invite_code',
+          { _code: code }
+        )
+        if (lookupErr) {
+          console.error('lookup_invite_code error', lookupErr)
+          showError('Could not check that code. Please try again.')
+          return
+        }
+        const match = data?.[0] as { kind: string; label: string } | undefined
+        if (!match) {
+          showError('Invalid invite code. Please check with whoever sent it.')
+          return
+        }
+        if (match.kind === 'partner') {
+          // Reveal the "name your org" step; the org is created on next submit.
+          setPartnerContext({ code, name: match.label })
+          setStatus('')
+          setStatusType('')
+          return
+        }
+
+        // Org code → join as a member (existing flow).
         const { error: rpcErr } = await supabase.rpc('join_organization', {
           _invite_code: code,
         })
@@ -189,8 +257,8 @@ export default function OnboardingPage() {
                 </svg>
               </div>
               <div className="path-card__text">
-                <strong>Join an Organization</strong>
-                <span>I have an invite code from my account manager</span>
+                <strong>I have an invite code</strong>
+                <span>From my organization or an Umbrella partner</span>
               </div>
             </button>
 
@@ -225,12 +293,18 @@ export default function OnboardingPage() {
                   placeholder="e.g. Acme Sales Co."
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleContinue()
+                    }
+                  }}
                 />
               </div>
             </div>
           )}
 
-          {selectedPath === 'join' && (
+          {selectedPath === 'join' && !partnerContext && (
             <div className="path-panel is-visible">
               <div className="form-group">
                 <label className="form-label" htmlFor="invite-code">
@@ -240,12 +314,60 @@ export default function OnboardingPage() {
                   className="form-input"
                   type="text"
                   id="invite-code"
-                  placeholder="Enter your 8-character invite code"
+                  placeholder="Enter your invite code"
                   autoComplete="off"
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleContinue()
+                    }
+                  }}
                 />
               </div>
+            </div>
+          )}
+
+          {selectedPath === 'join' && partnerContext && (
+            <div className="path-panel is-visible">
+              <p className="onboarding-partner-note" aria-live="polite">
+                You&rsquo;re joining under{' '}
+                <strong>{partnerContext.name}</strong>. Name your organization
+                to get started — you&rsquo;ll be its manager.
+              </p>
+              <div className="form-group">
+                <label className="form-label" htmlFor="partner-org-name">
+                  Organization name
+                </label>
+                <input
+                  ref={orgNameRef}
+                  className="form-input"
+                  type="text"
+                  id="partner-org-name"
+                  placeholder="e.g. Acme Sales Co."
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleContinue()
+                    }
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                className="onboarding-backlink"
+                onClick={() => {
+                  setPartnerContext(null)
+                  setInviteCode('')
+                  setStatus('')
+                  setStatusType('')
+                }}
+              >
+                ← Use a different code
+              </button>
             </div>
           )}
 
