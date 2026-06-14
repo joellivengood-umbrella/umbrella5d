@@ -439,6 +439,87 @@ export async function fetchRequiredCourseSlugs(
   return [...slugs]
 }
 
+/**
+ * A partner the current user owns. (Single-owner model for now.)
+ */
+export type Partner = {
+  id: string
+  name: string
+  inviteCode: string
+  avatarUrl: string | null
+  description: string | null
+}
+
+/**
+ * The partner the given user owns, or null. Drives the Partner nav tab +
+ * the onboarding-skip in the (app) layout. order().limit(1) rather than
+ * .maybeSingle() so an (unexpected) second owned partner can't throw
+ * PGRST116. Degrades to null on error so it never breaks page render.
+ */
+export async function fetchUserPartner(
+  supabase: MaybeClient,
+  userId: string
+): Promise<Partner | null> {
+  const { data, error } = await supabase
+    .from('partners')
+    .select('id, name, invite_code, avatar_url, description')
+    .eq('owner_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+
+  if (error) {
+    console.error('fetchUserPartner error', error)
+    return null
+  }
+  const row = (data ?? [])[0] as
+    | {
+        id: string
+        name: string
+        invite_code: string
+        avatar_url: string | null
+        description: string | null
+      }
+    | undefined
+  if (!row) return null
+  return {
+    id: row.id,
+    name: row.name,
+    inviteCode: row.invite_code,
+    avatarUrl: row.avatar_url,
+    description: row.description,
+  }
+}
+
+/**
+ * One organization owned by a partner, for the Partner home list.
+ */
+export type PartnerOrg = {
+  id: string
+  name: string
+  createdAt: string
+}
+
+/**
+ * Organizations owned by the caller's partner, alphabetical. Reads through
+ * the list_partner_orgs definer RPC, which returns only safe columns
+ * (id/name/created_at) — never the owned orgs' invite_code/owner_id, which
+ * a full-row table policy would have leaked. Degrades to [] on error (e.g.
+ * before the RPC migration has run).
+ */
+export async function fetchPartnerOrgs(
+  supabase: MaybeClient
+): Promise<PartnerOrg[]> {
+  const { data, error } = await supabase.rpc('list_partner_orgs')
+
+  if (error) {
+    console.error('fetchPartnerOrgs error', error)
+    return []
+  }
+  return ((data ?? []) as { id: string; name: string; created_at: string }[]).map(
+    (row) => ({ id: row.id, name: row.name, createdAt: row.created_at })
+  )
+}
+
 // POTD launch / daily-drip removed — every published episode is
 // available to everyone now. fetchOrgPotdLaunch lived here; if the
 // staggered-release feature comes back, re-add it (the

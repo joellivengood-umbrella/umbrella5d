@@ -7259,3 +7259,97 @@ body.potd-player-active .app-main {
 @media (max-width: 640px) {
   .org-main { padding: 1.5rem 1rem 4rem; }
 }
+
+/* ══════════════════════════════════════════
+   PARTNER home
+   ══════════════════════════════════════════ */
+.partner-main {
+  /* width:100% so it fills the flex-column app-main (see .org-main note). */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 4rem;
+}
+.partner-main .settings-section { margin-bottom: 1.25rem; }
+
+/* Invite-code block */
+.partner-code { margin-bottom: 1.4rem; }
+.partner-code__label {
+  display: block;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  margin-bottom: .4rem;
+}
+.partner-code__row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.partner-code__value {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: .9rem;
+  letter-spacing: .01em;
+  background: #f6f7fb;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: .6rem .75rem;
+  overflow-wrap: anywhere;
+  color: var(--clr-text);
+}
+.partner-code__hint {
+  margin: .55rem 0 0;
+  font-size: .8rem;
+  color: var(--clr-muted);
+  line-height: 1.5;
+}
+
+/* Description textarea matches the settings input look */
+.partner-form textarea {
+  width: 100%;
+  font: inherit;
+  resize: vertical;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: .6rem .7rem;
+  color: var(--clr-text);
+  background: var(--clr-surface);
+}
+.partner-form textarea:focus {
+  outline: none;
+  border-color: var(--clr-primary);
+  box-shadow: 0 0 0 3px rgba(91, 79, 255, .15);
+}
+
+/* Owned-orgs list */
+.partner-orgs__list {
+  display: flex;
+  flex-direction: column;
+}
+.partner-orgs__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .7rem .25rem;
+  border-top: 1px solid #f0f0f4;
+}
+.partner-orgs__row:first-child { border-top: none; }
+.partner-orgs__name {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--clr-text);
+}
+.partner-orgs__since {
+  font-size: .8rem;
+  color: var(--clr-muted);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .partner-main { padding: 1.5rem 1rem 4rem; }
+}

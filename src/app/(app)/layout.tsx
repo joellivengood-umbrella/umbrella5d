@@ -5,7 +5,7 @@ import { AppSidebar } from '@/components/app/AppSidebar'
 import { AppFooter } from '@/components/app/AppFooter'
 import { PotdPlayerProvider } from '@/components/potd/PotdPlayerProvider'
 import { MobileNavProvider } from '@/components/app/MobileNavProvider'
-import { fetchUserOrgRole } from '@/lib/org-queries'
+import { fetchUserOrgRole, fetchUserPartner } from '@/lib/org-queries'
 
 export default async function AppLayout({
   children,
@@ -19,16 +19,20 @@ export default async function AppLayout({
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select(
-      'full_name, organization_name, role_title, avatar_url, org_id, timezone, is_platform_admin'
-    )
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, partner] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select(
+        'full_name, organization_name, role_title, avatar_url, org_id, timezone, is_platform_admin'
+      )
+      .eq('id', user.id)
+      .single(),
+    fetchUserPartner(supabase, user.id),
+  ])
 
-  // Route to onboarding if this user hasn't set up their org yet.
-  if (profile && !profile.org_id && !profile.organization_name) {
+  // Route to onboarding if this user hasn't set up their account yet.
+  // Partners (who may own no org of their own) are already set up.
+  if (profile && !profile.org_id && !profile.organization_name && !partner) {
     redirect('/onboarding')
   }
 
@@ -48,6 +52,7 @@ export default async function AppLayout({
             userId={user.id}
             profile={profile ?? null}
             orgRole={orgRole}
+            isPartner={partner != null}
           />
           <div className="app-main">
             {children}
