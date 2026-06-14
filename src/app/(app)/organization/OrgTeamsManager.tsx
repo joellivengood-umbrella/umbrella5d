@@ -51,6 +51,7 @@ const courseKey = (teamId: string, slug: string) => `${teamId}::${slug}`
 const COURSE_OPTIONS = UMBRELLA_PROGRAM_COURSES.map((c) => ({
   slug: c.slug,
   title: c.title,
+  shortTitle: c.shortTitle,
 }))
 
 // Cap the search results so a big org never renders a giant list.
@@ -587,7 +588,7 @@ export function OrgTeamsManager({
           </ul>
         </section>
 
-        {/* ── Right: the selected team's roster ── */}
+        {/* ── Middle: the selected team's members ── */}
         <section className="settings-section org-panel" ref={detailRef}>
           {selectedTeam ? (
             <>
@@ -603,41 +604,6 @@ export function OrgTeamsManager({
                   {teamMembers.length === 1 ? 'member' : 'members'}
                 </span>
               </header>
-
-              {/* Courses this team is required to complete. */}
-              <div className="org-detail__subhead">Required courses</div>
-              <ul
-                className="org-courses"
-                role="group"
-                aria-label={`Courses required for ${selectedTeam.name}`}
-              >
-                {COURSE_OPTIONS.map((c) => {
-                  const key = courseKey(selectedTeam.id, c.slug)
-                  const assigned = courseEdges.has(key)
-                  const busy = busyCourses.has(key)
-                  return (
-                    <li key={c.slug} className="org-course">
-                      <label className="org-course__label">
-                        <input
-                          type="checkbox"
-                          className="org-course__check"
-                          checked={assigned}
-                          disabled={busy}
-                          onChange={() =>
-                            toggleCourse(selectedTeam.id, c.slug, assigned)
-                          }
-                        />
-                        <span>{c.title}</span>
-                      </label>
-                      {busy && (
-                        <span className="org-course__busy" aria-live="polite">
-                          Saving…
-                        </span>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
 
               <div className="org-search">
                 <svg className="org-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="17" height="17" aria-hidden="true">
@@ -765,6 +731,78 @@ export function OrgTeamsManager({
                 Teams are groups inside your organization — like HR,
                 Executives, or Accounting — and you can put people on more
                 than one.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* ── Right: courses the selected team is required to complete ── */}
+        <section className="settings-section org-panel org-panel--courses">
+          {selectedTeam ? (
+            <>
+              <div className="org-detail__subhead">Required courses</div>
+              <p className="org-courses__hint">
+                Courses {selectedTeam.name} must complete.
+              </p>
+              <ul
+                className="org-courses"
+                role="group"
+                aria-label={`Courses required for ${selectedTeam.name}`}
+              >
+                {COURSE_OPTIONS.map((c) => {
+                  const key = courseKey(selectedTeam.id, c.slug)
+                  const assigned = courseEdges.has(key)
+                  const busy = busyCourses.has(key)
+                  return (
+                    <li key={c.slug} className="org-coursecard">
+                      <label
+                        className={`org-coursecard__box${assigned ? ' is-assigned' : ''}`}
+                      >
+                        <span
+                          className={`org-coursecard__strip course-theme-${c.slug}`}
+                          style={{
+                            background:
+                              'linear-gradient(180deg, var(--ct-from), var(--ct-to))',
+                          }}
+                          aria-hidden="true"
+                        />
+                        <span className="org-coursecard__main">
+                          <span className="org-coursecard__body">
+                            <span className="org-coursecard__eyebrow">
+                              {c.shortTitle}
+                            </span>
+                            <span className="org-coursecard__title">
+                              {c.title}
+                            </span>
+                          </span>
+                          {busy && (
+                            <span
+                              className="org-coursecard__busy"
+                              aria-live="polite"
+                            >
+                              Saving…
+                            </span>
+                          )}
+                          <input
+                            type="checkbox"
+                            className="org-coursecard__check"
+                            checked={assigned}
+                            disabled={busy}
+                            onChange={() =>
+                              toggleCourse(selectedTeam.id, c.slug, assigned)
+                            }
+                          />
+                        </span>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
+          ) : (
+            <div className="org-detail__empty">
+              <p className="org-detail__empty-sub">
+                Select a team to set the courses it’s required to complete.
               </p>
             </div>
           )}
