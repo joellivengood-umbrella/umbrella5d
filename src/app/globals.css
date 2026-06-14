@@ -7050,6 +7050,51 @@ body.potd-player-active .app-main {
   letter-spacing: .06em;
   color: var(--clr-muted);
 }
+/* The first subhead (Required courses) sits right under the team header. */
+.org-detail__head + .org-detail__subhead { margin-top: 1.1rem; }
+
+/* ── Required-courses checklist ── */
+.org-courses {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.org-course {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.org-course__label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .45rem .3rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: .92rem;
+  color: var(--clr-text);
+}
+.org-course__label:hover { background: #fafaff; }
+/* While a write is in flight the row isn't interactive — drop the
+   clickable affordances so it doesn't read as available. */
+.org-course__label:has(.org-course__check:disabled) { cursor: default; }
+.org-course__label:has(.org-course__check:disabled):hover { background: none; }
+.org-course__check {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--clr-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.org-course__check:disabled { cursor: default; }
+.org-course__check:disabled + span { opacity: .55; }
+.org-course__busy {
+  flex-shrink: 0;
+  padding-right: .3rem;
+  font-size: .75rem;
+  color: var(--clr-muted);
+}
 
 .org-rows { display: flex; flex-direction: column; }
 .org-row {

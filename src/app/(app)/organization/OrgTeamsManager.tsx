@@ -2,7 +2,13 @@
 
 import { useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { OrgMember, Team, TeamMembership } from '@/lib/org-queries'
+import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
+import type {
+  OrgMember,
+  Team,
+  TeamMembership,
+  TeamCourseAssignment,
+} from '@/lib/org-queries'
 
 /**
  * The interactive "My Organization" workspace (team-first).
@@ -37,6 +43,15 @@ const TEAM_COLORS = [
 ] as const
 
 const edgeKey = (teamId: string, userId: string) => `${teamId}::${userId}`
+const courseKey = (teamId: string, slug: string) => `${teamId}::${slug}`
+
+// The courses a manager can assign — the three core program courses
+// (POTD is excluded; it stays available to everyone). Registry-driven, so
+// adding a course later makes it assignable with no change here.
+const COURSE_OPTIONS = UMBRELLA_PROGRAM_COURSES.map((c) => ({
+  slug: c.slug,
+  title: c.title,
+}))
 
 // Cap the search results so a big org never renders a giant list.
 const MAX_RESULTS = 8
@@ -49,12 +64,14 @@ export function OrgTeamsManager({
   members,
   initialTeams,
   initialMemberships,
+  initialCourseAssignments,
 }: {
   orgId: string
   currentUserId: string
   members: OrgMember[]
   initialTeams: Team[]
   initialMemberships: TeamMembership[]
+  initialCourseAssignments: TeamCourseAssignment[]
 }) {
   const supabase = useMemo(() => createClient(), [])
 
@@ -63,6 +80,14 @@ export function OrgTeamsManager({
   const [edges, setEdges] = useState<Set<string>>(
     () => new Set(initialMemberships.map((m) => edgeKey(m.teamId, m.userId)))
   )
+  // team<->course assignment edges as a Set of "teamId::slug".
+  const [courseEdges, setCourseEdges] = useState<Set<string>>(
+    () =>
+      new Set(
+        initialCourseAssignments.map((a) => courseKey(a.teamId, a.courseSlug))
+      )
+  )
+  const [busyCourses, setBusyCourses] = useState<Set<string>>(new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
     initialTeams[0]?.id ?? null
   )
@@ -373,6 +398,56 @@ export function OrgTeamsManager({
     })
   }
 
+  // ── Assign / unassign a course to the selected team ─────────────
+  async function toggleCourse(teamId: string, slug: string, assigned: boolean) {
+    const key = courseKey(teamId, slug)
+    if (busyCourses.has(key)) return
+    setStatus(null)
+    setBusyCourses((b) => new Set(b).add(key))
+    setCourseEdges((es) => {
+      const n = new Set(es)
+      if (assigned) n.delete(key)
+      else n.add(key)
+      return n
+    }) // optimistic
+
+    const { error } = assigned
+      ? await supabase
+          .from('team_course_assignments')
+          .delete()
+          .eq('team_id', teamId)
+          .eq('course_slug', slug)
+          .eq('org_id', orgId)
+      : await supabase.from('team_course_assignments').insert({
+          org_id: orgId,
+          team_id: teamId,
+          course_slug: slug,
+          assigned_by: currentUserId,
+        })
+
+    // 23505 on insert = already assigned (another tab/manager beat us);
+    // the optimistic edge is already correct, so treat it as success.
+    if (error && !(!assigned && error.code === '23505')) {
+      setCourseEdges((es) => {
+        const n = new Set(es)
+        if (assigned) n.add(key)
+        else n.delete(key)
+        return n
+      }) // rollback FIRST, then release the busy guard
+      console.error('toggleCourse error', error)
+      setStatus({
+        type: 'error',
+        msg: 'Could not update the assigned courses. Please try again.',
+      })
+    }
+
+    setBusyCourses((b) => {
+      const n = new Set(b)
+      n.delete(key)
+      return n
+    })
+  }
+
   // Enter in the search field adds the top match — the advertised
   // rapid-add flow, keyboard-operable.
   function onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -528,6 +603,41 @@ export function OrgTeamsManager({
                   {teamMembers.length === 1 ? 'member' : 'members'}
                 </span>
               </header>
+
+              {/* Courses this team is required to complete. */}
+              <div className="org-detail__subhead">Required courses</div>
+              <ul
+                className="org-courses"
+                role="group"
+                aria-label={`Courses required for ${selectedTeam.name}`}
+              >
+                {COURSE_OPTIONS.map((c) => {
+                  const key = courseKey(selectedTeam.id, c.slug)
+                  const assigned = courseEdges.has(key)
+                  const busy = busyCourses.has(key)
+                  return (
+                    <li key={c.slug} className="org-course">
+                      <label className="org-course__label">
+                        <input
+                          type="checkbox"
+                          className="org-course__check"
+                          checked={assigned}
+                          disabled={busy}
+                          onChange={() =>
+                            toggleCourse(selectedTeam.id, c.slug, assigned)
+                          }
+                        />
+                        <span>{c.title}</span>
+                      </label>
+                      {busy && (
+                        <span className="org-course__busy" aria-live="polite">
+                          Saving…
+                        </span>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
 
               <div className="org-search">
                 <svg className="org-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="17" height="17" aria-hidden="true">

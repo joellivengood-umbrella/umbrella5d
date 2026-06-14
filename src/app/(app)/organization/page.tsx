@@ -6,6 +6,7 @@ import {
   fetchOrgMembers,
   fetchTeams,
   fetchTeamMemberships,
+  fetchTeamCourseAssignments,
 } from '@/lib/org-queries'
 import { OrgTeamsManager } from './OrgTeamsManager'
 
@@ -39,10 +40,11 @@ export default async function OrganizationPage() {
   const role = await fetchUserOrgRole(supabase, user.id, profile.org_id)
   if (role !== 'manager') notFound()
 
-  const [members, teams, memberships] = await Promise.all([
+  const [members, teams, memberships, courseAssignments] = await Promise.all([
     fetchOrgMembers(supabase, profile.org_id),
     fetchTeams(supabase, profile.org_id),
     fetchTeamMemberships(supabase, profile.org_id),
+    fetchTeamCourseAssignments(supabase, profile.org_id),
   ])
 
   const orgName = profile.organization_name ?? 'My Organization'
@@ -62,6 +64,7 @@ export default async function OrganizationPage() {
           members={members}
           initialTeams={teams}
           initialMemberships={memberships}
+          initialCourseAssignments={courseAssignments}
         />
       </main>
     </>
