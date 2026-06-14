@@ -14,6 +14,7 @@ const ROUTE_LABELS: ReadonlyArray<{ match: (p: string) => boolean; label: string
   { match: (p) => p.startsWith('/courses/potd'), label: 'Daily Pod' },
   { match: (p) => p.startsWith('/courses'), label: 'Courses' },
   { match: (p) => p.startsWith('/organization'), label: 'My Organization' },
+  { match: (p) => p.startsWith('/partner'), label: 'Partner' },
   { match: (p) => p.startsWith('/feed'), label: 'Feed' },
   { match: (p) => p.startsWith('/settings'), label: 'Settings' },
   { match: (p) => p.startsWith('/admin'), label: 'Admin' },
