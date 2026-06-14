@@ -354,6 +354,47 @@ export async function fetchTeamMemberships(
   }))
 }
 
+/**
+ * One team<->course assignment edge, camel-cased. courseSlug is a course
+ * slug from the src/lib/courses.ts registry (e.g. "bss", "machine").
+ */
+export type TeamCourseAssignment = {
+  teamId: string
+  courseSlug: string
+}
+
+/**
+ * Every team<->course assignment in the org, so the manager UI knows
+ * which courses each team already has.
+ *
+ * RLS: manager-only via the "managers read team course assignments"
+ * policy — the My Organization page is manager-gated. (Members read only
+ * their own teams' rows, via a separate policy, for the dashboard view.)
+ */
+export async function fetchTeamCourseAssignments(
+  supabase: MaybeClient,
+  orgId: string
+): Promise<TeamCourseAssignment[]> {
+  const { data, error } = await supabase
+    .from('team_course_assignments')
+    .select('team_id, course_slug')
+    .eq('org_id', orgId)
+
+  if (error) {
+    // Degrade to "no assignments" rather than throw — the migration that
+    // creates this table runs AFTER the code deploys, so a missing table
+    // must not 500 the whole (manager-gated) My Organization page in that
+    // window. Logged so a genuine failure is still visible server-side.
+    console.error('fetchTeamCourseAssignments error', error)
+    return []
+  }
+
+  return (data ?? []).map((row) => ({
+    teamId: (row as { team_id: string }).team_id,
+    courseSlug: (row as { course_slug: string }).course_slug,
+  }))
+}
+
 // POTD launch / daily-drip removed — every published episode is
 // available to everyone now. fetchOrgPotdLaunch lived here; if the
 // staggered-release feature comes back, re-add it (the
