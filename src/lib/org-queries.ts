@@ -395,6 +395,50 @@ export async function fetchTeamCourseAssignments(
   }))
 }
 
+/**
+ * The distinct course slugs assigned to teams the given user belongs to —
+ * the "required for your team" set for the member dashboard.
+ *
+ * Scoped EXPLICITLY to the user's own team memberships: a manager can read
+ * every team's assignments via the manager RLS policy, so relying on RLS
+ * alone would show a manager ALL their org's assignments. We fetch the
+ * user's teams first, then their assignments. Degrades to [] on error
+ * (e.g. before the 20260614 migration has run), so it can't break the
+ * dashboard.
+ */
+export async function fetchRequiredCourseSlugs(
+  supabase: MaybeClient,
+  userId: string
+): Promise<string[]> {
+  const { data: memberships, error: mErr } = await supabase
+    .from('team_members')
+    .select('team_id')
+    .eq('user_id', userId)
+  if (mErr) {
+    console.error('fetchRequiredCourseSlugs (team_members) error', mErr)
+    return []
+  }
+  const teamIds = (memberships ?? []).map(
+    (r) => (r as { team_id: string }).team_id
+  )
+  if (teamIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('team_course_assignments')
+    .select('course_slug')
+    .in('team_id', teamIds)
+  if (error) {
+    console.error('fetchRequiredCourseSlugs (assignments) error', error)
+    return []
+  }
+
+  const slugs = new Set<string>()
+  for (const row of data ?? []) {
+    slugs.add((row as { course_slug: string }).course_slug)
+  }
+  return [...slugs]
+}
+
 // POTD launch / daily-drip removed — every published episode is
 // available to everyone now. fetchOrgPotdLaunch lived here; if the
 // staggered-release feature comes back, re-add it (the

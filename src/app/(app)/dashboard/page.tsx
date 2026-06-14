@@ -5,6 +5,7 @@ import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
 import { CourseCard } from '@/components/courses/CourseCard'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
 import { AssignmentsSection } from '@/components/dashboard/AssignmentsSection'
+import { RequiredCoursesSection } from '@/components/dashboard/RequiredCoursesSection'
 import { DailyPodWidget } from '@/components/dashboard/DailyPodWidget'
 import { StreakBanner } from '@/components/dashboard/StreakBanner'
 import {
@@ -15,7 +16,7 @@ import {
   fetchResumeTarget,
   fetchStreak,
 } from '@/lib/content-queries'
-import { fetchMemberAssignments } from '@/lib/org-queries'
+import { fetchMemberAssignments, fetchRequiredCourseSlugs } from '@/lib/org-queries'
 
 export const metadata = {
   title: 'Dashboard',
@@ -49,16 +50,36 @@ export default async function DashboardPage() {
   // Assignments + completed-item IDs + all POTD episodes in parallel.
   // pendingAssignments = unfinished; powers the AssignmentsSection.
   // The pod list + completions drive the Daily Pod widget below.
-  const [allAssignments, completedItemIds, potdEpisodes, streakData] =
-    await Promise.all([
-      fetchMemberAssignments(supabase, user.id),
-      fetchCompletedItemIds(supabase, user.id),
-      fetchPotdEpisodeStubs(supabase),
-      fetchStreak(supabase, user.id, timezone),
-    ])
+  const [
+    allAssignments,
+    completedItemIds,
+    potdEpisodes,
+    streakData,
+    requiredCourseSlugs,
+  ] = await Promise.all([
+    fetchMemberAssignments(supabase, user.id),
+    fetchCompletedItemIds(supabase, user.id),
+    fetchPotdEpisodeStubs(supabase),
+    fetchStreak(supabase, user.id, timezone),
+    fetchRequiredCourseSlugs(supabase, user.id),
+  ])
   const pendingAssignments = allAssignments.filter(
     (a) => !completedItemIds.has(a.contentItemId)
   )
+
+  // Courses assigned to the user's team(s), in registry order with the
+  // user's own progress. Intersecting the assigned slugs with the program
+  // registry both validates them and excludes POTD (not assignable, and
+  // not in UMBRELLA_PROGRAM_COURSES) — so the registry is the single
+  // source of truth for what's renderable here.
+  const requiredSlugs = new Set(requiredCourseSlugs)
+  const requiredCourses = UMBRELLA_PROGRAM_COURSES.filter((c) =>
+    requiredSlugs.has(c.slug)
+  ).map((c) => ({
+    slug: c.slug,
+    completed: doneCounts[c.slug] ?? 0,
+    total: totals[c.slug] ?? 0,
+  }))
 
   // Daily Pod widget: the next episode the user hasn't heard, or the
   // latest one if they're all caught up. POTD is available to everyone
@@ -128,6 +149,9 @@ export default async function DashboardPage() {
 
           {/* ── Streak (habit focal point) ── */}
           <StreakBanner data={streakData} />
+
+          {/* ── Required for your team (manager-assigned courses) ── */}
+          <RequiredCoursesSection courses={requiredCourses} />
 
           {/* ── Assigned to you (manager-directed work) ── */}
           <AssignmentsSection assignments={pendingAssignments} />
