@@ -6870,13 +6870,18 @@ body.potd-player-active .app-main {
    MY ORGANIZATION  (members roster + teams)
    ══════════════════════════════════════════ */
 .org-main {
-  /* Match the Courses page's content column exactly (.courses-main:
-     1080px / 1.5rem padding) — the comfortable, well-filled width the
-     rest of the app uses. The thin Teams column (19rem on .org-grid)
-     stays fixed, so the rest goes to the member column. */
-  max-width: 1080px;
+  /* DO NOT REMOVE width:100%. This <main> is a flex child of .app-main
+     (a flex COLUMN) and uses margin:0 auto, so WITHOUT an explicit width
+     it shrink-wraps its content — and the grid's minmax(0,1fr) member
+     column then collapses to 0, rendering the whole page narrow no matter
+     what max-width says. A definite width makes it fill the area and lets
+     max-width govern. box-sizing keeps the padding inside the 100% (there
+     is no global box-sizing reset). Matches the working .container pattern. */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 2.25rem 1.5rem 4rem;
+  padding: 2.25rem 2rem 4rem;
 }
 
 .org-status { margin: 0 0 1.1rem; }
