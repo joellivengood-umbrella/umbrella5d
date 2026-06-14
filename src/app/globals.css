@@ -6888,8 +6888,9 @@ body.potd-player-active .app-main {
 
 .org-grid {
   display: grid;
-  /* Teams | Members | Required courses */
-  grid-template-columns: 16rem minmax(0, 1fr) 19rem;
+  /* Teams | Members | Required courses — wider side columns (~20%), the
+     middle (1fr) absorbs the difference. */
+  grid-template-columns: 19rem minmax(0, 1fr) 23rem;
   gap: 1.25rem;
   align-items: start;
 }
