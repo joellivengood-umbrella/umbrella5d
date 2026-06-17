@@ -18,7 +18,7 @@ const ITEM_COLUMNS =
  */
 export async function fetchContentItems(
   supabase: MaybeClient,
-  type: ContentType,
+  type: string,
   bssVersion?: BssVersion
 ): Promise<ContentItem[]> {
   let query = supabase
@@ -47,7 +47,7 @@ export async function fetchContentItems(
  */
 export async function fetchContentItem(
   supabase: MaybeClient,
-  type: ContentType,
+  type: string,
   sequenceNum: number,
   bssVersion?: BssVersion
 ): Promise<ContentItem | null> {

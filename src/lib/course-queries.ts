@@ -89,6 +89,25 @@ export async function fetchProgramCourses(
   return (await fetchCourses(supabase)).filter((c) => c.inProgram)
 }
 
+/** A single course by slug, or null if it doesn't exist / isn't readable. */
+export async function fetchCourse(
+  supabase: MaybeClient,
+  slug: string
+): Promise<Course | null> {
+  const { data, error } = await supabase
+    .from('courses')
+    .select(COURSE_COLUMNS)
+    .eq('slug', slug)
+    .limit(1)
+
+  if (error) {
+    console.error('fetchCourse error', error)
+    return null
+  }
+  const rows = data ?? []
+  return rows.length > 0 ? rowToCourse(rows[0] as CourseRow) : null
+}
+
 /** slug → Course, for resolving a slug to its display metadata. */
 export async function fetchCourseMap(
   supabase: MaybeClient
