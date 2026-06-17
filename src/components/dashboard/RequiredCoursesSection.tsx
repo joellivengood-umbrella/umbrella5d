@@ -1,5 +1,5 @@
 import { CourseCard } from '@/components/courses/CourseCard'
-import type { CourseSlug } from '@/lib/courses'
+import type { Course } from '@/lib/courses'
 
 /**
  * Dashboard section listing the courses a manager has assigned to the
@@ -15,7 +15,7 @@ import type { CourseSlug } from '@/lib/courses'
 export function RequiredCoursesSection({
   courses,
 }: {
-  courses: { slug: CourseSlug; completed: number; total: number }[]
+  courses: { course: Course; completed: number; total: number }[]
 }) {
   if (courses.length === 0) return null
 
@@ -31,9 +31,9 @@ export function RequiredCoursesSection({
       <div className="courses-grid">
         {courses.map((c) => (
           <CourseCard
-            key={c.slug}
-            slug={c.slug}
-            href={`/courses/${c.slug}`}
+            key={c.course.slug}
+            course={c.course}
+            href={`/courses/${c.course.slug}`}
             completedCount={c.completed}
             totalCount={c.total}
           />

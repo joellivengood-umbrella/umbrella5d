@@ -34,21 +34,30 @@ export function AppSidebar({
   const supabase = createClient()
 
   const fetchProgress = useCallback(async () => {
-    // Progress denominator is the Umbrella Program: every published
-    // non-POTD item. POTD is bonus content and intentionally excluded
-    // — an ever-growing daily-pod catalog shouldn't drag the program
-    // completion bar down, and a user "completing the program"
-    // shouldn't depend on listening to every pod ever published.
-    //
-    // The numerator counts only program completions to match the
-    // denominator (POTD progress doesn't push the bar up either).
+    // Progress denominator is the in-program courses: every published item
+    // whose course has in_program = true. Bonus tracks (e.g. POTD) are
+    // excluded — an ever-growing daily-pod catalog shouldn't drag the bar
+    // down, and "completing the program" shouldn't require every pod ever
+    // published. Which courses count is data (courses.in_program), not a
+    // hardcoded 'potd'. The numerator counts only program completions to
+    // match the denominator.
+    const { data: progRows } = await supabase
+      .from('courses')
+      .select('slug')
+      .eq('in_program', true)
+    const programSlugs = (progRows ?? []).map((r) => (r as { slug: string }).slug)
+    if (programSlugs.length === 0) {
+      setPct(0)
+      return
+    }
+
     const [{ count: programTotal }, { count: programDone }] =
       await Promise.all([
         supabase
           .from('content_items')
           .select('id', { count: 'exact', head: true })
           .eq('is_published', true)
-          .neq('type', 'potd'),
+          .in('type', programSlugs),
         supabase
           .from('content_progress')
           .select('id, content_items!inner(type)', {
@@ -56,7 +65,7 @@ export function AppSidebar({
             head: true,
           })
           .eq('user_id', userId)
-          .neq('content_items.type', 'potd'),
+          .in('content_items.type', programSlugs),
       ])
 
     const total = programTotal ?? 0

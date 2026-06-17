@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ContentItem, ContentType, BssVersion } from './courses'
+import { fetchProgramSlugs } from './course-queries'
 
 /**
  * Server-side data helpers for reading content_items + content_progress.
@@ -125,67 +126,61 @@ export async function fetchCompletedItemIds(
 
 /**
  * Count totals per course type for the dashboard / index tiles.
- * Returns a map like { bss: 72, eos: 9, potd: 125, machine: 28 }.
+ * Returns a map keyed by course slug, e.g. { bss: 72, eos: 9, machine: 28 }.
+ *
+ * Keyed by `string` (not the legacy 4-slug union) and accumulated for every
+ * type encountered — a new course's items must never be silently dropped
+ * from a progress denominator. Callers default a missing slug to 0.
  */
 export async function fetchTotalsByType(
   supabase: MaybeClient
-): Promise<Record<ContentType, number>> {
+): Promise<Record<string, number>> {
   const { data, error } = await supabase
     .from('content_items')
     .select('type')
     .eq('is_published', true)
 
-  const totals: Record<ContentType, number> = {
-    bss: 0,
-    eos: 0,
-    potd: 0,
-    machine: 0,
-  }
   if (error) {
     console.error('fetchTotalsByType error', error)
     throw new Error(`fetchTotalsByType failed: ${error.message}`)
   }
+  const totals: Record<string, number> = {}
   for (const row of data ?? []) {
-    const t = (row as { type: ContentType }).type
-    if (t in totals) totals[t] += 1
+    const t = (row as { type: string }).type
+    totals[t] = (totals[t] ?? 0) + 1
   }
   return totals
 }
 
 /**
  * Count completed items per course type for the given user.
- * Returns a map like { bss: 3, eos: 1, potd: 0, machine: 5 }.
+ * Returns a map keyed by course slug, e.g. { bss: 3, eos: 1, machine: 5 }.
+ *
+ * Like fetchTotalsByType, keyed by `string` and accumulated for every type —
+ * a new course's completions must never be dropped. Callers default to 0.
  */
 export async function fetchCompletedCountsByType(
   supabase: MaybeClient,
   userId: string
-): Promise<Record<ContentType, number>> {
+): Promise<Record<string, number>> {
   const { data, error } = await supabase
     .from('content_progress')
     .select('content_items!inner(type)')
     .eq('user_id', userId)
 
-  const counts: Record<ContentType, number> = {
-    bss: 0,
-    eos: 0,
-    potd: 0,
-    machine: 0,
-  }
   if (error) {
     console.error('fetchCompletedCountsByType error', error)
     throw new Error(`fetchCompletedCountsByType failed: ${error.message}`)
   }
+  const counts: Record<string, number> = {}
   // Supabase types the embedded relation as an array even when it's a
   // single parent via FK. Normalize to handle either shape.
   for (const row of data ?? []) {
     const raw = (row as {
-      content_items:
-        | { type: ContentType }
-        | { type: ContentType }[]
-        | null
+      content_items: { type: string } | { type: string }[] | null
     }).content_items
     const item = Array.isArray(raw) ? raw[0] : raw
-    if (item && item.type in counts) counts[item.type] += 1
+    if (item) counts[item.type] = (counts[item.type] ?? 0) + 1
   }
   return counts
 }
@@ -220,16 +215,20 @@ export async function fetchResumeTarget(
   supabase: MaybeClient,
   userId: string
 ): Promise<ResumeTarget | null> {
-  // 1. Find the user's most recent program-course completion. POTD
-  //    rows are filtered server-side via the embedded-table .neq so
-  //    we don't have to fetch and discard them.
+  // 1. Find the user's most recent program-course completion. Only
+  //    in-program courses count as "where you left off" — bonus tracks
+  //    (e.g. POTD) are filtered server-side via the embedded-table .in
+  //    so we don't have to fetch and discard them. The set of in-program
+  //    slugs is data (courses.in_program), not a hardcoded 'potd'.
+  const programSlugs = await fetchProgramSlugs(supabase)
+  if (programSlugs.length === 0) return null
   const { data: rows, error: lastErr } = await supabase
     .from('content_progress')
     .select(
       'completed_at, content_items!inner(type, sequence_num, metadata)'
     )
     .eq('user_id', userId)
-    .neq('content_items.type', 'potd')
+    .in('content_items.type', programSlugs)
     .order('completed_at', { ascending: false })
     .limit(1)
 

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
-import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
+import { fetchCourseMap } from '@/lib/course-queries'
 import { CourseCard } from '@/components/courses/CourseCard'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
 import { AssignmentsSection } from '@/components/dashboard/AssignmentsSection'
@@ -29,15 +29,21 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [{ data: profile }, totals, doneCounts] = await Promise.all([
+  const [{ data: profile }, courseMap, totals, doneCounts] = await Promise.all([
     supabase
       .from('profiles')
       .select('full_name, timezone')
       .eq('id', user.id)
       .single(),
+    fetchCourseMap(supabase),
     fetchTotalsByType(supabase),
     fetchCompletedCountsByType(supabase, user.id),
   ])
+
+  // Program courses (in_program), in sort_order — the dashboard grid and the
+  // headline progress math. Bonus tracks (e.g. POTD) are excluded so an
+  // ever-growing catalog can't drag the completion bar down.
+  const programCourses = [...courseMap.values()].filter((c) => c.inProgram)
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
   const timezone =
@@ -67,19 +73,18 @@ export default async function DashboardPage() {
     (a) => !completedItemIds.has(a.contentItemId)
   )
 
-  // Courses assigned to the user's team(s), in registry order with the
-  // user's own progress. Intersecting the assigned slugs with the program
-  // registry both validates them and excludes POTD (not assignable, and
-  // not in UMBRELLA_PROGRAM_COURSES) — so the registry is the single
-  // source of truth for what's renderable here.
+  // Courses assigned to the user's team(s), in sort_order, with the user's
+  // own progress. Resolving each assigned slug against the live course map
+  // validates it (a stale/unknown slug is dropped) and pulls its display
+  // metadata — the courses table is the single source of truth here.
   const requiredSlugs = new Set(requiredCourseSlugs)
-  const requiredCourses = UMBRELLA_PROGRAM_COURSES.filter((c) =>
-    requiredSlugs.has(c.slug)
-  ).map((c) => ({
-    slug: c.slug,
-    completed: doneCounts[c.slug] ?? 0,
-    total: totals[c.slug] ?? 0,
-  }))
+  const requiredCourses = [...courseMap.values()]
+    .filter((c) => requiredSlugs.has(c.slug))
+    .map((course) => ({
+      course,
+      completed: doneCounts[course.slug] ?? 0,
+      total: totals[course.slug] ?? 0,
+    }))
 
   // Daily Pod widget: the next episode the user hasn't heard, or the
   // latest one if they're all caught up. POTD is available to everyone
@@ -95,14 +100,15 @@ export default async function DashboardPage() {
     ? completedItemIds.has(featuredPod.id)
     : false
 
-  // Program progress math — Umbrella Program only (BSS + EOS + Machine).
-  // POTD is bonus content, intentionally excluded so an ever-growing
-  // catalog of daily pods can't drag the completion bar down.
-  const totalProgram = UMBRELLA_PROGRAM_COURSES.reduce(
+  // Program progress math — in-program courses only. Bonus tracks (POTD)
+  // are excluded so an ever-growing catalog can't drag the completion bar
+  // down. New courses start as bonus (in_program = false), so publishing one
+  // never retroactively lowers everyone's %.
+  const totalProgram = programCourses.reduce(
     (sum, c) => sum + (totals[c.slug] ?? 0),
     0
   )
-  const doneProgram = UMBRELLA_PROGRAM_COURSES.reduce(
+  const doneProgram = programCourses.reduce(
     (sum, c) => sum + (doneCounts[c.slug] ?? 0),
     0
   )
@@ -157,7 +163,12 @@ export default async function DashboardPage() {
           <AssignmentsSection assignments={pendingAssignments} />
 
           {/* ── Continue Where You Left Off ── */}
-          {resumeTarget && <ResumeCard target={resumeTarget} />}
+          {resumeTarget && courseMap.has(resumeTarget.courseSlug) && (
+            <ResumeCard
+              target={resumeTarget}
+              course={courseMap.get(resumeTarget.courseSlug)!}
+            />
+          )}
 
           {/* ── Daily Pod (bonus content) ── */}
           <DailyPodWidget episode={featuredPod} done={featuredPodDone} />
@@ -171,10 +182,10 @@ export default async function DashboardPage() {
           </div>
 
           <div className="courses-grid">
-            {UMBRELLA_PROGRAM_COURSES.map((course) => (
+            {programCourses.map((course) => (
               <CourseCard
                 key={course.slug}
-                slug={course.slug}
+                course={course}
                 href={`/courses/${course.slug}`}
                 completedCount={doneCounts[course.slug] ?? 0}
                 totalCount={totals[course.slug] ?? 0}

@@ -9,6 +9,8 @@
  * Adding a new course = one entry here + DB rows. No schema changes.
  */
 
+import type { CSSProperties } from 'react'
+
 export type CourseSlug = 'bss' | 'eos' | 'potd' | 'machine'
 
 export type ContentType = CourseSlug // 1:1 for now
@@ -33,6 +35,63 @@ export type CourseMeta = {
   blurb: string
   mediaKind: 'video' | 'audio'
   hasDripRelease: boolean
+}
+
+// ── DB-backed course library (public.courses) ─────────────────────
+//
+// `CourseMeta`/`COURSES` above are the legacy STATIC registry, still used
+// by the four built-in courses' bespoke routes + the admin pages. The
+// types below model a row of public.courses — the dynamic source of truth
+// the catalog, progress, and (later) Create Course read from. Fetchers live
+// in src/lib/course-queries.ts (server-only); these types are client-safe.
+
+/** The 8 `--ct-*` theme tokens stored on a course row (see globals.css). */
+export type CourseTheme = {
+  from: string
+  to: string
+  text: string
+  tint: string
+  tintBadge: string
+  hoverBg: string
+  doneText: string
+  borderH: string
+}
+
+/** A course as read from public.courses. Slug is free text (any course). */
+export type Course = {
+  slug: string
+  title: string
+  shortTitle: string
+  blurb: string
+  mediaKind: 'video' | 'audio'
+  template: 'flat' | 'versioned' | 'rich'
+  hasDripRelease: boolean
+  sortOrder: number
+  theme: CourseTheme
+  isPublished: boolean
+  inProgram: boolean
+  isAssignable: boolean
+}
+
+/**
+ * Turn a course's theme tokens into the inline CSS custom properties every
+ * `var(--ct-*)` rule reads — applied on the themed root element so a course
+ * is fully coloured from data, with no per-slug `.course-theme-{slug}` block.
+ */
+export function courseThemeVars(theme: CourseTheme): CSSProperties {
+  // CSS custom properties aren't part of this React version's CSSProperties
+  // type, so build a plain map and widen it. Each var is read via var(--ct-*).
+  const vars: Record<string, string> = {
+    '--ct-from': theme.from,
+    '--ct-to': theme.to,
+    '--ct-text': theme.text,
+    '--ct-tint': theme.tint,
+    '--ct-tint-badge': theme.tintBadge,
+    '--ct-hover-bg': theme.hoverBg,
+    '--ct-done-text': theme.doneText,
+    '--ct-border-h': theme.borderH,
+  }
+  return vars as unknown as CSSProperties
 }
 
 export const COURSES: ReadonlyArray<CourseMeta> = [
