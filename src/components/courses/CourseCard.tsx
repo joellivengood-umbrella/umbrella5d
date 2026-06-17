@@ -1,32 +1,38 @@
 import Link from 'next/link'
-import { COURSES, type CourseSlug } from '@/lib/courses'
+import { courseThemeVars, type Course } from '@/lib/courses'
 
 /**
  * Tile used on /courses index and anywhere else a course needs to be
  * presented as a clickable card. Shows title, blurb, and a progress %.
+ *
+ * Themed from the course's own data (inline `--ct-*` vars), so a
+ * dynamically-created course is fully coloured with no per-slug CSS.
  */
 export function CourseCard({
-  slug,
+  course,
   href,
   completedCount,
   totalCount,
 }: {
-  slug: CourseSlug
+  course: Course
   href: string
   completedCount: number
   totalCount: number
 }) {
-  const meta = COURSES.find((c) => c.slug === slug)!
   const pct =
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   return (
-    <Link href={href} className={`course-card course-theme-${slug}`}>
+    <Link
+      href={href}
+      className="course-card"
+      style={courseThemeVars(course.theme)}
+    >
       <div className="course-card__header">
-        <span className="course-card__eyebrow">{meta.shortTitle}</span>
-        <h3 className="course-card__title">{meta.title}</h3>
+        <span className="course-card__eyebrow">{course.shortTitle}</span>
+        <h3 className="course-card__title">{course.title}</h3>
       </div>
-      <p className="course-card__blurb">{meta.blurb}</p>
+      <p className="course-card__blurb">{course.blurb}</p>
       <div className="course-card__footer">
         <div className="course-card__progress">
           <div

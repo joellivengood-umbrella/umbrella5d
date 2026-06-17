@@ -1,18 +1,21 @@
 import Link from 'next/link'
-import { COURSES } from '@/lib/courses'
+import { courseThemeVars, type Course } from '@/lib/courses'
 import type { ResumeTarget } from '@/lib/content-queries'
 
 /**
  * "Pick up where you left off" card on the dashboard.
  *
- * Takes a ResumeTarget (raw data from content-queries) and resolves
- * everything presentation-related here: route href, course display
- * label, fallback title text, themed accent.
+ * Takes a ResumeTarget (raw data from content-queries) plus the resolved
+ * course (for label + theme) and builds the route href here. BSS keeps its
+ * extra /[version]/ segment; every other course routes at /courses/{slug}/{n}.
  */
-export function ResumeCard({ target }: { target: ResumeTarget }) {
-  const meta = COURSES.find((c) => c.slug === target.courseSlug)
-  if (!meta) return null
-
+export function ResumeCard({
+  target,
+  course,
+}: {
+  target: ResumeTarget
+  course: Course
+}) {
   // BSS routes require a version segment. If we somehow received a BSS
   // target without one, render nothing rather than a broken link. The
   // helper that produces ResumeTarget already guards against this; this
@@ -28,8 +31,8 @@ export function ResumeCard({ target }: { target: ResumeTarget }) {
   // Course label, with version appended for BSS.
   const courseLabel =
     target.courseSlug === 'bss' && target.bssVersion
-      ? `${meta.shortTitle} ${target.bssVersion}`
-      : meta.shortTitle
+      ? `${course.shortTitle} ${target.bssVersion}`
+      : course.shortTitle
 
   // Fallback to "POTD 4" / "BSS 5hr 12" if a row is missing its title.
   const itemLabel =
@@ -38,7 +41,8 @@ export function ResumeCard({ target }: { target: ResumeTarget }) {
   return (
     <Link
       href={href}
-      className={`resume-card course-theme-${target.courseSlug}`}
+      className="resume-card"
+      style={courseThemeVars(course.theme)}
       aria-label={`Resume ${courseLabel}: ${itemLabel}`}
     >
       <div className="resume-card__body">

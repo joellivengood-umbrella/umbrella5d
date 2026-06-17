@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import { Fragment } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
+import { fetchCourses } from '@/lib/course-queries'
 import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
@@ -19,10 +20,16 @@ export default async function CoursesIndexPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [totals, completed] = await Promise.all([
+  const [courses, totals, completed] = await Promise.all([
+    fetchCourses(supabase),
     fetchTotalsByType(supabase),
     fetchCompletedCountsByType(supabase, user.id),
   ])
+
+  // Program courses make up the grid; bonus tracks (in_program = false,
+  // e.g. the Daily Pod) get a lighter link below.
+  const programCourses = courses.filter((c) => c.inProgram)
+  const bonusCourses = courses.filter((c) => !c.inProgram)
 
   return (
     <>
@@ -32,17 +39,17 @@ export default async function CoursesIndexPage() {
           <p className="section-eyebrow">The Umbrella Program</p>
           <h1>Courses</h1>
           <p className="courses-header__blurb">
-            Three tracks of content that make up the Umbrella Program. Work
-            through them in any order — or let your organization assign
-            specific segments to your role.
+            The tracks that make up the Umbrella Program. Work through them in
+            any order — or let your organization assign specific segments to
+            your role.
           </p>
         </div>
 
         <div className="courses-grid">
-          {UMBRELLA_PROGRAM_COURSES.map((c) => (
+          {programCourses.map((c) => (
             <CourseCard
               key={c.slug}
-              slug={c.slug}
+              course={c}
               href={`/courses/${c.slug}`}
               completedCount={completed[c.slug] ?? 0}
               totalCount={totals[c.slug] ?? 0}
@@ -50,10 +57,17 @@ export default async function CoursesIndexPage() {
           ))}
         </div>
 
-        <p className="courses-bonus-link">
-          Looking for the daily bonus?{' '}
-          <Link href="/courses/potd">Open the Daily Pod →</Link>
-        </p>
+        {bonusCourses.length > 0 && (
+          <p className="courses-bonus-link">
+            Looking for bonus content?{' '}
+            {bonusCourses.map((c, i) => (
+              <Fragment key={c.slug}>
+                {i > 0 && ' · '}
+                <Link href={`/courses/${c.slug}`}>Open {c.title} →</Link>
+              </Fragment>
+            ))}
+          </p>
+        )}
       </main>
     </>
   )
