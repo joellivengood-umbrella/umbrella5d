@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { fetchProgramSlugs } from './course-queries'
 
 /**
  * Server-side reads against organizations / org_members.
@@ -141,12 +142,14 @@ export type TeamProgressRow = {
 
 /**
  * Returns one TeamProgressRow per provided user_id, counting only
- * Umbrella Program completions (BSS, EOS, Machine — POTD excluded).
- * Users with zero completions are included with completed=0 so every
- * team member shows up in the progress list, not just the active ones.
+ * in-program completions (courses.in_program — data-driven, so a new
+ * promoted course is counted and a bonus course is not). Users with zero
+ * completions are included with completed=0 so every team member shows up
+ * in the progress list, not just the active ones.
  *
- * POTD is bonus content; its completions don't count toward program
- * progress. Filter is server-side via the embedded-table .neq.
+ * Scopes to the same in_program slug set the member's own dashboard uses,
+ * so the manager view and the member view of program progress agree
+ * (previously this counted everything-except-POTD, inflating the count).
  *
  * RLS requirement: the caller must be a manager of an org that the
  * provided user_ids are members of, via the
@@ -158,13 +161,20 @@ export async function fetchTeamProgress(
 ): Promise<TeamProgressRow[]> {
   if (userIds.length === 0) return []
 
+  // No in-program courses → everyone is at 0 (avoids .in('type', []) which
+  // would match nothing anyway, but keeps every requested user in the result).
+  const programSlugs = await fetchProgramSlugs(supabase)
+  if (programSlugs.length === 0) {
+    return userIds.map((userId) => ({ userId, completed: 0 }))
+  }
+
   const { data, error } = await supabase
     .from('content_progress')
     .select(
       'user_id, content_items!inner(type, is_published)'
     )
     .in('user_id', userIds)
-    .neq('content_items.type', 'potd')
+    .in('content_items.type', programSlugs)
 
   if (error) {
     console.error('fetchTeamProgress error', error)
@@ -189,8 +199,8 @@ export async function fetchTeamProgress(
     const item = Array.isArray(rawItem) ? rawItem[0] : rawItem
     if (!item) continue
 
-    // Skip unpublished items (admin pulled them after the user
-    // completed them). POTD is already filtered server-side.
+    // Skip unpublished items (admin pulled them after the user completed
+    // them). Non-program courses are already filtered server-side via .in.
     if (!item.is_published) continue
 
     counts.set(userId, (counts.get(userId) ?? 0) + 1)

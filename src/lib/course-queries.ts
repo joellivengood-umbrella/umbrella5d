@@ -117,8 +117,10 @@ export async function fetchCourseMap(
 }
 
 /**
- * Just the slugs of in-program courses — for the `.in('type', …)` filters
- * that compute program progress (replaces the hardcoded `.neq('type','potd')`).
+ * Slugs of the courses that count toward program progress — in_program AND
+ * published. The single definition of "the program" for every progress
+ * denominator/numerator (.in('type', …)), so the dashboard, sidebar,
+ * resume, and manager surfaces can't disagree.
  */
 export async function fetchProgramSlugs(
   supabase: MaybeClient
@@ -127,6 +129,7 @@ export async function fetchProgramSlugs(
     .from('courses')
     .select('slug')
     .eq('in_program', true)
+    .eq('is_published', true)
 
   if (error) {
     console.error('fetchProgramSlugs error', error)
