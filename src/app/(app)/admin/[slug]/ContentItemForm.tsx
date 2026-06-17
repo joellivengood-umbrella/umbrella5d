@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { BSS_VERSIONS, type CourseSlug, type BssVersion } from '@/lib/courses'
+import { BSS_VERSIONS, type BssVersion } from '@/lib/courses'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
 
@@ -24,7 +24,7 @@ type FormValues = {
 
 export type ContentItemDraft = {
   id: string | null
-  type: CourseSlug
+  type: string
   sequence_num: number | null
   title: string | null
   description: string | null
@@ -41,7 +41,7 @@ export function ContentItemForm({
   initial,
   parts = [],
 }: {
-  courseSlug: CourseSlug
+  courseSlug: string
   initial: ContentItemDraft
   parts?: PartOption[]
 }) {

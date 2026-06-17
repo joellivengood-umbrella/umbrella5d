@@ -8,6 +8,7 @@ import {
   fetchTeamMemberships,
   fetchTeamCourseAssignments,
 } from '@/lib/org-queries'
+import { fetchCourses } from '@/lib/course-queries'
 import { OrgTeamsManager } from './OrgTeamsManager'
 
 export const metadata = { title: 'My Organization' }
@@ -40,12 +41,26 @@ export default async function OrganizationPage() {
   const role = await fetchUserOrgRole(supabase, user.id, profile.org_id)
   if (role !== 'manager') notFound()
 
-  const [members, teams, memberships, courseAssignments] = await Promise.all([
-    fetchOrgMembers(supabase, profile.org_id),
-    fetchTeams(supabase, profile.org_id),
-    fetchTeamMemberships(supabase, profile.org_id),
-    fetchTeamCourseAssignments(supabase, profile.org_id),
-  ])
+  const [members, teams, memberships, courseAssignments, courses] =
+    await Promise.all([
+      fetchOrgMembers(supabase, profile.org_id),
+      fetchTeams(supabase, profile.org_id),
+      fetchTeamMemberships(supabase, profile.org_id),
+      fetchTeamCourseAssignments(supabase, profile.org_id),
+      fetchCourses(supabase),
+    ])
+
+  // Courses a manager may require of a team — driven by the courses table's
+  // is_assignable flag (an admin promotes a course to assignable in its
+  // settings), so this stays in sync with no code change.
+  const courseOptions = courses
+    .filter((c) => c.isAssignable && c.isPublished)
+    .map((c) => ({
+      slug: c.slug,
+      title: c.title,
+      shortTitle: c.shortTitle,
+      theme: c.theme,
+    }))
 
   const orgName = profile.organization_name ?? 'My Organization'
 
@@ -65,6 +80,7 @@ export default async function OrganizationPage() {
           initialTeams={teams}
           initialMemberships={memberships}
           initialCourseAssignments={courseAssignments}
+          courseOptions={courseOptions}
         />
       </main>
     </>

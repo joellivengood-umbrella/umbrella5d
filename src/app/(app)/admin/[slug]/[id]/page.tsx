@@ -1,11 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import {
-  isValidCourseSlug,
-  getCourseMeta,
-  type CourseSlug,
-} from '@/lib/courses'
+import { courseThemeVars } from '@/lib/courses'
+import { fetchCourse } from '@/lib/course-queries'
 import { fetchMachinePartsList } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemForm, type ContentItemDraft } from '../ContentItemForm'
@@ -18,8 +15,9 @@ export async function generateMetadata({
   params: Promise<RouteParams>
 }) {
   const { slug } = await params
-  if (!isValidCourseSlug(slug)) return { title: 'Admin' }
-  return { title: `Edit · ${getCourseMeta(slug as CourseSlug).shortTitle}` }
+  const supabase = await createClient()
+  const course = await fetchCourse(supabase, slug)
+  return { title: course ? `Edit · ${course.shortTitle}` : 'Admin' }
 }
 
 export default async function AdminEditItemPage({
@@ -28,25 +26,24 @@ export default async function AdminEditItemPage({
   params: Promise<RouteParams>
 }) {
   const { slug, id } = await params
-  if (!isValidCourseSlug(slug)) notFound()
-  const courseSlug = slug as CourseSlug
-  const meta = getCourseMeta(courseSlug)
-
   const supabase = await createClient()
+  const course = await fetchCourse(supabase, slug)
+  if (!course) notFound()
+
   const { data, error } = await supabase
     .from('content_items')
     .select(
       'id, type, sequence_num, title, description, media_url, duration_mins, is_published, metadata, part_id, part_sort_index'
     )
     .eq('id', id)
-    .eq('type', courseSlug)
+    .eq('type', course.slug)
     .maybeSingle()
 
   if (error || !data) notFound()
 
   const draft: ContentItemDraft = {
     id: data.id,
-    type: courseSlug,
+    type: course.slug,
     sequence_num: data.sequence_num,
     title: data.title,
     description: data.description,
@@ -59,7 +56,7 @@ export default async function AdminEditItemPage({
   }
 
   const parts =
-    courseSlug === 'machine'
+    course.slug === 'machine'
       ? (await fetchMachinePartsList(supabase)).map((p) => ({
           id: p.id,
           sortIndex: p.sortIndex,
@@ -70,8 +67,8 @@ export default async function AdminEditItemPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className={`courses-main course-theme-${courseSlug}`}>
-        <Link href={`/admin/${courseSlug}`} className="lesson-back-btn">
+      <main className="courses-main" style={courseThemeVars(course.theme)}>
+        <Link href={`/admin/${course.slug}`} className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -85,20 +82,18 @@ export default async function AdminEditItemPage({
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back to {meta.shortTitle} list
+          Back to {course.shortTitle} list
         </Link>
 
         <div className="courses-header">
-          <p className="section-eyebrow">{meta.shortTitle} · admin</p>
-          <h1>
-            {draft.title || `Item #${draft.sequence_num ?? '—'}`}
-          </h1>
+          <p className="section-eyebrow">{course.shortTitle} · admin</p>
+          <h1>{draft.title || `Item #${draft.sequence_num ?? '—'}`}</h1>
           <p className="courses-header__blurb">
             Editing existing item. Changes save to Supabase immediately.
           </p>
         </div>
 
-        {courseSlug === 'machine' && (
+        {course.slug === 'machine' && (
           <Link href={`/admin/machine/${draft.id}/blocks`} className="lbe-cta">
             <div>
               <strong>Edit lesson content</strong>
@@ -115,7 +110,11 @@ export default async function AdminEditItemPage({
         )}
 
         <section className="settings-section">
-          <ContentItemForm courseSlug={courseSlug} initial={draft} parts={parts} />
+          <ContentItemForm
+            courseSlug={course.slug}
+            initial={draft}
+            parts={parts}
+          />
         </section>
       </main>
     </>
