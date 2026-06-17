@@ -7353,3 +7353,23 @@ body.potd-player-active .app-main {
 @media (max-width: 640px) {
   .partner-main { padding: 1.5rem 1rem 4rem; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Create / edit course (admin)
+   ══════════════════════════════════════════════════════════════════ */
+.admin-create-course__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+.admin-create-course__grid > form { flex: 1 1 340px; min-width: 0; }
+.admin-create-course__preview { flex: 0 1 300px; min-width: 0; }
+.admin-create-course__preview .courses-grid { margin-top: .4rem; }
+
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .4rem;
+}

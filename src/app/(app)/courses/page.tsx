@@ -1,5 +1,3 @@
-import Link from 'next/link'
-import { Fragment } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchCourses } from '@/lib/course-queries'
 import {
@@ -26,10 +24,9 @@ export default async function CoursesIndexPage() {
     fetchCompletedCountsByType(supabase, user.id),
   ])
 
-  // Program courses make up the grid; bonus tracks (in_program = false,
-  // e.g. the Daily Pod) get a lighter link below.
-  const programCourses = courses.filter((c) => c.inProgram)
-  const bonusCourses = courses.filter((c) => !c.inProgram)
+  // The catalog shows every published course as a card (filtered here so an
+  // admin's draft courses don't leak into the learner view via RLS).
+  const published = courses.filter((c) => c.isPublished)
 
   return (
     <>
@@ -39,14 +36,13 @@ export default async function CoursesIndexPage() {
           <p className="section-eyebrow">The Umbrella Program</p>
           <h1>Courses</h1>
           <p className="courses-header__blurb">
-            The tracks that make up the Umbrella Program. Work through them in
-            any order — or let your organization assign specific segments to
-            your role.
+            Every course in the library. Work through them in any order — or let
+            your organization assign specific segments to your role.
           </p>
         </div>
 
         <div className="courses-grid">
-          {programCourses.map((c) => (
+          {published.map((c) => (
             <CourseCard
               key={c.slug}
               course={c}
@@ -56,18 +52,6 @@ export default async function CoursesIndexPage() {
             />
           ))}
         </div>
-
-        {bonusCourses.length > 0 && (
-          <p className="courses-bonus-link">
-            Looking for bonus content?{' '}
-            {bonusCourses.map((c, i) => (
-              <Fragment key={c.slug}>
-                {i > 0 && ' · '}
-                <Link href={`/courses/${c.slug}`}>Open {c.title} →</Link>
-              </Fragment>
-            ))}
-          </p>
-        )}
       </main>
     </>
   )

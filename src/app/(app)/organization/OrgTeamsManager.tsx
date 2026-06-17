@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { UMBRELLA_PROGRAM_COURSES } from '@/lib/courses'
+import { courseThemeVars, type CourseTheme } from '@/lib/courses'
 import type {
   OrgMember,
   Team,
@@ -45,14 +45,15 @@ const TEAM_COLORS = [
 const edgeKey = (teamId: string, userId: string) => `${teamId}::${userId}`
 const courseKey = (teamId: string, slug: string) => `${teamId}::${slug}`
 
-// The courses a manager can assign — the three core program courses
-// (POTD is excluded; it stays available to everyone). Registry-driven, so
-// adding a course later makes it assignable with no change here.
-const COURSE_OPTIONS = UMBRELLA_PROGRAM_COURSES.map((c) => ({
-  slug: c.slug,
-  title: c.title,
-  shortTitle: c.shortTitle,
-}))
+// A course a manager can assign to a team. The org page supplies the
+// assignable set from the courses table (is_assignable), so flagging a new
+// course assignable surfaces it here with no code change.
+export type CourseOption = {
+  slug: string
+  title: string
+  shortTitle: string
+  theme: CourseTheme
+}
 
 // Cap the search results so a big org never renders a giant list.
 const MAX_RESULTS = 8
@@ -66,6 +67,7 @@ export function OrgTeamsManager({
   initialTeams,
   initialMemberships,
   initialCourseAssignments,
+  courseOptions,
 }: {
   orgId: string
   currentUserId: string
@@ -73,6 +75,7 @@ export function OrgTeamsManager({
   initialTeams: Team[]
   initialMemberships: TeamMembership[]
   initialCourseAssignments: TeamCourseAssignment[]
+  courseOptions: CourseOption[]
 }) {
   const supabase = useMemo(() => createClient(), [])
 
@@ -749,7 +752,7 @@ export function OrgTeamsManager({
                 role="group"
                 aria-label={`Courses required for ${selectedTeam.name}`}
               >
-                {COURSE_OPTIONS.map((c) => {
+                {courseOptions.map((c) => {
                   const key = courseKey(selectedTeam.id, c.slug)
                   const assigned = courseEdges.has(key)
                   const busy = busyCourses.has(key)
@@ -759,8 +762,9 @@ export function OrgTeamsManager({
                         className={`org-coursecard__box${assigned ? ' is-assigned' : ''}`}
                       >
                         <span
-                          className={`org-coursecard__strip course-theme-${c.slug}`}
+                          className="org-coursecard__strip"
                           style={{
+                            ...courseThemeVars(c.theme),
                             background:
                               'linear-gradient(180deg, var(--ct-from), var(--ct-to))',
                           }}

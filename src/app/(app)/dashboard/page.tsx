@@ -43,7 +43,9 @@ export default async function DashboardPage() {
   // Program courses (in_program), in sort_order — the dashboard grid and the
   // headline progress math. Bonus tracks (e.g. POTD) are excluded so an
   // ever-growing catalog can't drag the completion bar down.
-  const programCourses = [...courseMap.values()].filter((c) => c.inProgram)
+  const programCourses = [...courseMap.values()].filter(
+    (c) => c.inProgram && c.isPublished
+  )
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
   const timezone =

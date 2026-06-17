@@ -1,11 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import {
-  isValidCourseSlug,
-  getCourseMeta,
-  type CourseSlug,
-} from '@/lib/courses'
+import { courseThemeVars } from '@/lib/courses'
 import { createClient } from '@/lib/supabase/server'
+import { fetchCourse } from '@/lib/course-queries'
 import { fetchMachinePartsList } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentItemForm } from '../ContentItemForm'
@@ -20,13 +17,12 @@ export default async function AdminNewItemPage({
   params: Promise<RouteParams>
 }) {
   const { slug } = await params
-  if (!isValidCourseSlug(slug)) notFound()
-  const courseSlug = slug as CourseSlug
-  const meta = getCourseMeta(courseSlug)
-
   const supabase = await createClient()
+  const course = await fetchCourse(supabase, slug)
+  if (!course) notFound()
+
   const parts =
-    courseSlug === 'machine'
+    course.slug === 'machine'
       ? (await fetchMachinePartsList(supabase)).map((p) => ({
           id: p.id,
           sortIndex: p.sortIndex,
@@ -37,8 +33,8 @@ export default async function AdminNewItemPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className={`courses-main course-theme-${courseSlug}`}>
-        <Link href={`/admin/${courseSlug}`} className="lesson-back-btn">
+      <main className="courses-main" style={courseThemeVars(course.theme)}>
+        <Link href={`/admin/${course.slug}`} className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -52,21 +48,21 @@ export default async function AdminNewItemPage({
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back to {meta.shortTitle} list
+          Back to {course.shortTitle} list
         </Link>
 
         <div className="courses-header">
-          <p className="section-eyebrow">{meta.shortTitle} · admin</p>
+          <p className="section-eyebrow">{course.shortTitle} · admin</p>
           <h1>New item</h1>
         </div>
 
         <section className="settings-section">
           <ContentItemForm
-            courseSlug={courseSlug}
+            courseSlug={course.slug}
             parts={parts}
             initial={{
               id: null,
-              type: courseSlug,
+              type: course.slug,
               sequence_num: null,
               title: null,
               description: null,
