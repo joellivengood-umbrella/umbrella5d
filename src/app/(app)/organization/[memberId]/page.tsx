@@ -11,6 +11,7 @@ import {
   fetchContentItems,
   fetchTotalsByType,
 } from '@/lib/content-queries'
+import { fetchProgramSlugs } from '@/lib/course-queries'
 import { AssignmentList } from './AssignmentList'
 import { AssignmentForm } from './AssignmentForm'
 
@@ -68,6 +69,7 @@ export default async function ManageMemberPage({
     { data: targetProfile },
     assignments,
     totals,
+    programSlugs,
     bssItems,
     eosItems,
     potdItems,
@@ -80,16 +82,20 @@ export default async function ManageMemberPage({
       .single(),
     fetchMemberAssignments(supabase, memberId),
     fetchTotalsByType(supabase),
+    fetchProgramSlugs(supabase),
     fetchContentItems(supabase, 'bss'),
     fetchContentItems(supabase, 'eos'),
     fetchContentItems(supabase, 'potd'),
     fetchContentItems(supabase, 'machine'),
   ])
 
-  // Program-only progress denominator (POTD intentionally excluded —
-  // bonus content doesn't count toward program completion).
-  const programTotal =
-    (totals.bss ?? 0) + (totals.eos ?? 0) + (totals.machine ?? 0)
+  // Program progress denominator — the in_program courses (data-driven, so
+  // a newly-promoted course is included), matching the numerator from
+  // fetchTeamProgress and the member's own dashboard.
+  const programTotal = programSlugs.reduce(
+    (sum, slug) => sum + (totals[slug] ?? 0),
+    0
+  )
 
   // Single-member program-completed lookup. Reuses the team-progress
   // helper — it accepts an array of user IDs, we just pass one.

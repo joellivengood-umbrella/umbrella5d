@@ -45,6 +45,7 @@ export function AppSidebar({
       .from('courses')
       .select('slug')
       .eq('in_program', true)
+      .eq('is_published', true)
     const programSlugs = (progRows ?? []).map((r) => (r as { slug: string }).slug)
     if (programSlugs.length === 0) {
       setPct(0)
