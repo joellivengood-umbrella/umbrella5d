@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { fetchContentItem } from '@/lib/content-queries'
+import { fetchCourse } from '@/lib/course-queries'
+import { courseThemeVars } from '@/lib/courses'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { MarkCompleteButton } from '@/components/courses/MarkCompleteButton'
@@ -32,6 +34,9 @@ export default async function EosItemPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
+  const course = await fetchCourse(supabase, 'eos')
+  if (!course) notFound()
+
   const item = await fetchContentItem(supabase, 'eos', n)
   if (!item) notFound()
 
@@ -45,23 +50,23 @@ export default async function EosItemPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main courses-main--narrow course-theme-eos">
+      <main className="courses-main courses-main--narrow" style={courseThemeVars(course.theme)}>
         <Link href="/courses/eos" className="lesson-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Employee Opportunity Seminars
+          {course.title}
         </Link>
 
         <div className="lesson-header">
-          <p className="section-eyebrow">EOS</p>
+          <p className="section-eyebrow">{course.shortTitle}</p>
           <h1>{item.title ?? `Seminar ${item.sequence_num}`}</h1>
         </div>
 
         <div className="lesson-body">
           <ContentPlayer
             mediaUrl={item.media_url}
-            mediaKind="video"
+            mediaKind={course.mediaKind}
             title={item.title ?? `EOS ${item.sequence_num}`}
           />
           {item.description && (

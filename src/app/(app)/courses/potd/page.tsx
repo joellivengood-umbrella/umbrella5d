@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getCourseMeta } from '@/lib/courses'
+import { courseThemeVars } from '@/lib/courses'
+import { fetchCourse } from '@/lib/course-queries'
 import {
   fetchContentItems,
   fetchCompletedItemIds,
@@ -13,12 +15,14 @@ import { ContentItemTile } from '@/components/courses/ContentItemTile'
 export const metadata = { title: 'Daily Pod' }
 
 export default async function PotdIndexPage() {
-  const meta = getCourseMeta('potd')
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
+
+  const course = await fetchCourse(supabase, 'potd')
+  if (!course) notFound()
 
   const [items, completed, settings, assignments] = await Promise.all([
     fetchContentItems(supabase, 'potd'),
@@ -41,7 +45,7 @@ export default async function PotdIndexPage() {
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main course-theme-potd">
+      <main className="courses-main" style={courseThemeVars(course.theme)}>
         <Link href="/courses" className="lesson-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
             <polyline points="15 18 9 12 15 6" />
@@ -50,9 +54,9 @@ export default async function PotdIndexPage() {
         </Link>
 
         <div className="courses-header">
-          <p className="section-eyebrow">Daily Pod · Bonus</p>
-          <h1>{meta.title}</h1>
-          <p className="courses-header__blurb">{meta.blurb}</p>
+          <p className="section-eyebrow">{course.shortTitle}</p>
+          <h1>{course.title}</h1>
+          {course.blurb && <p className="courses-header__blurb">{course.blurb}</p>}
           {totalEpisodes > 0 && (
             <p className="potd-heard-count">
               You&apos;ve heard <strong>{heardEpisodes} / {totalEpisodes}</strong> episodes.

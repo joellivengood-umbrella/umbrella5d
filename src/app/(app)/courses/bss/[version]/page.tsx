@@ -4,8 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import {
   BSS_VERSIONS,
   isValidBssVersion,
+  courseThemeVars,
   type BssVersion,
 } from '@/lib/courses'
+import { fetchCourse } from '@/lib/course-queries'
 import {
   fetchContentItems,
   fetchCompletedItemIds,
@@ -42,6 +44,9 @@ export default async function BssVersionPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
+  const course = await fetchCourse(supabase, 'bss')
+  if (!course) notFound()
+
   const [items, completed, settings, assignments] = await Promise.all([
     fetchContentItems(supabase, 'bss', version as BssVersion),
     fetchCompletedItemIds(supabase, user.id),
@@ -58,7 +63,7 @@ export default async function BssVersionPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main course-theme-bss">
+      <main className="courses-main" style={courseThemeVars(course.theme)}>
         <Link href="/courses/bss" className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
@@ -73,11 +78,11 @@ export default async function BssVersionPage({
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          BSS versions
+          {course.title}
         </Link>
 
         <div className="courses-header">
-          <p className="section-eyebrow">Business Success Seminar</p>
+          <p className="section-eyebrow">{course.shortTitle}</p>
           <h1>{versionMeta.label}</h1>
           <p className="courses-header__blurb">
             {items.length} segment{items.length === 1 ? '' : 's'}. Work through
