@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { courseThemeVars } from '@/lib/courses'
 import { fetchCourses } from '@/lib/course-queries'
-import { fetchTotalsByType } from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { CreateCoursePanel } from './CreateCoursePanel'
 
@@ -11,20 +10,25 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminIndexPage() {
   const supabase = await createClient()
-  const [courses, totals] = await Promise.all([
+  const [courses, { data: countRows, error: countErr }] = await Promise.all([
     fetchCourses(supabase),
-    fetchTotalsByType(supabase),
+    supabase.rpc('content_counts_by_course'),
   ])
 
-  // Count unpublished rows per course so admins see "in progress" totals.
-  const { data: allRows } = await supabase
-    .from('content_items')
-    .select('type, is_published')
+  // Per-course published + draft counts from one DB-side grouped query
+  // instead of scanning every content_items row. These are non-critical
+  // numbers, so degrade to 0 rather than failing the whole admin panel.
+  if (countErr) console.error('admin content counts error', countErr)
+  const published: Record<string, number> = {}
   const drafts: Record<string, number> = {}
-  for (const r of allRows ?? []) {
-    if (!r.is_published) {
-      drafts[r.type] = (drafts[r.type] ?? 0) + 1
+  for (const row of countRows ?? []) {
+    const r = row as {
+      course_slug: string
+      published_count: number
+      draft_count: number
     }
+    published[r.course_slug] = r.published_count
+    drafts[r.course_slug] = r.draft_count
   }
 
   return (
@@ -61,7 +65,7 @@ export default async function AdminIndexPage() {
               <h2>{c.title}</h2>
               <div className="admin-course-card__stats">
                 <span>
-                  <strong>{totals[c.slug] ?? 0}</strong> published
+                  <strong>{published[c.slug] ?? 0}</strong> published
                 </span>
                 <span>
                   <strong>{drafts[c.slug] ?? 0}</strong> drafts

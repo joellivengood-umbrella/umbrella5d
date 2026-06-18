@@ -135,10 +135,10 @@ export async function fetchCompletedItemIds(
 export async function fetchTotalsByType(
   supabase: MaybeClient
 ): Promise<Record<string, number>> {
-  const { data, error } = await supabase
-    .from('content_items')
-    .select('type')
-    .eq('is_published', true)
+  // DB-side grouped count (content_counts_by_course RPC) rather than
+  // streaming every published row to count in JS — O(courses), not O(items),
+  // which matters as the catalog (esp. POTD) grows without bound.
+  const { data, error } = await supabase.rpc('content_counts_by_course')
 
   if (error) {
     console.error('fetchTotalsByType error', error)
@@ -146,8 +146,8 @@ export async function fetchTotalsByType(
   }
   const totals: Record<string, number> = {}
   for (const row of data ?? []) {
-    const t = (row as { type: string }).type
-    totals[t] = (totals[t] ?? 0) + 1
+    const r = row as { course_slug: string; published_count: number }
+    totals[r.course_slug] = r.published_count
   }
   return totals
 }
@@ -220,7 +220,15 @@ export async function fetchResumeTarget(
   //    (e.g. POTD) are filtered server-side via the embedded-table .in
   //    so we don't have to fetch and discard them. The set of in-program
   //    slugs is data (courses.in_program), not a hardcoded 'potd'.
-  const programSlugs = await fetchProgramSlugs(supabase)
+  // The resume card is non-essential — never let it crash the page. If the
+  // (now throwing) program-slugs read fails, just skip the card.
+  let programSlugs: string[]
+  try {
+    programSlugs = await fetchProgramSlugs(supabase)
+  } catch (e) {
+    console.error('fetchResumeTarget program slugs error', e)
+    return null
+  }
   if (programSlugs.length === 0) return null
   const { data: rows, error: lastErr } = await supabase
     .from('content_progress')

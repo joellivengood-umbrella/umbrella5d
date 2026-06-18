@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -32,8 +32,11 @@ export function AppSidebar({
   const { isOpen, close } = useMobileNav()
   const [pct, setPct] = useState(0)
   const supabase = createClient()
+  // Throttle the on-focus refetch so alt-tabbing doesn't spam count queries.
+  const lastFetchRef = useRef(0)
 
   const fetchProgress = useCallback(async () => {
+    lastFetchRef.current = Date.now()
     // Progress denominator is the in-program courses: every published item
     // whose course has in_program = true. Bonus tracks (e.g. POTD) are
     // excluded — an ever-growing daily-pod catalog shouldn't drag the bar
@@ -41,33 +44,44 @@ export function AppSidebar({
     // published. Which courses count is data (courses.in_program), not a
     // hardcoded 'potd'. The numerator counts only program completions to
     // match the denominator.
-    const { data: progRows } = await supabase
+    const { data: progRows, error: progErr } = await supabase
       .from('courses')
       .select('slug')
       .eq('in_program', true)
       .eq('is_published', true)
+    // On a read error, keep the last shown % rather than flashing to 0.
+    if (progErr) {
+      console.error('sidebar progress: courses read failed', progErr)
+      return
+    }
     const programSlugs = (progRows ?? []).map((r) => (r as { slug: string }).slug)
     if (programSlugs.length === 0) {
       setPct(0)
       return
     }
 
-    const [{ count: programTotal }, { count: programDone }] =
-      await Promise.all([
-        supabase
-          .from('content_items')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_published', true)
-          .in('type', programSlugs),
-        supabase
-          .from('content_progress')
-          .select('id, content_items!inner(type)', {
-            count: 'exact',
-            head: true,
-          })
-          .eq('user_id', userId)
-          .in('content_items.type', programSlugs),
-      ])
+    const [
+      { count: programTotal, error: totalErr },
+      { count: programDone, error: doneErr },
+    ] = await Promise.all([
+      supabase
+        .from('content_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_published', true)
+        .in('type', programSlugs),
+      supabase
+        .from('content_progress')
+        .select('id, content_items!inner(type)', {
+          count: 'exact',
+          head: true,
+        })
+        .eq('user_id', userId)
+        .in('content_items.type', programSlugs),
+    ])
+    if (totalErr || doneErr) {
+      console.error('sidebar progress: count read failed', totalErr || doneErr)
+      return
+    }
 
     const total = programTotal ?? 0
     const done = programDone ?? 0
@@ -80,7 +94,11 @@ export function AppSidebar({
     // The lint rule pattern-matches the call shape, not the async-ness.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProgress()
-    const onFocus = () => fetchProgress()
+    // Refresh on focus, but at most once a minute — a user alt-tabbing
+    // shouldn't fire repeated count queries on every focus event.
+    const onFocus = () => {
+      if (Date.now() - lastFetchRef.current > 60_000) fetchProgress()
+    }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [fetchProgress])

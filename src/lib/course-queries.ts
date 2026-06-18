@@ -3,8 +3,11 @@ import type { Course, CourseTheme } from './courses'
 
 /**
  * Server-side reads of public.courses — the dynamic course library that
- * replaces the hardcoded registry. Degrades to []/null on error so a
- * transient read never 500s a page (the catalog simply renders empty).
+ * replaces the hardcoded registry. These THROW on a real DB error so a
+ * transient failure surfaces as a retryable error (via the route's error
+ * boundary) rather than a misleading empty catalog / 0% progress page;
+ * fetchCourse returns null only for a genuine "no such course" (so routes
+ * can notFound() on absence but 500 on a read failure).
  */
 
 type MaybeClient = SupabaseClient
@@ -77,7 +80,7 @@ export async function fetchCourses(supabase: MaybeClient): Promise<Course[]> {
 
   if (error) {
     console.error('fetchCourses error', error)
-    return []
+    throw new Error(`fetchCourses failed: ${error.message}`)
   }
   return (data ?? []).map((r) => rowToCourse(r as CourseRow))
 }
@@ -102,7 +105,7 @@ export async function fetchCourse(
 
   if (error) {
     console.error('fetchCourse error', error)
-    return null
+    throw new Error(`fetchCourse failed: ${error.message}`)
   }
   const rows = data ?? []
   return rows.length > 0 ? rowToCourse(rows[0] as CourseRow) : null
@@ -133,7 +136,7 @@ export async function fetchProgramSlugs(
 
   if (error) {
     console.error('fetchProgramSlugs error', error)
-    return []
+    throw new Error(`fetchProgramSlugs failed: ${error.message}`)
   }
   return (data ?? []).map((r) => (r as { slug: string }).slug)
 }
