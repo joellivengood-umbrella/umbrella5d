@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { fetchCourse } from '@/lib/course-queries'
+import { courseThemeVars } from '@/lib/courses'
 import {
   fetchMachineLessonBySequence,
   fetchBlockChecks,
@@ -38,6 +40,9 @@ export default async function MachineItemPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
+  const course = await fetchCourse(supabase, 'machine')
+  if (!course) notFound()
+
   const lesson = await fetchMachineLessonBySequence(supabase, n)
   if (!lesson) notFound()
 
@@ -68,19 +73,19 @@ export default async function MachineItemPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main courses-main--narrow course-theme-machine">
+      <main className="courses-main courses-main--narrow" style={courseThemeVars(course.theme)}>
         <Link href="/courses/machine" className="lesson-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          The 5D Machine
+          {course.title}
         </Link>
 
         <div className="lesson-header">
           <p className="section-eyebrow">
             {lesson.partNumber != null
               ? `Part ${partOrdinal(lesson.partNumber)}${lesson.partTitle ? ` · ${lesson.partTitle}` : ''}`
-              : '5D Machine'}
+              : course.shortTitle}
           </p>
           <h1>
             {address ? <span className="lesson-address">{address}</span> : null}
@@ -111,7 +116,7 @@ export default async function MachineItemPage({
           <div className="lesson-body">
             <ContentPlayer
               mediaUrl={lesson.mediaUrl}
-              mediaKind="video"
+              mediaKind={course.mediaKind}
               title={lesson.title ?? `5D Machine Lesson ${lesson.sequenceNum}`}
             />
             {lesson.description && (

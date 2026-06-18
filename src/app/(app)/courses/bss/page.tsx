@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { BSS_VERSIONS } from '@/lib/courses'
+import { BSS_VERSIONS, courseThemeVars } from '@/lib/courses'
+import { fetchCourse } from '@/lib/course-queries'
 import { fetchContentItems, fetchCompletedItemIds } from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 
@@ -14,6 +16,9 @@ export default async function BssHubPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
+
+  const course = await fetchCourse(supabase, 'bss')
+  if (!course) notFound()
 
   // Count segments per version + user's completions, in parallel.
   const [items5, items3, items2, items1, completed] = await Promise.all([
@@ -34,7 +39,7 @@ export default async function BssHubPage() {
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main course-theme-bss">
+      <main className="courses-main" style={courseThemeVars(course.theme)}>
         <Link href="/courses" className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
@@ -53,7 +58,7 @@ export default async function BssHubPage() {
         </Link>
 
         <div className="courses-header">
-          <p className="section-eyebrow">Business Success Seminar</p>
+          <p className="section-eyebrow">{course.shortTitle}</p>
           <h1>Pick your length</h1>
           <p className="courses-header__blurb">
             The same seminar, cut to different durations. Your organization can

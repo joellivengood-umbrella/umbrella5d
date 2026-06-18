@@ -1,7 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { isValidBssVersion, BSS_VERSIONS, type BssVersion } from '@/lib/courses'
+import {
+  isValidBssVersion,
+  BSS_VERSIONS,
+  courseThemeVars,
+  type BssVersion,
+} from '@/lib/courses'
+import { fetchCourse } from '@/lib/course-queries'
 import { fetchContentItem } from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
@@ -38,6 +44,9 @@ export default async function BssSegmentPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
+  const course = await fetchCourse(supabase, 'bss')
+  if (!course) notFound()
+
   const item = await fetchContentItem(supabase, 'bss', n, version as BssVersion)
   if (!item) notFound()
 
@@ -53,7 +62,10 @@ export default async function BssSegmentPage({
   return (
     <>
       <BodyClass className="page-dashboard" />
-      <main className="courses-main courses-main--narrow course-theme-bss">
+      <main
+        className="courses-main courses-main--narrow"
+        style={courseThemeVars(course.theme)}
+      >
         <Link href={`/courses/bss/${version}`} className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
@@ -72,14 +84,16 @@ export default async function BssSegmentPage({
         </Link>
 
         <div className="lesson-header">
-          <p className="section-eyebrow">BSS — {versionMeta.label}</p>
+          <p className="section-eyebrow">
+            {course.shortTitle} — {versionMeta.label}
+          </p>
           <h1>{item.title ?? `Segment ${item.sequence_num}`}</h1>
         </div>
 
         <div className="lesson-body">
           <ContentPlayer
             mediaUrl={item.media_url}
-            mediaKind="video"
+            mediaKind={course.mediaKind}
             title={item.title ?? `BSS ${version} Segment ${item.sequence_num}`}
           />
           {item.description && (
