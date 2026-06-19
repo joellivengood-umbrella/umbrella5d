@@ -200,18 +200,35 @@ export function MachineLessonView({
     readSections.push({ section, groups })
   }
 
-  // Instructions: question items get the "5D X.Y.N" numbering; headings
-  // render as plain sub-headings. Built in a plain loop (not a .map
-  // callback) to keep render free of mutation.
+  // Instructions: a question ("5D X.Y.N") starts a numbered step; the
+  // non-question blocks that follow it (commentary, sub-headings, media) are
+  // its body — grouped into ONE card like the read sections, so nothing
+  // floats unboxed. Non-question blocks before the first question form an
+  // unboxed lead group.
   const instructionBlocks = bySection.instructions
-  const activityItems: { block: LessonBlock; number: string | null }[] = []
+  type ActivityGroup = {
+    question: LessonBlock | null
+    number: string | null
+    body: LessonBlock[]
+  }
+  const activityGroups: ActivityGroup[] = []
   let questionCount = 0
+  let currentActivity: ActivityGroup | null = null
   for (const b of instructionBlocks) {
     if (b.blockType === 'question') {
       questionCount += 1
-      activityItems.push({ block: b, number: `5D ${prefix}${questionCount}` })
+      currentActivity = {
+        question: b,
+        number: `5D ${prefix}${questionCount}`,
+        body: [],
+      }
+      activityGroups.push(currentActivity)
     } else {
-      activityItems.push({ block: b, number: null })
+      if (!currentActivity) {
+        currentActivity = { question: null, number: null, body: [] }
+        activityGroups.push(currentActivity)
+      }
+      currentActivity.body.push(b)
     }
   }
 
@@ -281,22 +298,23 @@ export function MachineLessonView({
       {instructionBlocks.length > 0 && (
         <div className="m-activity">
           <h2 className="m-sectitle">{titleFor('instructions')}</h2>
-          {activityItems.map(({ block: b, number }) => {
-            if (b.blockType === 'question') {
-              const prompts = b.data.prompts ?? []
+          {activityGroups.map((g, gi) => {
+            const q = g.question
+            if (q) {
+              const prompts = q.data.prompts ?? []
               return (
                 <section
-                  key={b.id}
+                  key={q.id}
                   className={
-                    'm-item' + (checked.has(b.id) ? ' is-checked' : '')
+                    'm-item' + (checked.has(q.id) ? ' is-checked' : '')
                   }
                 >
                   <div className="m-item__gutter">
                     <CheckPill
-                      number={number ?? ''}
-                      checked={checked.has(b.id)}
-                      pending={pending.has(b.id)}
-                      onToggle={() => toggle(b.id)}
+                      number={g.number ?? ''}
+                      checked={checked.has(q.id)}
+                      pending={pending.has(q.id)}
+                      onToggle={() => toggle(q.id)}
                     />
                   </div>
                   <div className="m-item__body">
@@ -304,23 +322,27 @@ export function MachineLessonView({
                       <AnswerBox
                         key={pi}
                         userId={userId}
-                        blockId={b.id}
+                        blockId={q.id}
                         promptIndex={pi}
                         prompt={prompt}
-                        initialText={answerMap.get(`${b.id}:${pi}`) ?? ''}
+                        initialText={answerMap.get(`${q.id}:${pi}`) ?? ''}
                       />
+                    ))}
+                    {g.body.map((b) => (
+                      <BlockBody key={b.id} block={b} />
                     ))}
                   </div>
                 </section>
               )
             }
-            // Sub-headings, rich text, and media inside the
-            // instructions, aligned to the body column.
+            // Commentary before the first question — unboxed lead text.
             return (
-              <div key={b.id} className="m-item m-item--note">
+              <div key={`instr-lead-${gi}`} className="m-item m-item--note">
                 <div className="m-item__gutter" />
                 <div className="m-item__body">
-                  <BlockBody block={b} />
+                  {g.body.map((b) => (
+                    <BlockBody key={b.id} block={b} />
+                  ))}
                 </div>
               </div>
             )
