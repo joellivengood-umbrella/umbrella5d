@@ -7487,6 +7487,148 @@ body.potd-player-active .app-main {
   box-shadow: 0 0 0 3px rgba(91, 79, 255, .15);
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Setup wizard (.wiz) — dark, branded, guided account creation.
+   Reuses the marketing --mkt-* tokens so it feels native to the
+   marketing site; overrides the (light) auth form bits to dark.
+   ══════════════════════════════════════════════════════════════════ */
+.wiz-bg {
+  min-height: 100vh;
+  padding: calc(var(--nav-h) + 2.5rem) 1.5rem 3rem;
+  background: var(--mkt-bg);
+  color: var(--mkt-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  isolation: isolate;
+}
+/* Ambient brand glow behind the panel */
+.wiz-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 22%, rgba(138, 123, 255, .22), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 82% 85%, rgba(95, 198, 255, .12), transparent 55%);
+}
+
+.wiz {
+  width: 100%;
+  max-width: 460px;
+}
+.wiz__panel {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
+  border: 1px solid var(--mkt-line);
+  border-radius: 22px;
+  padding: 2.4rem 2.25rem 2rem;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+/* Progress dots */
+.wiz-steps {
+  display: flex;
+  justify-content: center;
+  gap: .45rem;
+  margin-bottom: 1.9rem;
+}
+.wiz-steps__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  transition: width var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.wiz-steps__dot.is-done { background: rgba(255, 255, 255, .42); }
+.wiz-steps__dot.is-active {
+  width: 24px;
+  background: var(--mkt-grad);
+}
+
+/* Screen entrance */
+.wiz__screen { animation: wizIn .34s var(--ease) both; }
+@keyframes wizIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wiz__screen { animation: none; }
+}
+
+.wiz-eyebrow {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8ea2ff;
+  text-align: center;
+  margin: 0 0 .85rem;
+}
+.wiz-title {
+  font-size: clamp(1.55rem, 4vw, 2.05rem);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: 1.1;
+  color: var(--mkt-text);
+  text-align: center;
+  margin: 0 0 .55rem;
+}
+.wiz-sub {
+  font-size: .97rem;
+  line-height: 1.6;
+  color: var(--mkt-muted);
+  text-align: center;
+  margin: 0 0 1.7rem;
+}
+.wiz-alt {
+  text-align: center;
+  font-size: .87rem;
+  color: var(--mkt-muted);
+  margin: 1.25rem 0 0;
+}
+.wiz-alt a { color: #a9b6ff; font-weight: 600; }
+.wiz-alt a:hover { color: #c7d0ff; }
+
+.wiz-back {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: .85rem;
+  color: var(--mkt-faint);
+  padding: 0;
+  margin: 0 0 1.1rem;
+  transition: color var(--dur) var(--ease);
+}
+.wiz-back:hover { color: var(--mkt-text); }
+
+/* Dark overrides for the reused auth form (default .form-* are light) */
+.wiz .login-form { gap: 1rem; }
+.wiz .form-label { color: var(--mkt-text); }
+.wiz .form-input {
+  background: rgba(255, 255, 255, .04);
+  border: 1.5px solid var(--mkt-line);
+  color: var(--mkt-text);
+}
+.wiz .form-input::placeholder { color: var(--mkt-faint); }
+.wiz .form-input:focus {
+  border-color: #8a7bff;
+  background: rgba(255, 255, 255, .06);
+  box-shadow: 0 0 0 3px rgba(138, 123, 255, .22);
+}
+.wiz .pw-toggle { color: var(--mkt-faint); }
+.wiz .pw-toggle:hover { color: var(--mkt-text); }
+
+@media (max-width: 480px) {
+  .wiz__panel { padding: 2rem 1.4rem 1.6rem; }
+}
+
 /* Owned-orgs list */
 .partner-orgs__list {
   display: flex;

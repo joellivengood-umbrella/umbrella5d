@@ -1,23 +1,23 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { SignupForm } from '@/components/auth/SignupForm'
+import { SetupWizard } from '@/components/auth/SetupWizard'
 
 export const metadata: Metadata = {
-  title: 'Create Account',
-  description: 'Create your free Umbrella5D account.',
+  title: 'Get started',
+  description: 'Create your free Umbrella account.',
 }
 
 export default function SignupPage() {
   return (
     <>
-      {/* Minimal nav (logo only) */}
+      {/* Minimal nav (logo + escape hatch) */}
       <header className="site-header">
         <nav className="nav">
           <Link className="nav-brand" href="/">
             <Image
               src="/logo/Umbrella_logo.png"
-              alt="Umbrella5D"
+              alt="Umbrella"
               className="nav-logo-img"
               width={200}
               height={52}
@@ -43,32 +43,8 @@ export default function SignupPage() {
         </nav>
       </header>
 
-      <main className="login-bg">
-        <div className="login-card">
-          <div className="login-card__header">
-            <div className="login-logo" aria-hidden="true">
-              <Image
-                src="/logo/Umbrella_icon.png"
-                alt="Umbrella5D"
-                className="login-logo-img"
-                width={48}
-                height={48}
-              />
-            </div>
-            <h1>Create your account</h1>
-            <p>Start the Umbrella Program &mdash; it&rsquo;s free</p>
-          </div>
-
-          <SignupForm />
-
-          <div className="login-divider">
-            <span>or</span>
-          </div>
-
-          <p className="login-alt">
-            Already have an account?&nbsp;<Link href="/login">Sign in</Link>
-          </p>
-        </div>
+      <main className="wiz-bg">
+        <SetupWizard />
       </main>
     </>
   )
