@@ -13,8 +13,6 @@ import { useRef, useState } from 'react'
  * lesson audio isn't the persistent Daily Pod).
  */
 
-const PLAYBACK_RATES = [1, 1.25, 1.5, 1.75, 2] as const
-
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
   const m = Math.floor(seconds / 60)
@@ -35,7 +33,6 @@ export function LessonAudioPlayer({
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
-  const [rate, setRate] = useState<number>(1)
 
   function toggle() {
     const audio = audioRef.current
@@ -51,13 +48,6 @@ export function LessonAudioPlayer({
     const fraction = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
     audio.currentTime = fraction * duration
     setCurrentTime(audio.currentTime)
-  }
-
-  function cycleRate() {
-    const idx = PLAYBACK_RATES.indexOf(rate as (typeof PLAYBACK_RATES)[number])
-    const next = PLAYBACK_RATES[(idx + 1) % PLAYBACK_RATES.length]
-    setRate(next)
-    if (audioRef.current) audioRef.current.playbackRate = next
   }
 
   function changeVolume(v: number) {
@@ -121,15 +111,6 @@ export function LessonAudioPlayer({
         </div>
         <span className="lap__time lap__time--dur">{formatTime(duration)}</span>
       </div>
-
-      <button
-        type="button"
-        className="lap__rate"
-        onClick={cycleRate}
-        aria-label={`Playback speed ${rate}×. Tap to change.`}
-      >
-        {rate}×
-      </button>
 
       <div className="lap__volume">
         <button

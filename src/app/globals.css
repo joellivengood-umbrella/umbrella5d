@@ -4329,23 +4329,6 @@ body.potd-player-active .app-main {
   box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
 }
 
-/* Speed */
-.lap__rate {
-  flex-shrink: 0;
-  min-width: 44px;
-  padding: .32rem .55rem;
-  border: none;
-  border-radius: 999px;
-  font-size: .8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--ct-text, var(--clr-primary));
-  background: var(--ct-tint-badge, rgba(124, 58, 237, .14));
-  cursor: pointer;
-  transition: filter var(--dur) var(--ease);
-}
-.lap__rate:hover { filter: brightness(.95); }
-
 /* Volume */
 .lap__volume {
   flex-shrink: 0;
@@ -4375,7 +4358,6 @@ body.potd-player-active .app-main {
 @media (max-width: 560px) {
   .lap { gap: .7rem; padding: .7rem .8rem; }
   .lap__play { width: 48px; height: 48px; }
-  .lap__rate,
   .lap__volslider,
   .lap__time--dur { display: none; }
 }
