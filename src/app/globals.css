@@ -6171,6 +6171,14 @@ body.potd-player-active .app-main {
   cursor: default;
   opacity: .6;
 }
+.m-check.is-locked {
+  cursor: not-allowed;
+}
+.m-answer-gate {
+  margin: 0;
+  font-size: .8rem;
+  color: var(--clr-muted);
+}
 .m-check__box {
   display: inline-flex;
   align-items: center;
