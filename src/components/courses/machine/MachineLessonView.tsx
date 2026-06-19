@@ -52,6 +52,40 @@ export function MachineLessonView({
   const [finishing, setFinishing] = useState(false)
   const completeRef = useRef(initiallyComplete)
 
+  // An Instructions question can't be checked off until every one of its
+  // answer boxes has at least this many (trimmed) characters.
+  const MIN_ANSWER_CHARS = 50
+
+  // Live answer lengths, keyed "blockId:promptIndex", seeded from saved
+  // answers so a previously-answered question is unlocked on load.
+  const [answerLengths, setAnswerLengths] = useState<Record<string, number>>(
+    () => {
+      const seed: Record<string, number> = {}
+      for (const a of initialAnswers) {
+        seed[`${a.blockId}:${a.promptIndex}`] = a.answerText.trim().length
+      }
+      return seed
+    }
+  )
+  function reportAnswerLength(
+    blockId: string,
+    promptIndex: number,
+    length: number
+  ) {
+    setAnswerLengths((prev) => {
+      const key = `${blockId}:${promptIndex}`
+      if (prev[key] === length) return prev
+      return { ...prev, [key]: length }
+    })
+  }
+  function isQuestionReady(q: LessonBlock): boolean {
+    const prompts = q.data.prompts ?? []
+    if (prompts.length === 0) return true
+    return prompts.every(
+      (_, pi) => (answerLengths[`${q.id}:${pi}`] ?? 0) >= MIN_ANSWER_CHARS
+    )
+  }
+
   // The "X.Y." address prefix (e.g. "1.2.") for numbered items.
   const prefix =
     partNumber != null && lessonNumber != null
@@ -302,6 +336,7 @@ export function MachineLessonView({
             const q = g.question
             if (q) {
               const prompts = q.data.prompts ?? []
+              const locked = !checked.has(q.id) && !isQuestionReady(q)
               return (
                 <section
                   key={q.id}
@@ -314,6 +349,7 @@ export function MachineLessonView({
                       number={g.number ?? ''}
                       checked={checked.has(q.id)}
                       pending={pending.has(q.id)}
+                      locked={locked}
                       onToggle={() => toggle(q.id)}
                     />
                   </div>
@@ -326,8 +362,18 @@ export function MachineLessonView({
                         promptIndex={pi}
                         prompt={prompt}
                         initialText={answerMap.get(`${q.id}:${pi}`) ?? ''}
+                        onLengthChange={(len) =>
+                          reportAnswerLength(q.id, pi, len)
+                        }
                       />
                     ))}
+                    {locked && (
+                      <p className="m-answer-gate">
+                        Add at least {MIN_ANSWER_CHARS} characters to{' '}
+                        {prompts.length > 1 ? 'each answer' : 'your answer'} to
+                        check this off.
+                      </p>
+                    )}
                     {g.body.map((b) => (
                       <BlockBody key={b.id} block={b} />
                     ))}
@@ -386,21 +432,39 @@ function CheckPill({
   checked,
   pending,
   onToggle,
+  locked = false,
 }: {
   number: string
   checked: boolean
   pending: boolean
   onToggle: () => void
+  locked?: boolean
 }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      disabled={pending}
+      disabled={pending || locked}
       aria-pressed={checked}
-      aria-label={checked ? `${number} — done, click to undo` : `Mark ${number} done`}
-      title={checked ? 'Done — click to undo' : 'Click to check off'}
-      className={'m-check' + (checked ? ' is-checked' : '')}
+      aria-label={
+        locked
+          ? `${number} — answer every box (50+ characters) to check off`
+          : checked
+            ? `${number} — done, click to undo`
+            : `Mark ${number} done`
+      }
+      title={
+        locked
+          ? 'Answer every box (50+ characters) to check off'
+          : checked
+            ? 'Done — click to undo'
+            : 'Click to check off'
+      }
+      className={
+        'm-check' +
+        (checked ? ' is-checked' : '') +
+        (locked ? ' is-locked' : '')
+      }
     >
       <span className="m-check__box" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
@@ -464,12 +528,14 @@ function AnswerBox({
   promptIndex,
   prompt,
   initialText,
+  onLengthChange,
 }: {
   userId: string
   blockId: string
   promptIndex: number
   prompt: string
   initialText: string
+  onLengthChange: (length: number) => void
 }) {
   const [text, setText] = useState(initialText)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -503,6 +569,7 @@ function AnswerBox({
   function onChange(e: ChangeEvent<HTMLTextAreaElement>) {
     const v = e.target.value
     setText(v)
+    onLengthChange(v.trim().length)
     setStatus('saving')
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => save(v), 1000)
