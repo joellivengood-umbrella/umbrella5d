@@ -6175,7 +6175,10 @@ body.potd-player-active .app-main {
   cursor: not-allowed;
 }
 .m-answer-gate {
-  margin: 0;
+  /* Pull the hint up tight under the input so it reads as the box's caption,
+     not separate lesson text — cancels the body gap + the empty status line
+     above it (the right-aligned save status shares this row). */
+  margin: -1.35rem 0 0;
   font-size: .8rem;
   color: var(--clr-muted);
 }
