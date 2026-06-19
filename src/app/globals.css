@@ -4248,22 +4248,118 @@ body.potd-player-active .app-main {
   box-shadow: none;
 }
 
-/* ── Media player wrappers ── */
-.audio-player-wrap {
-  background: linear-gradient(135deg, #1e1b4b, #0f172a);
-  border-radius: var(--radius-lg);
-  padding: 1.35rem 1.5rem;
+/* ══════════════════════════════════════════════════════════════════
+   Lesson audio player (.lap) — designed inline player, themed per
+   lesson via the --ct-* vars inherited from the course <main>.
+   ══════════════════════════════════════════════════════════════════ */
+.lap {
   display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  color: #e2e8f0;
-  box-shadow: var(--shadow-md);
+  align-items: center;
+  gap: 1rem;
+  padding: .85rem 1.1rem .85rem .85rem;
+  border-radius: 18px;
+  background: var(--ct-tint, rgba(124, 58, 237, .08));
+  border: 1px solid var(--ct-border-h, rgba(124, 58, 237, .25));
 }
-.audio-player-wrap audio { width: 100%; accent-color: var(--clr-primary); }
-.audio-player-wrap__title {
-  font-weight: 700;
-  font-size: .95rem;
-  color: #f8fafc;
+
+/* Big gradient play button — the focal point that draws the eye. */
+.lap__play {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ct-done-text, #fff);
+  background: linear-gradient(135deg, var(--ct-from, #7c3aed), var(--ct-to, #5b4fff));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--ct-from, #7c3aed) 38%, transparent);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  will-change: transform;
+}
+.lap__play:hover {
+  transform: scale(1.06);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .22);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--ct-from, #7c3aed) 48%, transparent);
+}
+.lap__play:active { transform: scale(.97); }
+
+/* Scrubber */
+.lap__scrubber {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  min-width: 0;
+}
+.lap__time {
+  flex-shrink: 0;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--clr-muted);
+}
+.lap__track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 999px;
+  background: #e9eaf0;
+  background: color-mix(in srgb, var(--ct-from, #7c3aed) 16%, #e5e7eb);
+  cursor: pointer;
+}
+.lap__fill {
+  position: relative;
+  height: 100%;
+  min-width: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ct-from, #7c3aed), var(--ct-to, #5b4fff));
+}
+.lap__thumb {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  transform: translate(50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--ct-to, #5b4fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+}
+
+/* Volume */
+.lap__volume {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.lap__volbtn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ct-text, var(--clr-text));
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+.lap__volbtn:hover { background: var(--ct-tint, rgba(124, 58, 237, .1)); }
+.lap__volslider {
+  width: 80px;
+  accent-color: var(--ct-from, #7c3aed);
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .lap { gap: .7rem; padding: .7rem .8rem; }
+  .lap__play { width: 48px; height: 48px; }
+  .lap__volslider,
+  .lap__time--dur { display: none; }
 }
 
 .video-player-wrap {

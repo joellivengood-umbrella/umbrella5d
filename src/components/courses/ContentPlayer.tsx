@@ -1,3 +1,5 @@
+import { LessonAudioPlayer } from './LessonAudioPlayer'
+
 /**
  * Renders the appropriate media player for a content item, or a
  * "coming soon" placeholder if media_url is null.
@@ -75,15 +77,9 @@ export function ContentPlayer({
     }
   }
 
-  // Native audio
+  // Native audio — designed inline player, themed from the lesson's colour.
   if (/\.(mp3|wav|m4a|ogg|aac)(\?|$)/i.test(url)) {
-    return (
-      <div className="audio-player-wrap">
-        <audio controls src={url} preload="metadata" style={{ width: '100%' }}>
-          Your browser doesn&apos;t support the audio element.
-        </audio>
-      </div>
-    )
+    return <LessonAudioPlayer src={url} title={title} />
   }
 
   // Native video
