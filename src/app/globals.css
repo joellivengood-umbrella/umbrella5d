@@ -6119,18 +6119,23 @@ body.potd-player-active .app-main {
 }
 
 /* ── Prose (rich text) ── */
+/* Normal block flow — NOT flex. A flex column turns every top-level node
+   (including bare text runs and inline <b>/<strong>) into its own row, which
+   shattered any paragraph whose inline content wasn't wrapped in <p>. Block
+   flow lets inline content flow inline; <p>/<ul>/<ol> get spacing via margin. */
 .m-prose {
-  display: flex;
-  flex-direction: column;
-  gap: .85rem;
-}
-.m-prose p {
   line-height: 1.7;
   color: var(--clr-text);
 }
-.m-prose strong {
-  font-weight: 700;
-}
+.m-prose p { margin: 0 0 .85rem; }
+.m-prose p:last-child { margin-bottom: 0; }
+.m-prose ul,
+.m-prose ol { margin: 0 0 .85rem 1.25rem; }
+.m-prose ul:last-child,
+.m-prose ol:last-child { margin-bottom: 0; }
+.m-prose li { margin: .15rem 0; }
+.m-prose strong,
+.m-prose b { font-weight: 700; }
 .m-subheading {
   font-weight: 800;
 }
@@ -6565,6 +6570,42 @@ body.potd-player-active .app-main {
 .rte__area p { margin: 0 0 .6rem; }
 .rte__area p:last-child { margin-bottom: 0; }
 .rte__area ul, .rte__area ol { margin: 0 0 .6rem 1.25rem; }
+
+/* Raw-HTML view */
+.rte__btn--code {
+  margin-left: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .78rem;
+}
+.rte__btn.is-active,
+.rte__btn.is-active:hover {
+  background: var(--clr-text);
+  color: #fff;
+  border-color: var(--clr-text);
+}
+.rte__code {
+  width: 100%;
+  min-height: 9rem;
+  padding: .7rem .8rem;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .82rem;
+  line-height: 1.55;
+  color: var(--clr-text);
+  background: #fbfcfd;
+  box-sizing: border-box;
+}
+.rte__code-hint {
+  margin: 0;
+  padding: .4rem .8rem .55rem;
+  font-size: .75rem;
+  color: var(--clr-muted);
+  background: #fbfcfd;
+  border-top: 1px solid var(--clr-border);
+}
+.rte__code-hint code { font-family: ui-monospace, monospace; font-size: .72rem; }
 
 @media (max-width: 640px) {
   .lbe-cta { flex-direction: column; align-items: flex-start; }
