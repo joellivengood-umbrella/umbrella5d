@@ -6103,6 +6103,16 @@ body.potd-player-active .app-main {
   gap: 1.25rem;
   align-items: start;
 }
+/* Box each NUMBERED checkpoint as a card so the lesson reads as distinct
+   blocks. Only numbered items (a CheckPill in the gutter) get the box; intro
+   and instruction sub-content rows (empty gutter) flow between the cards. */
+.m-item:has(.m-item__gutter > *) {
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  background: var(--clr-surface);
+  box-shadow: var(--shadow-sm);
+}
 /* Activity tags read "5D X.Y.N", wider than content tags ("X.Y.N"), so
    give them a roomier gutter to stay aligned and uncramped. */
 .m-activity .m-item {
@@ -6197,9 +6207,13 @@ body.potd-player-active .app-main {
 }
 
 /* ── Activity section ── */
-.m-activity {
+/* A divider + generous space introduces each section AFTER the first, so the
+   three sections (Essential Prerequisites / Objectives / Instructions) read as
+   clearly separated blocks. The first visible section gets no divider. */
+.m-content + .m-content,
+.m-content + .m-activity {
   border-top: 1px solid var(--clr-border);
-  padding-top: 1.75rem;
+  padding-top: 2.75rem;
 }
 /* Title shared by all three lesson sections (Essential Prerequisites /
    Objectives / Instructions). */
