@@ -530,6 +530,43 @@ export async function fetchPartnerOrgs(
   )
 }
 
+/**
+ * The branding (name/logo/description) of the partner that owns the caller's
+ * organization — the "Provided by …" co-brand shown to members.
+ */
+export type PartnerBranding = {
+  name: string
+  avatarUrl: string | null
+  description: string | null
+}
+
+/**
+ * The partner branding for the caller's own organization, or null if their
+ * org has no partner (or they have no org). Reads through the
+ * get_my_partner_branding definer RPC: a member can't SELECT the partners
+ * table directly (RLS limits it to the owner/admin), so the RPC returns ONLY
+ * safe display columns for their own org's partner. Degrades to null on error
+ * (e.g. before the RPC migration has run) so it never breaks page render.
+ */
+export async function fetchMyPartnerBranding(
+  supabase: MaybeClient
+): Promise<PartnerBranding | null> {
+  const { data, error } = await supabase.rpc('get_my_partner_branding')
+  if (error) {
+    console.error('fetchMyPartnerBranding error', error)
+    return null
+  }
+  const row = (data ?? [])[0] as
+    | { name: string; avatar_url: string | null; description: string | null }
+    | undefined
+  if (!row) return null
+  return {
+    name: row.name,
+    avatarUrl: row.avatar_url,
+    description: row.description,
+  }
+}
+
 // POTD launch / daily-drip removed — every published episode is
 // available to everyone now. fetchOrgPotdLaunch lived here; if the
 // staggered-release feature comes back, re-add it (the

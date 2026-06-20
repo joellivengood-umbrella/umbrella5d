@@ -21,6 +21,7 @@ import {
   fetchMemberAssignments,
   fetchRequiredCourseSlugs,
   fetchUserPartner,
+  fetchMyPartnerBranding,
 } from '@/lib/org-queries'
 
 export const metadata = {
@@ -40,16 +41,19 @@ export default async function DashboardPage() {
   const partner = await fetchUserPartner(supabase, user.id)
   if (partner) redirect('/partner')
 
-  const [{ data: profile }, courseMap, totals, doneCounts] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('full_name, timezone')
-      .eq('id', user.id)
-      .single(),
-    fetchCourseMap(supabase),
-    fetchTotalsByType(supabase),
-    fetchCompletedCountsByType(supabase, user.id),
-  ])
+  const [{ data: profile }, courseMap, totals, doneCounts, partnerBranding] =
+    await Promise.all([
+      supabase
+        .from('profiles')
+        .select('full_name, timezone')
+        .eq('id', user.id)
+        .single(),
+      fetchCourseMap(supabase),
+      fetchTotalsByType(supabase),
+      fetchCompletedCountsByType(supabase, user.id),
+      // The partner that provides this member's program (co-brand), or null.
+      fetchMyPartnerBranding(supabase),
+    ])
 
   // Program courses (in_program), in sort_order — the dashboard grid and the
   // headline progress math. Bonus tracks (e.g. POTD) are excluded so an
@@ -136,6 +140,31 @@ export default async function DashboardPage() {
       <div className="dash-content">
         <div className="dash-layout">
 
+          {/* ── Sponsor banner: who provides this member's program ── */}
+          {partnerBranding && (
+            <div className="dash-sponsor">
+              {partnerBranding.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  className="dash-sponsor__logo"
+                  src={partnerBranding.avatarUrl}
+                  alt=""
+                />
+              ) : (
+                <div
+                  className="dash-sponsor__logo dash-sponsor__logo--empty"
+                  aria-hidden="true"
+                >
+                  {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
+                </div>
+              )}
+              <p className="dash-sponsor__text">
+                Your Umbrella Program is provided by{' '}
+                <strong>{partnerBranding.name}</strong> — free.
+              </p>
+            </div>
+          )}
+
           {/* ── Hero: greeting + featured Overall Progress (glass) ── */}
           <section className="dash-hero" aria-label="Your progress">
             <p className="dash-hero__greeting">Welcome back, {firstName}</p>
@@ -205,6 +234,36 @@ export default async function DashboardPage() {
               />
             ))}
           </div>
+
+          {/* ── Your Partner: the brand behind the member's free access ── */}
+          {partnerBranding && (
+            <section className="dash-partner" aria-label="Your partner">
+              {partnerBranding.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  className="dash-partner__logo"
+                  src={partnerBranding.avatarUrl}
+                  alt=""
+                />
+              ) : (
+                <div
+                  className="dash-partner__logo dash-partner__logo--empty"
+                  aria-hidden="true"
+                >
+                  {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
+                </div>
+              )}
+              <div className="dash-partner__body">
+                <p className="dash-partner__eyebrow">Your partner</p>
+                <p className="dash-partner__name">{partnerBranding.name}</p>
+                {partnerBranding.description && (
+                  <p className="dash-partner__desc">
+                    {partnerBranding.description}
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
 
         </div>
       </div>

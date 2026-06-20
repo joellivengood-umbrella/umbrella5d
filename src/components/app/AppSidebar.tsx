@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useMobileNav } from './MobileNavProvider'
-import type { OrgRole } from '@/lib/org-queries'
+import type { OrgRole, PartnerBranding } from '@/lib/org-queries'
 
 type Profile = {
   full_name: string | null
@@ -22,11 +22,13 @@ export function AppSidebar({
   profile,
   orgRole,
   isPartner = false,
+  partnerBranding = null,
 }: {
   userId: string
   profile: Profile | null
   orgRole: OrgRole | null
   isPartner?: boolean
+  partnerBranding?: PartnerBranding | null
 }) {
   const pathname = usePathname()
   const { isOpen, close } = useMobileNav()
@@ -270,6 +272,33 @@ export function AppSidebar({
           </Link>
         )}
       </nav>
+
+      {/* Co-brand: the partner that provides this member's program. Pinned to
+          the bottom (margin-top:auto). Hidden for the partner owner — they get
+          the Partner Dashboard, not a "provided by yourself" strip. */}
+      {partnerBranding && !isPartner && (
+        <div className="sidebar-cobrand">
+          <span className="sidebar-cobrand__label">Provided by</span>
+          <div className="sidebar-cobrand__row">
+            {partnerBranding.avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                className="sidebar-cobrand__logo"
+                src={partnerBranding.avatarUrl}
+                alt=""
+              />
+            ) : (
+              <div
+                className="sidebar-cobrand__logo sidebar-cobrand__logo--empty"
+                aria-hidden="true"
+              >
+                {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
+              </div>
+            )}
+            <span className="sidebar-cobrand__name">{partnerBranding.name}</span>
+          </div>
+        </div>
+      )}
       </aside>
     </>
   )
