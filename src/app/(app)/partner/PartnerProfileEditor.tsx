@@ -1,27 +1,35 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Partner } from '@/lib/org-queries'
 
 /**
- * The partner's editable profile: their invite code (read-only, copyable —
- * this is what they hand to organizations) plus name + description. The
- * code and ownership are column-locked in the DB, so only name/description
- * can be written here.
+ * The partner's editable profile: logo, name, and description — this is how
+ * organizations see them. The invite code lives in the page header (it's
+ * read-only); code and ownership are column-locked in the DB, so only the
+ * logo / name / description can be written here.
  */
-export function PartnerProfileEditor({ partner }: { partner: Partner }) {
+export function PartnerProfileEditor({
+  partner,
+  userId,
+}: {
+  partner: Partner
+  userId: string
+}) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [name, setName] = useState(partner.name)
   const [description, setDescription] = useState(partner.description ?? '')
+  const [logoUrl, setLogoUrl] = useState(partner.avatarUrl)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [status, setStatus] = useState<{
     type: 'success' | 'error'
     msg: string
   } | null>(null)
-  const [copied, setCopied] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -47,17 +55,57 @@ export function PartnerProfileEditor({ partner }: { partner: Partner }) {
     router.refresh()
   }
 
-  async function copyCode() {
-    try {
-      await navigator.clipboard.writeText(partner.inviteCode)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
-    } catch {
-      setStatus({
-        type: 'error',
-        msg: 'Could not copy — select the code and copy it manually.',
-      })
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      setStatus({ type: 'error', msg: 'Logo must be under 5 MB.' })
+      return
     }
+    const ext = (file.name.split('.').pop() ?? 'png').toLowerCase()
+    if (!['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+      setStatus({ type: 'error', msg: 'Unsupported file type.' })
+      return
+    }
+
+    setUploading(true)
+    setStatus(null)
+
+    // Path is scoped to the owner's user id to satisfy the avatars-bucket
+    // upload policy (first segment must be the uploader's uid).
+    const path = `${userId}/partner-logo_${Date.now()}.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (uploadError) {
+      setUploading(false)
+      setStatus({ type: 'error', msg: uploadError.message })
+      return
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('avatars').getPublicUrl(path)
+
+    const { error: updateError } = await supabase
+      .from('partners')
+      .update({ avatar_url: publicUrl })
+      .eq('id', partner.id)
+
+    setUploading(false)
+    if (updateError) {
+      console.error('partner logo update error', updateError)
+      setStatus({ type: 'error', msg: 'Could not save the logo. Try again.' })
+      return
+    }
+    setLogoUrl(publicUrl)
+    setStatus({ type: 'success', msg: 'Logo updated.' })
+    router.refresh()
+
+    // Reset input so re-uploading the same file re-triggers onChange.
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   return (
@@ -67,23 +115,39 @@ export function PartnerProfileEditor({ partner }: { partner: Partner }) {
         <p>This is how organizations see you, and how they join you.</p>
       </header>
 
-      <div className="partner-code">
-        <span className="partner-code__label">Your partner invite code</span>
-        <div className="partner-code__row">
-          <code className="partner-code__value">{partner.inviteCode}</code>
+      <div className="partner-logo-row">
+        {logoUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={logoUrl}
+            alt="Partner logo"
+            className="partner-logo"
+            width={72}
+            height={72}
+          />
+        ) : (
+          <div className="partner-logo partner-logo--empty" aria-hidden="true">
+            {name.trim().charAt(0).toUpperCase() || 'P'}
+          </div>
+        )}
+        <div>
           <button
             type="button"
             className="btn btn--secondary btn--sm"
-            onClick={copyCode}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
           >
-            {copied ? 'Copied!' : 'Copy'}
+            {uploading ? 'Uploading…' : logoUrl ? 'Change logo' : 'Add logo'}
           </button>
+          <p className="settings-hint">PNG, JPG, WebP, or GIF. Max 5 MB.</p>
         </div>
-        <p className="partner-code__hint">
-          Share this with organizations to bring them under your partnership.
-          Keep it private — anyone who uses it becomes the manager of a new
-          organization owned by you.
-        </p>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          onChange={handleLogoChange}
+          style={{ display: 'none' }}
+        />
       </div>
 
       <form onSubmit={handleSave} className="settings-form partner-form">

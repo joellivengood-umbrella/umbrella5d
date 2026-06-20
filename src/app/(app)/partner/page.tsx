@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
 import { fetchUserPartner, fetchPartnerOrgs } from '@/lib/org-queries'
 import { PartnerProfileEditor } from './PartnerProfileEditor'
+import { PartnerInviteCode } from './PartnerInviteCode'
 
 export const metadata = { title: 'Partner' }
 export const dynamic = 'force-dynamic'
@@ -29,12 +30,15 @@ export default async function PartnerPage() {
     <>
       <BodyClass className="page-dashboard" />
       <main className="partner-main">
-        <div className="courses-header">
-          <p className="section-eyebrow">Partner</p>
-          <h1>{partner.name}</h1>
+        <div className="courses-header partner-header">
+          <div className="partner-header__titles">
+            <p className="section-eyebrow">Partner</p>
+            <h1>{partner.name}</h1>
+          </div>
+          <PartnerInviteCode inviteCode={partner.inviteCode} />
         </div>
 
-        <PartnerProfileEditor partner={partner} />
+        <PartnerProfileEditor partner={partner} userId={user.id} />
 
         <section className="settings-section partner-orgs">
           <header className="settings-section__header">
