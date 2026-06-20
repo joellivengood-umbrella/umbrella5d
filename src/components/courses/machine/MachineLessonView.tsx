@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { DEFAULT_SECTION_TITLES } from '@/lib/courses'
+import { sanitizeLessonHtml } from '@/lib/sanitize-html'
 import type {
   ActivityAnswer,
   LessonBlock,
@@ -482,7 +483,7 @@ function BlockBody({ block }: { block: LessonBlock }) {
     return (
       <div
         className="m-prose"
-        dangerouslySetInnerHTML={{ __html: block.data.html ?? '' }}
+        dangerouslySetInnerHTML={{ __html: sanitizeLessonHtml(block.data.html) }}
       />
     )
   }
