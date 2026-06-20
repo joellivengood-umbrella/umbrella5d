@@ -2055,23 +2055,29 @@ audio {
   color: var(--clr-muted);
   margin-bottom: .6rem;
 }
+.sidebar-cobrand__logobox {
+  width: 100%;
+  box-sizing: border-box;
+  padding: .6rem;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+}
 .sidebar-cobrand__logo {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 72px;
-  border-radius: var(--radius-md);
-  object-fit: contain;
+  border-radius: 4px;
 }
 .sidebar-cobrand__logo--empty {
   display: grid;
   place-items: center;
-  height: 60px;
-  font-size: 1.5rem;
+  aspect-ratio: 1;
+  font-size: 2.4rem;
   font-weight: 700;
   color: var(--clr-primary);
   background: rgba(91,79,255,.1);
-  border-radius: var(--radius-md);
+  border-radius: 4px;
 }
 .sidebar-cobrand__name {
   display: block;
