@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -72,9 +73,9 @@ export function LoginForm() {
           <label className="form-label" htmlFor="password">
             Password
           </label>
-          <a href="#" className="forgot-link" tabIndex={-1}>
+          <Link href="/forgot-password" className="forgot-link">
             Forgot password?
-          </a>
+          </Link>
         </div>
         <div className="form-input-wrap">
           <input
