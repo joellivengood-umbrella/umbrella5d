@@ -279,24 +279,22 @@ export function AppSidebar({
       {partnerBranding && !isPartner && (
         <div className="sidebar-cobrand">
           <span className="sidebar-cobrand__label">Provided by</span>
-          <div className="sidebar-cobrand__row">
-            {partnerBranding.avatarUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                className="sidebar-cobrand__logo"
-                src={partnerBranding.avatarUrl}
-                alt=""
-              />
-            ) : (
-              <div
-                className="sidebar-cobrand__logo sidebar-cobrand__logo--empty"
-                aria-hidden="true"
-              >
-                {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
-              </div>
-            )}
-            <span className="sidebar-cobrand__name">{partnerBranding.name}</span>
-          </div>
+          {partnerBranding.avatarUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              className="sidebar-cobrand__logo"
+              src={partnerBranding.avatarUrl}
+              alt=""
+            />
+          ) : (
+            <div
+              className="sidebar-cobrand__logo sidebar-cobrand__logo--empty"
+              aria-hidden="true"
+            >
+              {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
+            </div>
+          )}
+          <span className="sidebar-cobrand__name">{partnerBranding.name}</span>
         </div>
       )}
       </aside>
