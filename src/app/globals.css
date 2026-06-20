@@ -7690,6 +7690,50 @@ body.potd-player-active .app-main {
   font-size: .8rem;
 }
 
+/* Reach / impact stats */
+.partner-impact__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: .75rem;
+}
+.partner-impact__stat {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding: 1rem 1.1rem;
+  background: #f6f7fb;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+}
+.partner-impact__num {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--clr-text);
+  line-height: 1.1;
+}
+.partner-impact__label {
+  font-size: .82rem;
+  color: var(--clr-muted);
+}
+.partner-impact__headline {
+  margin: .9rem 0 0;
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--clr-primary);
+}
+
+/* "What your members see" preview frame — reuses the real member-facing
+   .dash-sponsor / .dash-partner pieces inside a tinted "screen". */
+.partner-preview__frame {
+  background: #f6f7fb;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+.partner-preview__frame .dash-sponsor { margin-bottom: .85rem; }
+.partner-preview__frame .dash-partner { margin-top: 0; }
+
 /* Description textarea matches the settings input look */
 .partner-form textarea {
   width: 100%;

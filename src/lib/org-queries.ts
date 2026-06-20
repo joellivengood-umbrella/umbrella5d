@@ -531,6 +531,40 @@ export async function fetchPartnerOrgs(
 }
 
 /**
+ * Reach metrics for a partner's dashboard: organizations under them, distinct
+ * people learning across those orgs, and lessons those people have completed.
+ */
+export type PartnerImpact = {
+  orgCount: number
+  memberCount: number
+  completionCount: number
+}
+
+/**
+ * The caller's partner impact counts, via the get_partner_impact definer RPC.
+ * The counts span other users' orgs and progress (RLS-hidden from the partner
+ * owner), so the RPC aggregates them server-side and returns only the three
+ * numbers. Degrades to zeros on error (e.g. before the migration has run).
+ */
+export async function fetchPartnerImpact(
+  supabase: MaybeClient
+): Promise<PartnerImpact> {
+  const { data, error } = await supabase.rpc('get_partner_impact')
+  if (error) {
+    console.error('fetchPartnerImpact error', error)
+    return { orgCount: 0, memberCount: 0, completionCount: 0 }
+  }
+  const row = (data ?? [])[0] as
+    | { org_count: number; member_count: number; completion_count: number }
+    | undefined
+  return {
+    orgCount: row?.org_count ?? 0,
+    memberCount: row?.member_count ?? 0,
+    completionCount: row?.completion_count ?? 0,
+  }
+}
+
+/**
  * The branding (name/logo/description) of the partner that owns the caller's
  * organization — the "Provided by …" co-brand shown to members.
  */

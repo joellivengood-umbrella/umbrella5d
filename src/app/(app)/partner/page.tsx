@@ -1,9 +1,14 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
-import { fetchUserPartner, fetchPartnerOrgs } from '@/lib/org-queries'
+import {
+  fetchUserPartner,
+  fetchPartnerOrgs,
+  fetchPartnerImpact,
+} from '@/lib/org-queries'
 import { PartnerProfileEditor } from './PartnerProfileEditor'
 import { PartnerInviteCode } from './PartnerInviteCode'
+import { PartnerMemberPreview } from './PartnerMemberPreview'
 
 export const metadata = { title: 'Partner' }
 export const dynamic = 'force-dynamic'
@@ -24,7 +29,10 @@ export default async function PartnerPage() {
   const partner = await fetchUserPartner(supabase, user.id)
   if (!partner) notFound()
 
-  const orgs = await fetchPartnerOrgs(supabase)
+  const [orgs, impact] = await Promise.all([
+    fetchPartnerOrgs(supabase),
+    fetchPartnerImpact(supabase),
+  ])
 
   return (
     <>
@@ -38,7 +46,53 @@ export default async function PartnerPage() {
           <PartnerInviteCode inviteCode={partner.inviteCode} />
         </div>
 
+        <section className="settings-section partner-impact">
+          <header className="settings-section__header">
+            <h2>Your reach</h2>
+            <p>The impact of your partnership so far.</p>
+          </header>
+          <div className="partner-impact__grid">
+            <div className="partner-impact__stat">
+              <span className="partner-impact__num">
+                {impact.orgCount.toLocaleString()}
+              </span>
+              <span className="partner-impact__label">
+                {impact.orgCount === 1 ? 'Organization' : 'Organizations'}
+              </span>
+            </div>
+            <div className="partner-impact__stat">
+              <span className="partner-impact__num">
+                {impact.memberCount.toLocaleString()}
+              </span>
+              <span className="partner-impact__label">
+                {impact.memberCount === 1 ? 'Member' : 'Members'}
+              </span>
+            </div>
+            <div className="partner-impact__stat">
+              <span className="partner-impact__num">
+                {impact.completionCount.toLocaleString()}
+              </span>
+              <span className="partner-impact__label">Lessons completed</span>
+            </div>
+          </div>
+          {impact.memberCount > 0 && (
+            <p className="partner-impact__headline">
+              {impact.memberCount.toLocaleString()}{' '}
+              {impact.memberCount === 1 ? 'person is' : 'people are'} learning
+              because of you.
+            </p>
+          )}
+        </section>
+
         <PartnerProfileEditor partner={partner} userId={user.id} />
+
+        <section className="settings-section">
+          <header className="settings-section__header">
+            <h2>What your members see</h2>
+            <p>Your brand appears across every member&rsquo;s account.</p>
+          </header>
+          <PartnerMemberPreview partner={partner} />
+        </section>
 
         <section className="settings-section partner-orgs">
           <header className="settings-section__header">
