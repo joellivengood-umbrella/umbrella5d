@@ -7457,39 +7457,100 @@ body.potd-player-active .app-main {
 }
 .partner-main .settings-section { margin-bottom: 1.25rem; }
 
-/* Invite-code block */
-.partner-code { margin-bottom: 1.4rem; }
-.partner-code__label {
-  display: block;
-  font-size: .85rem;
-  font-weight: 600;
-  color: var(--clr-text);
-  margin-bottom: .4rem;
-}
-.partner-code__row {
+/* Header: partner name on the left, invite-code reveal on the right */
+.partner-header {
   display: flex;
-  align-items: center;
-  gap: .6rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
   flex-wrap: wrap;
 }
-.partner-code__value {
+.partner-header__titles { min-width: 0; }
+
+/* Invite-code reveal (right side of the header) */
+.partner-invite {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .6rem;
+  min-width: 0;
+}
+.partner-invite__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  white-space: nowrap;
+}
+.partner-invite__toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
+.partner-invite__panel {
+  width: min(320px, 80vw);
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: .85rem .9rem;
+  box-shadow: 0 8px 24px rgba(16,18,38,.10);
+  text-align: left;
+}
+.partner-invite__label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  margin-bottom: .45rem;
+}
+.partner-invite__row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.partner-invite__value {
   flex: 1;
   min-width: 0;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: .9rem;
-  letter-spacing: .01em;
+  letter-spacing: .02em;
   background: #f6f7fb;
   border: 1px solid var(--clr-border);
   border-radius: var(--radius-md);
-  padding: .6rem .75rem;
+  padding: .5rem .6rem;
   overflow-wrap: anywhere;
   color: var(--clr-text);
 }
-.partner-code__hint {
+.partner-invite__hint {
   margin: .55rem 0 0;
-  font-size: .8rem;
+  font-size: .78rem;
   color: var(--clr-muted);
   line-height: 1.5;
+}
+
+/* Logo upload (partner profile) */
+.partner-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+.partner-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: #f1f2f6;
+  border: 1px solid var(--clr-border);
+}
+.partner-logo--empty {
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--clr-primary);
+  background: rgba(91,79,255,.08);
+}
+.partner-logo-row .btn {
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 700;
+  font-size: .8rem;
 }
 
 /* Description textarea matches the settings input look */
@@ -7733,6 +7794,10 @@ body.potd-player-active .app-main {
 
 @media (max-width: 640px) {
   .partner-main { padding: 1.5rem 1rem 4rem; }
+  /* Stack the invite reveal full-width, left-aligned, under the name. */
+  .partner-invite { align-items: stretch; width: 100%; }
+  .partner-invite__toggle { justify-content: center; }
+  .partner-invite__panel { width: 100%; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
