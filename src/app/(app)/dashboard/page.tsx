@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
 import { fetchCourseMap } from '@/lib/course-queries'
@@ -16,7 +17,11 @@ import {
   fetchResumeTarget,
   fetchStreak,
 } from '@/lib/content-queries'
-import { fetchMemberAssignments, fetchRequiredCourseSlugs } from '@/lib/org-queries'
+import {
+  fetchMemberAssignments,
+  fetchRequiredCourseSlugs,
+  fetchUserPartner,
+} from '@/lib/org-queries'
 
 export const metadata = {
   title: 'Dashboard',
@@ -28,6 +33,12 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
+
+  // Partners have no learner dashboard — the sidebar hides these tabs and
+  // their home is the Partner panel. Send them there so a manual /dashboard
+  // visit (or a stale link) doesn't dump them on an empty learner page.
+  const partner = await fetchUserPartner(supabase, user.id)
+  if (partner) redirect('/partner')
 
   const [{ data: profile }, courseMap, totals, doneCounts] = await Promise.all([
     supabase

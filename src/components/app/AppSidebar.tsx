@@ -89,6 +89,8 @@ export function AppSidebar({
   }, [supabase, userId])
 
   useEffect(() => {
+    // Partners have no program progress — skip the queries and the bar.
+    if (isPartner) return
     // fetchProgress is async — the setState inside it only fires after
     // a network round-trip, so this isn't a cascading-render problem.
     // The lint rule pattern-matches the call shape, not the async-ness.
@@ -101,7 +103,7 @@ export function AppSidebar({
     }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
-  }, [fetchProgress])
+  }, [fetchProgress, isPartner])
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
@@ -133,82 +135,30 @@ export function AppSidebar({
         </div>
       </div>
 
-      {/* Mini progress bar */}
-      <div className="sidebar-progress">
-        <div className="sidebar-progress__header">
-          <span>Overall Progress</span>
-          <span>{pct}%</span>
+      {/* Mini progress bar — learners only (partners have no program). */}
+      {!isPartner && (
+        <div className="sidebar-progress">
+          <div className="sidebar-progress__header">
+            <span>Overall Progress</span>
+            <span>{pct}%</span>
+          </div>
+          <div className="sidebar-progress__track">
+            <div className="sidebar-progress__fill" style={{ width: `${pct}%` }} />
+          </div>
         </div>
-        <div className="sidebar-progress__track">
-          <div className="sidebar-progress__fill" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
+      )}
 
       {/* Primary nav. onClick closes the mobile drawer when a link is
           tapped (covers same-page taps that don't trigger a nav change). */}
       <nav className="sidebar-nav" onClick={close}>
         <p className="sidebar-section-label">Menu</p>
 
-        <Link
-          href="/dashboard"
-          className={`sidebar-link${pathname === '/dashboard' ? ' is-active' : ''}`}
-          aria-current={pathname === '/dashboard' ? 'page' : undefined}
-        >
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-          <span>Dashboard</span>
-        </Link>
-
-        <Link
-          href="/courses"
-          className={`sidebar-link${pathname === '/courses' || (isActive('/courses') && !pathname.startsWith('/courses/potd')) ? ' is-active' : ''}`}
-          aria-current={pathname === '/courses' ? 'page' : undefined}
-        >
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg>
-          <span>Courses</span>
-        </Link>
-
-        <Link
-          href="/courses/potd"
-          className={`sidebar-link${isActive('/courses/potd') ? ' is-active' : ''}`}
-          aria-current={isActive('/courses/potd') ? 'page' : undefined}
-        >
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-            <line x1="12" y1="19" x2="12" y2="23" />
-            <line x1="8" y1="23" x2="16" y2="23" />
-          </svg>
-          <span>Daily Pod</span>
-        </Link>
-
-        {orgRole === 'manager' && (
-          <Link
-            href="/organization"
-            className={`sidebar-link${isActive('/organization') ? ' is-active' : ''}`}
-            aria-current={isActive('/organization') ? 'page' : undefined}
-          >
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            <span>My Organization</span>
-          </Link>
-        )}
-
+        {/* Partners: a single prominent gradient tab; the learner tabs below
+            are hidden for them. */}
         {isPartner && (
           <Link
             href="/partner"
-            className={`sidebar-link${isActive('/partner') ? ' is-active' : ''}`}
+            className={`sidebar-link sidebar-link--partner${isActive('/partner') ? ' is-active' : ''}`}
             aria-current={isActive('/partner') ? 'page' : undefined}
           >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -219,8 +169,68 @@ export function AppSidebar({
               <line x1="9" y1="12" x2="9" y2="12.01" />
               <line x1="9" y1="15" x2="9" y2="15.01" />
             </svg>
-            <span>Partner</span>
+            <span>Partner Dashboard</span>
           </Link>
+        )}
+
+        {!isPartner && (
+          <>
+            <Link
+              href="/dashboard"
+              className={`sidebar-link${pathname === '/dashboard' ? ' is-active' : ''}`}
+              aria-current={pathname === '/dashboard' ? 'page' : undefined}
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+              <span>Dashboard</span>
+            </Link>
+
+            <Link
+              href="/courses"
+              className={`sidebar-link${pathname === '/courses' || (isActive('/courses') && !pathname.startsWith('/courses/potd')) ? ' is-active' : ''}`}
+              aria-current={pathname === '/courses' ? 'page' : undefined}
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+              <span>Courses</span>
+            </Link>
+
+            <Link
+              href="/courses/potd"
+              className={`sidebar-link${isActive('/courses/potd') ? ' is-active' : ''}`}
+              aria-current={isActive('/courses/potd') ? 'page' : undefined}
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+              <span>Daily Pod</span>
+            </Link>
+
+            {orgRole === 'manager' && (
+              <Link
+                href="/organization"
+                className={`sidebar-link${isActive('/organization') ? ' is-active' : ''}`}
+                aria-current={isActive('/organization') ? 'page' : undefined}
+              >
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>My Organization</span>
+              </Link>
+            )}
+          </>
         )}
 
         <Link
