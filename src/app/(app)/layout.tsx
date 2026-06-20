@@ -5,7 +5,11 @@ import { AppSidebar } from '@/components/app/AppSidebar'
 import { AppFooter } from '@/components/app/AppFooter'
 import { PotdPlayerProvider } from '@/components/potd/PotdPlayerProvider'
 import { MobileNavProvider } from '@/components/app/MobileNavProvider'
-import { fetchUserOrgRole, fetchUserPartner } from '@/lib/org-queries'
+import {
+  fetchUserOrgRole,
+  fetchUserPartner,
+  fetchMyPartnerBranding,
+} from '@/lib/org-queries'
 
 export default async function AppLayout({
   children,
@@ -19,7 +23,7 @@ export default async function AppLayout({
 
   if (!user) redirect('/login')
 
-  const [{ data: profile }, partner] = await Promise.all([
+  const [{ data: profile }, partner, partnerBranding] = await Promise.all([
     supabase
       .from('profiles')
       .select(
@@ -28,6 +32,10 @@ export default async function AppLayout({
       .eq('id', user.id)
       .single(),
     fetchUserPartner(supabase, user.id),
+    // Branding of the partner that owns this user's org (members/managers),
+    // for the "Provided by …" co-brand strip. Null for individuals and for
+    // the partner owner themselves.
+    fetchMyPartnerBranding(supabase),
   ])
 
   // Route to onboarding if this user hasn't set up their account yet.
@@ -53,6 +61,7 @@ export default async function AppLayout({
             profile={profile ?? null}
             orgRole={orgRole}
             isPartner={partner != null}
+            partnerBranding={partnerBranding}
           />
           <div className="app-main">
             {children}
