@@ -17,14 +17,16 @@ export function PartnerMemberPreview({ partner }: { partner: Partner }) {
         <p className="partner-preview__section-label">Sidebar</p>
         <div className="sidebar-cobrand">
           <span className="sidebar-cobrand__label">Provided by</span>
-          {partner.avatarUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img className="sidebar-cobrand__logo" src={partner.avatarUrl} alt="" />
-          ) : (
-            <div className="sidebar-cobrand__logo sidebar-cobrand__logo--empty">
-              {initial}
-            </div>
-          )}
+          <div className="sidebar-cobrand__logobox">
+            {partner.avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img className="sidebar-cobrand__logo" src={partner.avatarUrl} alt="" />
+            ) : (
+              <div className="sidebar-cobrand__logo sidebar-cobrand__logo--empty">
+                {initial}
+              </div>
+            )}
+          </div>
           <span className="sidebar-cobrand__name">{partner.name}</span>
         </div>
       </div>
