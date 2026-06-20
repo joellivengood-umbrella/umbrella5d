@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <>
-      {/* Minimal nav (logo only) */}
+      {/* Minimal nav (logo + escape hatch) */}
       <header className="site-header">
         <nav className="nav">
           <Link className="nav-brand" href="/">
             <Image
               src="/logo/Umbrella_logo.png"
-              alt="Umbrella5D"
+              alt="Umbrella"
               className="nav-logo-img"
               width={200}
               height={52}
@@ -43,31 +43,19 @@ export default function LoginPage() {
         </nav>
       </header>
 
-      <main className="login-bg">
-        <div className="login-card">
-          <div className="login-card__header">
-            <div className="login-logo" aria-hidden="true">
-              <Image
-                src="/logo/Umbrella_icon.png"
-                alt="Umbrella5D"
-                className="login-logo-img"
-                width={48}
-                height={48}
-              />
-            </div>
-            <h1>Welcome back</h1>
-            <p>Sign in to the Umbrella Program</p>
+      <main className="wiz-bg">
+        <div className="wiz">
+          <div className="wiz__panel">
+            <p className="wiz-eyebrow">Sign in</p>
+            <h1 className="wiz-title">Welcome back</h1>
+            <p className="wiz-sub">Sign in to continue your program.</p>
+
+            <LoginForm />
+
+            <p className="wiz-alt">
+              Don&rsquo;t have an account? <Link href="/signup">Get started</Link>
+            </p>
           </div>
-
-          <LoginForm />
-
-          <div className="login-divider">
-            <span>or</span>
-          </div>
-
-          <p className="login-alt">
-            Don&rsquo;t have an account?&nbsp;<Link href="/signup">Create one free</Link>
-          </p>
         </div>
       </main>
     </>

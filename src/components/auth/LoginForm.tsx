@@ -10,20 +10,28 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     const supabase = createClient()
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
+    const { data, error: signInError } = await supabase.auth.signInWithPassword(
+      {
+        email: email.trim(),
+        password,
+      }
+    )
 
-    if (error || !data.session) {
+    if (signInError || !data.session) {
       setLoading(false)
-      alert('Sign in failed: ' + (error?.message ?? 'Unknown error'))
+      setError(
+        signInError?.message?.toLowerCase().includes('invalid login')
+          ? 'That email or password doesn’t match. Please try again.'
+          : signInError?.message ?? 'Could not sign in. Please try again.'
+      )
       return
     }
 
@@ -99,6 +107,8 @@ export function LoginForm() {
           </button>
         </div>
       </div>
+
+      {error && <p className="wiz-error">{error}</p>}
 
       <button
         type="submit"

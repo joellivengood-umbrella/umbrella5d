@@ -7676,6 +7676,10 @@ body.potd-player-active .app-main {
   text-align: center;
 }
 
+/* "Forgot password?" link reads brighter on the dark panel */
+.wiz .forgot-link { color: #a9b6ff; }
+.wiz .forgot-link:hover { color: #c7d0ff; }
+
 @media (max-width: 480px) {
   .wiz__panel { padding: 2rem 1.4rem 1.6rem; }
 }
