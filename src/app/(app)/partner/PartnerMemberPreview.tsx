@@ -2,48 +2,55 @@ import type { Partner } from '@/lib/org-queries'
 
 /**
  * A truthful preview of how the partner's brand appears inside a member's
- * account. Reuses the real member-facing co-brand pieces (.dash-sponsor and
- * .dash-partner) with the partner's own logo/name, inside a "screen" frame —
- * so the partner sees exactly what their members see. Decorative (the real
- * surfaces live in members' accounts), so the frame is aria-hidden.
+ * account: the sidebar co-brand strip (bottom-left of every page) and the
+ * "Your Partner" card on the dashboard. Decorative — the real surfaces live
+ * in members' accounts — so the frame is aria-hidden.
  */
 export function PartnerMemberPreview({ partner }: { partner: Partner }) {
   const initial = partner.name.trim().charAt(0).toUpperCase() || 'P'
 
   return (
     <div className="partner-preview__frame" aria-hidden="true">
-      <div className="dash-sponsor">
-        {partner.avatarUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img className="dash-sponsor__logo" src={partner.avatarUrl} alt="" />
-        ) : (
-          <div className="dash-sponsor__logo dash-sponsor__logo--empty">
-            {initial}
-          </div>
-        )}
-        <p className="dash-sponsor__text">
-          Your Umbrella Program is provided by <strong>{partner.name}</strong> —
-          free.
-        </p>
+
+      {/* Left: sidebar stub with co-brand pinned to bottom */}
+      <div className="partner-preview__sidebar-stub">
+        <p className="partner-preview__section-label">Sidebar</p>
+        <div className="sidebar-cobrand">
+          <span className="sidebar-cobrand__label">Provided by</span>
+          {partner.avatarUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img className="sidebar-cobrand__logo" src={partner.avatarUrl} alt="" />
+          ) : (
+            <div className="sidebar-cobrand__logo sidebar-cobrand__logo--empty">
+              {initial}
+            </div>
+          )}
+          <span className="sidebar-cobrand__name">{partner.name}</span>
+        </div>
       </div>
 
-      <section className="dash-partner">
-        {partner.avatarUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img className="dash-partner__logo" src={partner.avatarUrl} alt="" />
-        ) : (
-          <div className="dash-partner__logo dash-partner__logo--empty">
-            {initial}
-          </div>
-        )}
-        <div className="dash-partner__body">
-          <p className="dash-partner__eyebrow">Your partner</p>
-          <p className="dash-partner__name">{partner.name}</p>
-          {partner.description && (
-            <p className="dash-partner__desc">{partner.description}</p>
+      {/* Right: "Your Partner" card on the member dashboard */}
+      <div className="partner-preview__section">
+        <p className="partner-preview__section-label">Dashboard</p>
+        <section className="dash-partner">
+          {partner.avatarUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img className="dash-partner__logo" src={partner.avatarUrl} alt="" />
+          ) : (
+            <div className="dash-partner__logo dash-partner__logo--empty">
+              {initial}
+            </div>
           )}
-        </div>
-      </section>
+          <div className="dash-partner__body">
+            <p className="dash-partner__eyebrow">Your partner</p>
+            <p className="dash-partner__name">{partner.name}</p>
+            {partner.description && (
+              <p className="dash-partner__desc">{partner.description}</p>
+            )}
+          </div>
+        </section>
+      </div>
+
     </div>
   )
 }

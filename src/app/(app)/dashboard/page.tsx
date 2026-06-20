@@ -140,31 +140,6 @@ export default async function DashboardPage() {
       <div className="dash-content">
         <div className="dash-layout">
 
-          {/* ── Sponsor banner: who provides this member's program ── */}
-          {partnerBranding && (
-            <div className="dash-sponsor">
-              {partnerBranding.avatarUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  className="dash-sponsor__logo"
-                  src={partnerBranding.avatarUrl}
-                  alt=""
-                />
-              ) : (
-                <div
-                  className="dash-sponsor__logo dash-sponsor__logo--empty"
-                  aria-hidden="true"
-                >
-                  {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
-                </div>
-              )}
-              <p className="dash-sponsor__text">
-                Your Umbrella Program is provided by{' '}
-                <strong>{partnerBranding.name}</strong> — free.
-              </p>
-            </div>
-          )}
-
           {/* ── Hero: greeting + featured Overall Progress (glass) ── */}
           <section className="dash-hero" aria-label="Your progress">
             <p className="dash-hero__greeting">Welcome back, {firstName}</p>
