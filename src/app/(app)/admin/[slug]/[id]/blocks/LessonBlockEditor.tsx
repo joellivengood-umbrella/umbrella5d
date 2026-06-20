@@ -12,6 +12,7 @@ import {
   type SectionTitles,
 } from '@/lib/courses'
 import { RichTextEditor } from './RichTextEditor'
+import { sanitizeLessonHtml } from '@/lib/sanitize-html'
 import { MediaUpload } from './MediaUpload'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
@@ -159,7 +160,7 @@ export function LessonBlockEditor({
   function toPayload(b: EditBlock, section: LessonSection, index: number) {
     let data: Record<string, unknown> = {}
     if (b.blockType === 'heading') data = { text: b.text }
-    else if (b.blockType === 'rich_text') data = { html: b.html }
+    else if (b.blockType === 'rich_text') data = { html: sanitizeLessonHtml(b.html) }
     else if (b.blockType === 'question')
       data = { prompts: b.prompts.map((p) => p.trim()).filter(Boolean) }
     else data = { url: b.url.trim(), title: b.title.trim() } // audio | video | image
