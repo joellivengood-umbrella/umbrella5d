@@ -1988,6 +1988,28 @@ audio {
 }
 .sidebar-link.is-active svg { opacity: 1; }
 
+/* Partner Dashboard — the one prominent, brand-gradient tab partners get.
+   Hover/active selectors are written with an extra class so they outrank the
+   generic .sidebar-link:hover / .is-active rules above and keep the gradient. */
+.sidebar-link--partner,
+.sidebar-link--partner:hover,
+.sidebar-link--partner.is-active {
+  background: linear-gradient(100deg, #5fc6ff, #8a7bff, #b56bff);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(138,123,255,.35);
+  margin-bottom: .35rem;
+}
+.sidebar-link--partner svg,
+.sidebar-link--partner:hover svg,
+.sidebar-link--partner.is-active svg {
+  opacity: 1;
+  stroke: #fff;
+}
+.sidebar-link--partner:hover {
+  filter: brightness(1.05);
+}
+
 /* Notification badge on sidebar links */
 .sidebar-notif-badge {
   margin-left: auto;
