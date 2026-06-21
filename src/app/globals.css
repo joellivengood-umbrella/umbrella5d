@@ -4506,6 +4506,29 @@ body.potd-player-active .app-main {
   gap: .6rem;
   min-width: 0;
 }
+/* Sponsor pre-roll label — sits in the scrubber's slot while the bumper plays */
+.lap__bumper {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  min-width: 0;
+}
+.lap__bumper-eyebrow {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ct-text, var(--clr-primary));
+}
+.lap__bumper-text {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .lap__time {
   flex-shrink: 0;
   font-size: .78rem;

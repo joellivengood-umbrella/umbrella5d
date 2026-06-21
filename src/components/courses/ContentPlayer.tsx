@@ -18,10 +18,17 @@ export function ContentPlayer({
   mediaUrl,
   mediaKind,
   title,
+  bumperEligible = false,
 }: {
   mediaUrl: string | null
   mediaKind: 'video' | 'audio'
   title: string
+  /**
+   * Whether a partner "Brought to you by …" pre-roll may play before this
+   * audio. False for 5D Machine (and the default, so a caller that forgets
+   * never leaks a bumper). Audio-only for now; video gets it later.
+   */
+  bumperEligible?: boolean
 }) {
   if (!mediaUrl) {
     return <ComingSoonPlaceholder mediaKind={mediaKind} />
@@ -79,7 +86,7 @@ export function ContentPlayer({
 
   // Native audio — designed inline player, themed from the lesson's colour.
   if (/\.(mp3|wav|m4a|ogg|aac)(\?|$)/i.test(url)) {
-    return <LessonAudioPlayer src={url} title={title} />
+    return <LessonAudioPlayer src={url} title={title} bumperEligible={bumperEligible} />
   }
 
   // Native video

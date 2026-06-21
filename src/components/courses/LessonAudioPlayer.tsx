@@ -1,6 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { usePartnerBumper } from '@/components/app/PartnerBumperContext'
+import { useBumperedAudio } from './useBumperedAudio'
 
 /**
  * A designed, inline audio player for lesson audio (5D Machine blocks and any
@@ -23,9 +25,11 @@ function formatTime(seconds: number): string {
 export function LessonAudioPlayer({
   src,
   title,
+  bumperEligible = false,
 }: {
   src: string
   title?: string | null
+  bumperEligible?: boolean
 }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const lastVolumeRef = useRef(1)
@@ -34,14 +38,45 @@ export function LessonAudioPlayer({
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
 
+  // Partner "Brought to you by …" pre-roll — only when this content is eligible
+  // (i.e. not 5D Machine) and the member's partner has a bumper set.
+  const partnerBumper = usePartnerBumper()
+  const bumper = bumperEligible ? partnerBumper : null
+  const partnerName = bumper?.partnerName ?? ''
+  const { bumperPlaying, startFresh, onEnded, isBumperPhase } = useBumperedAudio(
+    audioRef,
+    bumper?.url ?? null
+  )
+
+  // Preload the content so its duration shows before play. While the bumper
+  // plays it points the element elsewhere; useBumperedAudio restores this src.
+  useEffect(() => {
+    const audio = audioRef.current
+    if (audio && audio.src !== src) {
+      audio.src = src
+      audio.load()
+    }
+  }, [src])
+
   function toggle() {
     const audio = audioRef.current
     if (!audio) return
-    if (audio.paused) audio.play().catch(() => {})
-    else audio.pause()
+    if (!audio.paused) {
+      audio.pause()
+      return
+    }
+    // Paused → resume the bumper if mid-bumper, else fresh-start vs resume.
+    if (isBumperPhase()) {
+      audio.play().catch(() => {})
+      return
+    }
+    const fresh = audio.currentTime === 0 || audio.ended
+    if (fresh) startFresh(src)
+    else audio.play().catch(() => {})
   }
 
   function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
+    if (isBumperPhase()) return // no scrubbing the sponsor message
     const audio = audioRef.current
     if (!audio || !Number.isFinite(duration) || duration <= 0) return
     const rect = e.currentTarget.getBoundingClientRect()
@@ -75,22 +110,29 @@ export function LessonAudioPlayer({
     >
       <audio
         ref={audioRef}
-        src={src}
         preload="metadata"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onEnded={() => {
+          // True only when the CONTENT ended; a finished bumper swaps to
+          // content internally and returns false.
+          if (onEnded()) setIsPlaying(false)
+        }}
+        onTimeUpdate={(e) => {
+          if (!isBumperPhase()) setCurrentTime(e.currentTarget.currentTime)
+        }}
+        onLoadedMetadata={(e) => {
+          if (!isBumperPhase()) setDuration(e.currentTarget.duration)
+        }}
       />
 
       <button
         type="button"
         className="lap__play"
         onClick={toggle}
-        aria-label={isPlaying ? 'Pause' : 'Play'}
+        aria-label={isPlaying || bumperPlaying ? 'Pause' : 'Play'}
       >
-        {isPlaying ? (
+        {isPlaying || bumperPlaying ? (
           <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26" aria-hidden="true">
             <rect x="6" y="5" width="4" height="14" rx="1" />
             <rect x="14" y="5" width="4" height="14" rx="1" />
@@ -102,15 +144,24 @@ export function LessonAudioPlayer({
         )}
       </button>
 
-      <div className="lap__scrubber">
-        <span className="lap__time">{formatTime(currentTime)}</span>
-        <div className="lap__track" onClick={handleSeek} role="presentation">
-          <div className="lap__fill" style={{ width: `${pct}%` }}>
-            <span className="lap__thumb" aria-hidden="true" />
-          </div>
+      {bumperPlaying ? (
+        <div className="lap__bumper" aria-live="polite">
+          <span className="lap__bumper-eyebrow">Sponsor</span>
+          <span className="lap__bumper-text">
+            Brought to you by {partnerName}
+          </span>
         </div>
-        <span className="lap__time lap__time--dur">{formatTime(duration)}</span>
-      </div>
+      ) : (
+        <div className="lap__scrubber">
+          <span className="lap__time">{formatTime(currentTime)}</span>
+          <div className="lap__track" onClick={handleSeek} role="presentation">
+            <div className="lap__fill" style={{ width: `${pct}%` }}>
+              <span className="lap__thumb" aria-hidden="true" />
+            </div>
+          </div>
+          <span className="lap__time lap__time--dur">{formatTime(duration)}</span>
+        </div>
+      )}
 
       <div className="lap__volume">
         <button

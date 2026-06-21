@@ -10,6 +10,8 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { usePartnerBumper } from '@/components/app/PartnerBumperContext'
+import { useBumperedAudio } from '@/components/courses/useBumperedAudio'
 
 /**
  * Global, navigation-persistent audio player for POTD (Daily Pod).
@@ -103,32 +105,32 @@ export function PotdPlayerProvider({
   // replay doesn't spam the DB / router.refresh on every 'ended'.
   const autoCompletedRef = useRef<Set<string>>(new Set())
 
+  // Partner "Brought to you by …" pre-roll. POTD is always eligible — the
+  // Machine exclusion only applies to inline lesson audio. Null when the
+  // member's partner has no bumper (or they have no partner).
+  const partnerBumper = usePartnerBumper()
+  const partnerName = partnerBumper?.partnerName ?? ''
+  const { bumperPlaying, startFresh, onEnded: onBumperEnded, isBumperPhase, reset } =
+    useBumperedAudio(audioRef, partnerBumper?.url ?? null)
+
   const play = useCallback(
     (track: PotdTrack) => {
-      // Same track already loaded → just resume, don't reload.
+      // Same track already loaded → just resume, don't reload (no bumper).
       if (current?.itemId === track.itemId) {
         audioRef.current?.play().catch(() => {})
         return
       }
+      // New track: reset the scrubber (so it reads 0:00 during the bumper, not
+      // the previous track's position) and start fresh — the partner bumper, if
+      // any, plays first, then the episode. The <audio> element is always
+      // mounted here, so we can drive it straight from this handler.
+      setCurrentTime(0)
+      setDuration(0)
       setCurrent(track)
+      startFresh(track.mediaUrl)
     },
-    [current]
+    [current, startFresh]
   )
-
-  // When `current` switches to a new track, point the element at it and
-  // play. Resuming the same track is handled in play() above and never
-  // reaches here (current identity unchanged).
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio || !current) return
-    if (audio.src !== current.mediaUrl) {
-      audio.src = current.mediaUrl
-      audio.load()
-    }
-    // Re-assert the chosen speed; load() resets playbackRate in some browsers.
-    audio.playbackRate = rateRef.current
-    audio.play().catch(() => {})
-  }, [current])
 
   const toggle = useCallback(() => {
     const audio = audioRef.current
@@ -139,11 +141,12 @@ export function PotdPlayerProvider({
 
   const close = useCallback(() => {
     audioRef.current?.pause()
+    reset()
     setCurrent(null)
     setIsPlaying(false)
     setCurrentTime(0)
     setDuration(0)
-  }, [])
+  }, [reset])
 
   // Reserve space at the bottom of the scroll area so the fixed bar
   // doesn't cover page content / the footer.
@@ -165,6 +168,7 @@ export function PotdPlayerProvider({
   }, [rate])
 
   function rewind15() {
+    if (isBumperPhase()) return // no scrubbing during the sponsor pre-roll
     const audio = audioRef.current
     if (!audio) return
     audio.currentTime = Math.max(0, audio.currentTime - 15)
@@ -172,6 +176,7 @@ export function PotdPlayerProvider({
   }
 
   function forward15() {
+    if (isBumperPhase()) return
     const audio = audioRef.current
     if (!audio) return
     const max = Number.isFinite(audio.duration) ? audio.duration : Infinity
@@ -202,6 +207,9 @@ export function PotdPlayerProvider({
   }
 
   async function handleEnded() {
+    // A finished bumper swaps to the episode and returns false — only run the
+    // auto-complete when the EPISODE itself ended.
+    if (!onBumperEnded()) return
     setIsPlaying(false)
     if (!current) return
     if (autoCompletedRef.current.has(current.itemId)) return
@@ -225,6 +233,7 @@ export function PotdPlayerProvider({
   }
 
   function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
+    if (isBumperPhase()) return
     const audio = audioRef.current
     if (!audio || !Number.isFinite(duration) || duration <= 0) return
     const rect = e.currentTarget.getBoundingClientRect()
@@ -247,8 +256,16 @@ export function PotdPlayerProvider({
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onEnded={handleEnded}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onTimeUpdate={(e) => {
+          if (!isBumperPhase()) setCurrentTime(e.currentTarget.currentTime)
+        }}
+        onLoadedMetadata={(e) => {
+          // Ignore the bumper's metadata (its 4s duration isn't the episode's).
+          if (isBumperPhase()) return
+          setDuration(e.currentTarget.duration)
+          // load() resets playbackRate in some browsers; re-assert the choice.
+          e.currentTarget.playbackRate = rateRef.current
+        }}
       />
 
       {current && (
@@ -263,9 +280,13 @@ export function PotdPlayerProvider({
               </svg>
             </div>
             <div className="potd-miniplayer__meta">
-              <span className="potd-miniplayer__eyebrow">Daily Pod</span>
+              <span className="potd-miniplayer__eyebrow">
+                {bumperPlaying ? 'Sponsor' : 'Daily Pod'}
+              </span>
               <span className="potd-miniplayer__title">
-                Episode {current.episodeNum} — {current.title}
+                {bumperPlaying
+                  ? `Brought to you by ${partnerName}`
+                  : `Episode ${current.episodeNum} — ${current.title}`}
               </span>
             </div>
           </div>
@@ -288,9 +309,9 @@ export function PotdPlayerProvider({
               type="button"
               className="potd-miniplayer__playbtn"
               onClick={toggle}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
+              aria-label={isPlaying || bumperPlaying ? 'Pause' : 'Play'}
             >
-              {isPlaying ? (
+              {isPlaying || bumperPlaying ? (
                 <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26" aria-hidden="true">
                   <rect x="6" y="5" width="4" height="14" rx="1" />
                   <rect x="14" y="5" width="4" height="14" rx="1" />

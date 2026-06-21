@@ -68,6 +68,7 @@ export default async function EosItemPage({
             mediaUrl={item.media_url}
             mediaKind={course.mediaKind}
             title={item.title ?? `EOS ${item.sequence_num}`}
+            bumperEligible={course.slug !== 'machine'}
           />
           {item.description && (
             <p className="content-description">{item.description}</p>
