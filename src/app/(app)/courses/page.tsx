@@ -4,6 +4,7 @@ import {
   fetchTotalsByType,
   fetchCompletedCountsByType,
 } from '@/lib/content-queries'
+import { fetchMyPartnerBranding } from '@/lib/org-queries'
 import { CourseCard } from '@/components/courses/CourseCard'
 import { BodyClass } from '@/components/app/BodyClass'
 
@@ -18,10 +19,11 @@ export default async function CoursesIndexPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [courses, totals, completed] = await Promise.all([
+  const [courses, totals, completed, partnerBranding] = await Promise.all([
     fetchCourses(supabase),
     fetchTotalsByType(supabase),
     fetchCompletedCountsByType(supabase, user.id),
+    fetchMyPartnerBranding(supabase),
   ])
 
   // The catalog shows every published course as a card (filtered here so an
@@ -33,6 +35,29 @@ export default async function CoursesIndexPage() {
       <BodyClass className="page-dashboard" />
       <main className="courses-main">
         <div className="courses-header">
+          {partnerBranding && (
+            <div className="courses-cobrand">
+              <span className="courses-cobrand__by">Brought to you by</span>
+              {partnerBranding.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  className="courses-cobrand__logo"
+                  src={partnerBranding.avatarUrl}
+                  alt=""
+                />
+              ) : (
+                <span
+                  className="courses-cobrand__logo courses-cobrand__logo--empty"
+                  aria-hidden="true"
+                >
+                  {partnerBranding.name.trim().charAt(0).toUpperCase() || 'P'}
+                </span>
+              )}
+              <span className="courses-cobrand__name">
+                {partnerBranding.name}
+              </span>
+            </div>
+          )}
           <p className="section-eyebrow">The Umbrella Program</p>
           <h1>Courses</h1>
           <p className="courses-header__blurb">

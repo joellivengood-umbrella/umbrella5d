@@ -6,7 +6,6 @@ import {
   fetchPartnerOrgs,
   fetchPartnerImpact,
 } from '@/lib/org-queries'
-import { PartnerProfileEditor } from './PartnerProfileEditor'
 import { PartnerInviteCode } from './PartnerInviteCode'
 import { PartnerMemberPreview } from './PartnerMemberPreview'
 
@@ -38,13 +37,47 @@ export default async function PartnerPage() {
     <>
       <BodyClass className="page-dashboard" />
       <main className="partner-main">
-        <div className="courses-header partner-header">
-          <div className="partner-header__titles">
-            <p className="section-eyebrow">Partner</p>
-            <h1>{partner.name}</h1>
+        <header className="partner-hero">
+          <div className="partner-hero__brand">
+            <div className="partner-hero__plaque">
+              {partner.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  className="partner-hero__logo"
+                  src={partner.avatarUrl}
+                  alt=""
+                />
+              ) : (
+                <div
+                  className="partner-hero__logo partner-hero__logo--empty"
+                  aria-hidden="true"
+                >
+                  {partner.name.trim().charAt(0).toUpperCase() || 'P'}
+                </div>
+              )}
+            </div>
+            <div className="partner-hero__titles">
+              <p className="partner-hero__eyebrow">Partner Dashboard</p>
+              <h1 className="partner-hero__name">{partner.name}</h1>
+              {impact.orgCount > 0 ? (
+                <p className="partner-hero__meta">
+                  <strong>{impact.orgCount.toLocaleString()}</strong>{' '}
+                  {impact.orgCount === 1 ? 'organization' : 'organizations'}
+                  {' · '}
+                  <strong>{impact.memberCount.toLocaleString()}</strong>{' '}
+                  {impact.memberCount === 1 ? 'member' : 'members'} learning
+                </p>
+              ) : (
+                <p className="partner-hero__meta">
+                  Share your invite code to bring organizations on board.
+                </p>
+              )}
+            </div>
           </div>
-          <PartnerInviteCode inviteCode={partner.inviteCode} />
-        </div>
+          <div className="partner-hero__aside">
+            <PartnerInviteCode inviteCode={partner.inviteCode} />
+          </div>
+        </header>
 
         <section className="settings-section partner-impact">
           <header className="settings-section__header">
@@ -103,12 +136,17 @@ export default async function PartnerPage() {
           )}
         </section>
 
-        <PartnerProfileEditor partner={partner} userId={user.id} />
-
         <section className="settings-section">
           <header className="settings-section__header">
             <h2>What your members see</h2>
-            <p>Your brand appears across every member&rsquo;s account.</p>
+            <p>
+              Your brand appears across every member&rsquo;s account. Edit your
+              logo, name, and description in{' '}
+              <a className="settings-link" href="/settings">
+                Settings
+              </a>
+              .
+            </p>
           </header>
           <PartnerMemberPreview partner={partner} />
         </section>

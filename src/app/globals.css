@@ -4110,6 +4110,50 @@ body.potd-player-active .app-main {
   line-height: 1.6;
 }
 
+/* "Brought to you by [partner]" co-brand lockup above the courses title.
+   A self-contained pill: subtle surface, soft shadow, label + logo + name. */
+.courses-cobrand {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: .9rem;
+  padding: .4rem .95rem;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+}
+.courses-cobrand__by {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--clr-muted);
+}
+.courses-cobrand__logo {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  flex-shrink: 0;
+}
+.courses-cobrand__logo--empty {
+  display: grid;
+  place-items: center;
+  font-size: .9rem;
+  font-weight: 800;
+  color: var(--clr-primary);
+  background: rgba(91, 79, 255, .1);
+  border: none;
+}
+.courses-cobrand__name {
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--clr-text);
+}
+
 /* ══════════════════════════════════════════════════════════════════
    Course theme tokens — one class on the <main> or .course-card
    controls every coloured element inside that course.
@@ -4700,6 +4744,68 @@ body.potd-player-active .app-main {
   color: var(--clr-muted, #6b7280);
   margin: .25rem 0 0;
 }
+
+/* Inline link inside settings copy */
+.settings-link {
+  color: var(--clr-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.settings-link:hover { color: var(--clr-primary-h); }
+
+/* ── Personal Profile disclosure (partner accounts collapse it) ── */
+.personal-reveal__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .9rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.personal-reveal__toggle:hover {
+  background: #fafaff;
+  border-color: #c4b8ff;
+}
+.personal-reveal__toggle[aria-expanded='true'] { margin-bottom: .75rem; }
+.personal-reveal__main {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  min-width: 0;
+}
+.personal-reveal__icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--clr-primary);
+}
+.personal-reveal__text { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.personal-reveal__label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  line-height: 1.2;
+}
+.personal-reveal__sub {
+  font-size: .82rem;
+  color: var(--clr-muted);
+}
+.personal-reveal__chev {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--clr-muted);
+  transition: transform .2s ease;
+}
+.personal-reveal__chev.is-open { transform: rotate(180deg); }
 
 /* Read-only settings field (e.g. org name display) */
 .settings-readonly {
@@ -7596,15 +7702,106 @@ body.potd-player-active .app-main {
 }
 .partner-main .settings-section { margin-bottom: 1.25rem; }
 
-/* Header: partner name on the left, invite-code reveal on the right */
-.partner-header {
+/* ── Partner Dashboard hero: branded banner carrying the partner's logo ──
+   Deep charcoal surface (matches the marketing dark hero) lit by two soft
+   brand-gradient glows, with the logo in a glowing white plaque. Invite-code
+   reveal sits on the right as a glass control. */
+.partner-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem 1.5rem;
+  gap: 1.25rem 2rem;
   flex-wrap: wrap;
+  padding: 1.85rem 1.9rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(135% 150% at 0% 0%, rgba(95, 198, 255, .30), transparent 55%),
+    radial-gradient(130% 150% at 100% 110%, rgba(181, 107, 255, .32), transparent 52%),
+    #0c0c16;
+  color: var(--clr-hero-text);
 }
-.partner-header__titles { min-width: 0; }
+/* brand-gradient hairline along the top edge */
+.partner-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(100deg, #5fc6ff, #8a7bff, #b56bff);
+}
+.partner-hero__brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.partner-hero__plaque {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow:
+    0 12px 34px -10px rgba(138, 123, 255, .65),
+    inset 0 0 0 1px rgba(255, 255, 255, .6);
+}
+.partner-hero__logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 9px;
+}
+.partner-hero__logo--empty {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--clr-primary);
+  background: rgba(91, 79, 255, .1);
+  border-radius: 9px;
+}
+.partner-hero__titles { min-width: 0; }
+.partner-hero__eyebrow {
+  margin: 0 0 .4rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: #c3bdff;
+}
+.partner-hero__name {
+  margin: 0;
+  font-size: clamp(1.55rem, 3vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: 1.1;
+  color: #fff;
+}
+.partner-hero__meta {
+  margin: .55rem 0 0;
+  font-size: .9rem;
+  color: rgba(240, 240, 255, .72);
+}
+.partner-hero__meta strong { color: #fff; font-weight: 700; }
+.partner-hero__aside { flex-shrink: 0; }
+
+/* Invite control reads as glass on the dark hero */
+.partner-hero .partner-invite__toggle {
+  background: rgba(255, 255, 255, .10);
+  border-color: rgba(255, 255, 255, .28);
+  color: var(--clr-hero-text);
+}
+.partner-hero .partner-invite__toggle:hover {
+  background: rgba(255, 255, 255, .18);
+}
 
 /* Invite-code reveal (right side of the header) */
 .partner-invite {
@@ -8034,6 +8231,11 @@ body.potd-player-active .app-main {
 
 @media (max-width: 640px) {
   .partner-main { padding: 1.5rem 1rem 4rem; }
+  /* Hero stacks: logo + titles, then the invite reveal full-width below. */
+  .partner-hero { padding: 1.5rem 1.35rem; }
+  .partner-hero__plaque { width: 64px; height: 64px; }
+  .partner-hero__aside { width: 100%; }
+  .partner-hero .partner-invite { align-items: stretch; }
   /* Stack the invite reveal full-width, left-aligned, under the name. */
   .partner-invite { align-items: stretch; width: 100%; }
   .partner-invite__toggle { justify-content: center; }
