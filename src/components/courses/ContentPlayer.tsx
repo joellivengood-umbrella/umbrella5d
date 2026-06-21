@@ -1,4 +1,5 @@
 import { LessonAudioPlayer } from './LessonAudioPlayer'
+import { VideoContent } from './VideoContent'
 
 /**
  * Renders the appropriate media player for a content item, or a
@@ -25,8 +26,8 @@ export function ContentPlayer({
   title: string
   /**
    * Whether a partner "Brought to you by …" pre-roll may play before this
-   * audio. False for 5D Machine (and the default, so a caller that forgets
-   * never leaks a bumper). Audio-only for now; video gets it later.
+   * content. False for 5D Machine (and the default, so a caller that forgets
+   * never leaks a bumper). Applies to both audio and video.
    */
   bumperEligible?: boolean
 }) {
@@ -37,7 +38,7 @@ export function ContentPlayer({
   const url = mediaUrl.trim()
   const lower = url.toLowerCase()
 
-  // Vimeo
+  // Vimeo — VideoContent renders the embed + optional pre-roll on the client.
   if (lower.includes('vimeo.com') || lower.includes('player.vimeo')) {
     const embedUrl = lower.includes('player.vimeo')
       ? url
@@ -47,17 +48,13 @@ export function ContentPlayer({
           'https://player.vimeo.com/video/$1'
         )
     return (
-      <div className="lesson-video-wrap">
-        <div className="video-wrapper">
-          <iframe
-            src={embedUrl}
-            title={title}
-            frameBorder={0}
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      </div>
+      <VideoContent
+        kind="vimeo"
+        embedUrl={embedUrl}
+        mediaUrl={url}
+        title={title}
+        bumperEligible={bumperEligible}
+      />
     )
   }
 
@@ -69,17 +66,13 @@ export function ContentPlayer({
     const videoId = idMatch?.[1]
     if (videoId) {
       return (
-        <div className="lesson-video-wrap">
-          <div className="video-wrapper">
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={title}
-              frameBorder={0}
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
+        <VideoContent
+          kind="youtube"
+          embedUrl={`https://www.youtube.com/embed/${videoId}`}
+          mediaUrl={url}
+          title={title}
+          bumperEligible={bumperEligible}
+        />
       )
     }
   }
@@ -92,13 +85,12 @@ export function ContentPlayer({
   // Native video
   if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) {
     return (
-      <div className="lesson-video-wrap">
-        <div className="video-wrapper">
-          <video controls src={url} preload="metadata" style={{ width: '100%' }}>
-            Your browser doesn&apos;t support the video element.
-          </video>
-        </div>
-      </div>
+      <VideoContent
+        kind="native"
+        mediaUrl={url}
+        title={title}
+        bumperEligible={bumperEligible}
+      />
     )
   }
 

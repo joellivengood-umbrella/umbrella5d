@@ -57,7 +57,11 @@ export default async function AppLayout({
   // no co-brand). Fed to both audio players via context.
   const bumper =
     partnerBranding?.bumperUrl != null
-      ? { url: partnerBranding.bumperUrl, partnerName: partnerBranding.name }
+      ? {
+          url: partnerBranding.bumperUrl,
+          partnerName: partnerBranding.name,
+          logoUrl: partnerBranding.avatarUrl,
+        }
       : null
 
   return (
