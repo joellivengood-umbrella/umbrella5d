@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { BodyClass } from '@/components/app/BodyClass'
-import { fetchUserOrgRole } from '@/lib/org-queries'
+import { fetchUserOrgRole, fetchUserPartner } from '@/lib/org-queries'
 import { ProfileSection } from './ProfileSection'
 import { PreferencesSection } from './PreferencesSection'
 import { OrganizationSection } from './OrganizationSection'
 import { AccountSection } from './AccountSection'
+import { PersonalProfileReveal } from './PersonalProfileReveal'
+import { PartnerProfileEditor } from '../partner/PartnerProfileEditor'
 
 export const metadata = { title: 'Settings' }
 
@@ -22,6 +24,11 @@ export default async function SettingsPage() {
     )
     .eq('id', user.id)
     .single()
+
+  // Partner accounts lead with their partner profile (branding). The
+  // personal profile is then collapsed behind a reveal, so Settings stays
+  // focused on partner features for a partner owner.
+  const partner = await fetchUserPartner(supabase, user.id)
 
   // Manager-only: surface the org name + invite code so they can hand
   // the code to new members. Members and individuals don't see this
@@ -56,12 +63,27 @@ export default async function SettingsPage() {
           </p>
         </div>
 
-        <ProfileSection
-          userId={user.id}
-          initialFullName={profile?.full_name ?? null}
-          initialRoleTitle={profile?.role_title ?? null}
-          initialAvatarUrl={profile?.avatar_url ?? null}
-        />
+        {partner && (
+          <PartnerProfileEditor partner={partner} userId={user.id} />
+        )}
+
+        {partner ? (
+          <PersonalProfileReveal>
+            <ProfileSection
+              userId={user.id}
+              initialFullName={profile?.full_name ?? null}
+              initialRoleTitle={profile?.role_title ?? null}
+              initialAvatarUrl={profile?.avatar_url ?? null}
+            />
+          </PersonalProfileReveal>
+        ) : (
+          <ProfileSection
+            userId={user.id}
+            initialFullName={profile?.full_name ?? null}
+            initialRoleTitle={profile?.role_title ?? null}
+            initialAvatarUrl={profile?.avatar_url ?? null}
+          />
+        )}
 
         {managerOrg && (
           <OrganizationSection
