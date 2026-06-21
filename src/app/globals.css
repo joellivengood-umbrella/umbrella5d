@@ -76,6 +76,15 @@
 /* ── Base ── */
 html { scroll-behavior: smooth; }
 
+/* Mobile safety net: one overflowing child must not make the whole document
+   scroll sideways. overflow-x: clip (not hidden) does NOT create a scroll
+   container, so position: sticky (sidebar, sticky save bars) keeps working.
+   Pair this with the per-element overflow-wrap fixes, not instead of them. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--clr-bg);
@@ -2022,8 +2031,10 @@ audio {
   display: flex;
   /* Fill exactly the viewport: this min-height plus the nav-h padding
      below sums to 100vh (content-box), so a short page's footer lands at
-     the very bottom with no phantom scroll. */
+     the very bottom with no phantom scroll. svh fallback so iOS Safari's
+     URL bar doesn't push the footer below the fold. */
   min-height: calc(100vh - var(--nav-h));
+  min-height: calc(100svh - var(--nav-h));
   padding-top: var(--nav-h);
 }
 
@@ -3253,6 +3264,7 @@ body.potd-player-active .app-main {
 /* Full-viewport dark background */
 .login-bg {
   min-height: 100vh;
+  min-height: 100svh;
   padding: calc(var(--nav-h) + 3rem) 1.5rem 3rem;
   background: var(--clr-hero-bg);
   display: flex;
@@ -4186,6 +4198,8 @@ body.potd-player-active .app-main {
 .courses-cobrand {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: .55rem;
   margin-bottom: .9rem;
   padding: .4rem .95rem;
@@ -4223,6 +4237,8 @@ body.potd-player-active .app-main {
   font-size: .92rem;
   font-weight: 700;
   color: var(--clr-text);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -6256,6 +6272,14 @@ body.potd-player-active .app-main {
 .mkt-hero--page .mkt-hero__grid .mkt-hero__title {
   font-size: clamp(2.1rem, 4vw, 3.3rem);
 }
+/* This override (1.2fr .8fr) outranks the generic 900px collapse rule, so
+   without a matching-specificity rule the /5d-machine hero stays two-column
+   on mobile and overflows. Re-collapse it to one column. */
+@media (max-width: 900px) {
+  .mkt-hero--page .mkt-hero__grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 .mkt-hero__art--frag {
   display: flex;
@@ -6409,10 +6433,11 @@ body.potd-player-active .app-main {
   .mkt-tophero__scroll { animation: none; }
 }
 
-/* On narrow phones the forced three-line breaks would overflow, so let
-   the headline wrap naturally instead. */
+/* On narrow phones the forced line breaks would overflow, so let the
+   headlines wrap naturally instead. */
 @media (max-width: 640px) {
-  .mkt-tophero__br { display: none; }
+  .mkt-tophero__br,
+  .mkt-hero__br { display: none; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -6705,6 +6730,8 @@ body.potd-player-active .app-main {
 .m-prose {
   line-height: 1.7;
   color: var(--clr-text);
+  /* A pasted bare URL / long unbroken token must wrap, not widen the card. */
+  overflow-wrap: anywhere;
 }
 .m-prose p { margin: 0 0 .85rem; }
 .m-prose p:last-child { margin-bottom: 0; }
@@ -8205,6 +8232,7 @@ body.potd-player-active .app-main {
    ══════════════════════════════════════════════════════════════════ */
 .wiz-bg {
   min-height: 100vh;
+  min-height: 100svh;
   padding: calc(var(--nav-h) + 2.5rem) 1.5rem 3rem;
   background: var(--mkt-bg);
   color: var(--mkt-text);
@@ -8451,4 +8479,50 @@ body.potd-player-active .app-main {
   flex-wrap: wrap;
   gap: .5rem;
   margin-top: .4rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Mobile fixes (≤768px) — from the mobile UX audit.
+   Kept in one block (appended last so it wins on source order) so the
+   mobile-only rules are easy to find and reason about.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* iOS Safari auto-zooms any input under 16px on focus. Bump the whole
+     form-control family to 16px on mobile. Selectors mirror the base
+     rules' specificity (the settings-field ones use [type=…] attributes)
+     so these actually override. */
+  .form-input,
+  .settings-field input[type="text"],
+  .settings-field input[type="password"],
+  .settings-field input[type="number"],
+  .settings-field input[type="url"],
+  .settings-field select,
+  .settings-field textarea,
+  .m-answer__input,
+  .org-search__input,
+  .org-newteam__input,
+  .org-team__editinput {
+    font-size: 16px;
+  }
+
+  /* Touch targets up to ~40–44px (Apple HIG). */
+  .btn--sm { min-height: 40px; }
+  .potd-miniplayer__ratebtn { height: 44px; }
+  .potd-miniplayer__close { width: 44px; height: 44px; }
+  .lap__volbtn { width: 44px; height: 44px; }
+  .m-check { min-height: 44px; }
+  .org-team__actions { gap: .35rem; }
+  .org-team__action,
+  .org-row__remove { width: 40px; height: 40px; }
+  .org-row__add {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+  .app-footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: .25rem .35rem;
+  }
 }
