@@ -1990,6 +1990,14 @@ img, svg { display: block; }
   font-weight: 600;
   color: rgba(240, 240, 255, .75);
 }
+/* On a phone the 16:9 box is only ~200px tall, so the logo + name + Play
+   stack overflows the fixed 1.5rem padding. Tighten the card and guarantee
+   the Play button stays a full touch target inside the short box. */
+@media (max-width: 560px) {
+  .video-bumper { padding: .9rem 1rem; gap: .35rem; }
+  .video-bumper__logo { max-height: 26%; margin-bottom: .25rem; }
+  .video-bumper__play { min-height: 44px; }
+}
 
 /* Full-width audio player */
 audio {
@@ -2786,18 +2794,40 @@ audio {
 }
 
 .potd-miniplayer__track {
+  position: relative;
   flex: 1;
   height: 8px;
   border-radius: 999px;
   background: #e6e8ef;
   cursor: pointer;
   min-width: 0;
+  /* Let pointer-drag scrub instead of the browser treating it as a scroll. */
+  touch-action: none;
+}
+/* Transparent vertical hit area so the 8px bar is ~40px tall to grab/tap. */
+.potd-miniplayer__track::before {
+  content: '';
+  position: absolute;
+  inset: -16px 0;
 }
 
 .potd-miniplayer__fill {
+  position: relative;
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--clr-accent-from, #818cf8), var(--clr-primary, #5b4fff));
+}
+/* Draggable thumb sitting on the play-head (the fill's right edge). */
+.potd-miniplayer__thumb {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(16, 18, 38, .35);
+  transform: translate(50%, -50%);
 }
 
 /* Playback-speed cycle button (1× → 1.25× → … → 2×) */
