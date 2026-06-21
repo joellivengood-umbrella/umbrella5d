@@ -62,8 +62,8 @@ export default function MachinePage() {
             <div className="mkt-hero__copy">
               <p className="mkt-eyebrow">The 5D Machine</p>
               <h2 className="mkt-hero__title">
-                A clear path<br />
-                from fragmentation,<br />
+                A clear path<br className="mkt-hero__br" />
+                from fragmentation,<br className="mkt-hero__br" />
                 to <span className="mkt-grad">profit focus</span>.
               </h2>
               <p className="mkt-hero__sub mkt-hero__sub--wide">
