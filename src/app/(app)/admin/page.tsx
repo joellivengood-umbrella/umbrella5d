@@ -42,6 +42,11 @@ export default async function AdminIndexPage() {
             Add, edit, and publish content across every course — or create a new
             course. Choose a course to manage its lessons.
           </p>
+          <div className="admin-quicklinks">
+            <Link href="/admin/partners" className="btn btn--secondary btn--sm">
+              Partner bumpers →
+            </Link>
+          </div>
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
