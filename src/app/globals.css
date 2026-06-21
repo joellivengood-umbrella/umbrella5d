@@ -1918,6 +1918,70 @@ img, svg { display: block; }
   border-radius: var(--radius-md);
 }
 
+/* Partner video pre-roll card — overlays the 16:9 area before the video,
+   reusing the audio bumper over a branded "Brought to you by …" screen. */
+.video-bumper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: 1.5rem;
+  text-align: center;
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(95, 198, 255, .22), transparent 60%),
+    radial-gradient(120% 140% at 50% 100%, rgba(181, 107, 255, .22), transparent 55%),
+    #0c0c16;
+  color: var(--clr-hero-text, #f0f0ff);
+}
+.video-bumper__logo {
+  max-width: 160px;
+  max-height: 32%;
+  object-fit: contain;
+  margin-bottom: .35rem;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff;
+}
+.video-bumper__eyebrow {
+  margin: 0;
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: #c3bdff;
+}
+.video-bumper__name {
+  margin: 0 0 .4rem;
+  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: #fff;
+}
+.video-bumper__play {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 700;
+  color: #0c0c16;
+  background: #fff;
+  cursor: pointer;
+  transition: transform .15s ease;
+}
+.video-bumper__play:hover { transform: translateY(-1px); }
+.video-bumper__play:active { transform: scale(.97); }
+.video-bumper__starting {
+  font-size: .85rem;
+  font-weight: 600;
+  color: rgba(240, 240, 255, .75);
+}
+
 /* Full-width audio player */
 audio {
   width: 100%;

@@ -8,7 +8,12 @@ import { createContext, useContext } from 'react'
  * layout and consumed by the audio players (POTD + lesson audio), so both can
  * play the bumper before content without re-fetching.
  */
-export type PartnerBumper = { url: string; partnerName: string } | null
+export type PartnerBumper = {
+  url: string
+  partnerName: string
+  /** Partner logo, shown on the video pre-roll card. Null if none uploaded. */
+  logoUrl: string | null
+} | null
 
 const PartnerBumperContext = createContext<PartnerBumper>(null)
 
