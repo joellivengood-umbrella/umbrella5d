@@ -232,14 +232,40 @@ export function PotdPlayerProvider({
     router.refresh()
   }
 
-  function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
-    if (isBumperPhase()) return
+  // Drag-to-scrub via pointer events (mouse + touch). Pointer capture keeps
+  // move events flowing even when the finger/cursor leaves the thin bar.
+  // Disabled during the bumper pre-roll, same as the skip buttons.
+  const scrubbingRef = useRef(false)
+
+  function seekToClientX(clientX: number, trackEl: HTMLDivElement) {
     const audio = audioRef.current
     if (!audio || !Number.isFinite(duration) || duration <= 0) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const fraction = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
+    const rect = trackEl.getBoundingClientRect()
+    const fraction = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
     audio.currentTime = fraction * duration
     setCurrentTime(audio.currentTime)
+  }
+
+  function onTrackPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (isBumperPhase()) return
+    scrubbingRef.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    seekToClientX(e.clientX, e.currentTarget)
+  }
+
+  function onTrackPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!scrubbingRef.current) return
+    seekToClientX(e.clientX, e.currentTarget)
+  }
+
+  function endScrub(e: React.PointerEvent<HTMLDivElement>) {
+    if (!scrubbingRef.current) return
+    scrubbingRef.current = false
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      /* pointer already released */
+    }
   }
 
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0
@@ -340,13 +366,18 @@ export function PotdPlayerProvider({
               <span className="potd-miniplayer__time">{formatTime(currentTime)}</span>
               <div
                 className="potd-miniplayer__track"
-                onClick={handleSeek}
+                onPointerDown={onTrackPointerDown}
+                onPointerMove={onTrackPointerMove}
+                onPointerUp={endScrub}
+                onPointerCancel={endScrub}
                 role="presentation"
               >
                 <div
                   className="potd-miniplayer__fill"
                   style={{ width: `${pct}%` }}
-                />
+                >
+                  <span className="potd-miniplayer__thumb" aria-hidden="true" />
+                </div>
               </div>
               <span className="potd-miniplayer__time">{formatTime(duration)}</span>
             </div>
