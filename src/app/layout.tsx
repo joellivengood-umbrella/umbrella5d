@@ -8,9 +8,9 @@ export const metadata: Metadata = {
   },
   description:
     'The business education platform built on the Five Dimensions framework. Revenue. Profits. Glory.',
-  icons: {
-    icon: '/logo/Umbrella_icon.png',
-  },
+  // Favicon is set by the App Router file convention: src/app/icon.png
+  // (Next emits the <link rel="icon"> automatically). No metadata.icons
+  // needed, and no app/favicon.ico — that .ico would override this.
 }
 
 export default function RootLayout({
