@@ -572,6 +572,8 @@ export type PartnerBranding = {
   name: string
   avatarUrl: string | null
   description: string | null
+  /** Optional "Brought to you by …" audio pre-roll for this partner's members. */
+  bumperUrl: string | null
 }
 
 /**
@@ -591,13 +593,19 @@ export async function fetchMyPartnerBranding(
     return null
   }
   const row = (data ?? [])[0] as
-    | { name: string; avatar_url: string | null; description: string | null }
+    | {
+        name: string
+        avatar_url: string | null
+        description: string | null
+        bumper_url: string | null
+      }
     | undefined
   if (!row) return null
   return {
     name: row.name,
     avatarUrl: row.avatar_url,
     description: row.description,
+    bumperUrl: row.bumper_url ?? null,
   }
 }
 

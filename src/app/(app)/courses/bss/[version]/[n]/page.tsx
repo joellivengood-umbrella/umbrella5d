@@ -95,6 +95,7 @@ export default async function BssSegmentPage({
             mediaUrl={item.media_url}
             mediaKind={course.mediaKind}
             title={item.title ?? `BSS ${version} Segment ${item.sequence_num}`}
+            bumperEligible={course.slug !== 'machine'}
           />
           {item.description && (
             <p className="content-description">{item.description}</p>

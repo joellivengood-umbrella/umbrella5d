@@ -5,6 +5,7 @@ import { AppSidebar } from '@/components/app/AppSidebar'
 import { AppFooter } from '@/components/app/AppFooter'
 import { PotdPlayerProvider } from '@/components/potd/PotdPlayerProvider'
 import { MobileNavProvider } from '@/components/app/MobileNavProvider'
+import { PartnerBumperProvider } from '@/components/app/PartnerBumperContext'
 import {
   fetchUserOrgRole,
   fetchUserPartner,
@@ -51,24 +52,34 @@ export default async function AppLayout({
     ? await fetchUserOrgRole(supabase, user.id, profile.org_id)
     : null
 
+  // The partner's content audio pre-roll, if any. Null for individuals, for a
+  // partner with no bumper set, and for the partner owner themselves (they get
+  // no co-brand). Fed to both audio players via context.
+  const bumper =
+    partnerBranding?.bumperUrl != null
+      ? { url: partnerBranding.bumperUrl, partnerName: partnerBranding.name }
+      : null
+
   return (
-    <PotdPlayerProvider userId={user.id}>
-      <MobileNavProvider>
-        <AppNav profile={profile ?? null} />
-        <div className="app-shell">
-          <AppSidebar
-            userId={user.id}
-            profile={profile ?? null}
-            orgRole={orgRole}
-            isPartner={partner != null}
-            partnerBranding={partnerBranding}
-          />
-          <div className="app-main">
-            {children}
-            <AppFooter />
+    <PartnerBumperProvider value={bumper}>
+      <PotdPlayerProvider userId={user.id}>
+        <MobileNavProvider>
+          <AppNav profile={profile ?? null} />
+          <div className="app-shell">
+            <AppSidebar
+              userId={user.id}
+              profile={profile ?? null}
+              orgRole={orgRole}
+              isPartner={partner != null}
+              partnerBranding={partnerBranding}
+            />
+            <div className="app-main">
+              {children}
+              <AppFooter />
+            </div>
           </div>
-        </div>
-      </MobileNavProvider>
-    </PotdPlayerProvider>
+        </MobileNavProvider>
+      </PotdPlayerProvider>
+    </PartnerBumperProvider>
   )
 }

@@ -118,6 +118,7 @@ export default async function MachineItemPage({
               mediaUrl={lesson.mediaUrl}
               mediaKind={course.mediaKind}
               title={lesson.title ?? `5D Machine Lesson ${lesson.sequenceNum}`}
+              bumperEligible={false}
             />
             {lesson.description && (
               <p className="content-description">{lesson.description}</p>

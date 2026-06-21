@@ -494,6 +494,8 @@ function BlockBody({ block }: { block: LessonBlock }) {
           mediaUrl={block.data.url ?? null}
           mediaKind={block.blockType === 'audio' ? 'audio' : 'video'}
           title={block.data.title ?? ''}
+          // 5D Machine is deliberately excluded from the partner audio bumper.
+          bumperEligible={false}
         />
         {block.data.title ? (
           <p className="m-media__caption">{block.data.title}</p>

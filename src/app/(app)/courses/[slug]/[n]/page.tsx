@@ -92,6 +92,7 @@ export default async function CourseItemPage({
             mediaUrl={item.media_url}
             mediaKind={course.mediaKind}
             title={item.title ?? fallbackTitle}
+            bumperEligible={course.slug !== 'machine'}
           />
           {item.description && (
             <p className="content-description">{item.description}</p>
