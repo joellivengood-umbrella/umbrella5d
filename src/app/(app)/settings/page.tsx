@@ -6,6 +6,7 @@ import { PreferencesSection } from './PreferencesSection'
 import { OrganizationSection } from './OrganizationSection'
 import { AccountSection } from './AccountSection'
 import { PersonalProfileReveal } from './PersonalProfileReveal'
+import { JoinOrganizationSection } from './JoinOrganizationSection'
 import { PartnerProfileEditor } from '../partner/PartnerProfileEditor'
 
 export const metadata = { title: 'Settings' }
@@ -29,6 +30,10 @@ export default async function SettingsPage() {
   // personal profile is then collapsed behind a reveal, so Settings stays
   // focused on partner features for a partner owner.
   const partner = await fetchUserPartner(supabase, user.id)
+
+  // An "individual" account has no organization and isn't a partner — they
+  // can join an org after the fact with an invite code.
+  const isIndividual = !profile?.org_id && !partner
 
   // Manager-only: surface the org name + invite code so they can hand
   // the code to new members. Members and individuals don't see this
@@ -84,6 +89,8 @@ export default async function SettingsPage() {
             initialAvatarUrl={profile?.avatar_url ?? null}
           />
         )}
+
+        {isIndividual && <JoinOrganizationSection />}
 
         {managerOrg && (
           <OrganizationSection
