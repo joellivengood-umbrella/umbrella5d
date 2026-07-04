@@ -6634,7 +6634,20 @@ body.potd-player-active .app-main {
 .m-item__gutter {
   display: flex;
   justify-content: flex-start;
+  align-items: flex-start;
+  /* Fill the step's full height so the check pill inside can stick-scroll
+     down it (the grid parent is align-items:start; override just the gutter). */
+  align-self: stretch;
   padding-top: .15rem;
+}
+/* The check pill follows the reader down a long step — sticking just below the
+   sticky progress bar (offset via --m-sticky-top, measured in JS) — then
+   releases at the end of its own step, so you can tick it off wherever you
+   finish reading/watching instead of scrolling back to the top. */
+.m-item__gutter .m-check {
+  position: sticky;
+  top: var(--m-sticky-top, calc(var(--nav-h) + 6rem));
+  z-index: 2;
 }
 .m-item__body {
   display: flex;
@@ -6931,6 +6944,9 @@ body.potd-player-active .app-main {
     grid-template-columns: 1fr;
     gap: .5rem;
   }
+  /* Stacked layout: the pill sits above its content in its own row, so there's
+     no side gutter to stick-scroll through — keep it in normal flow. */
+  .m-item__gutter .m-check { position: static; }
   .m-part__grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
   /* Full-width finish button — bigger tap target on phones. */
   .m-finish__btn { width: 100%; min-width: 0; }

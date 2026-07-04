@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
@@ -52,6 +52,31 @@ export function MachineLessonView({
   const [pending, setPending] = useState<Set<string>>(new Set())
   const [finishing, setFinishing] = useState(false)
   const completeRef = useRef(initiallyComplete)
+
+  // Each step's check pill sticks just below the sticky progress bar as you
+  // scroll a long step, so you never have to scroll back up to check it off
+  // (it releases at the end of its own step — see .m-item__gutter .m-check).
+  // The progress bar's height varies (its hint line shows/hides), so measure
+  // it and expose the sticky offset as --m-sticky-top on the lesson root.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const progressRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const prog = progressRef.current
+    const root = rootRef.current
+    if (!prog || !root) return
+    const apply = () => {
+      // The bar sticks at (nav-h + .5rem); park the pills ~.75rem below its
+      // bottom edge → nav-h + barHeight + ~20px.
+      root.style.setProperty(
+        '--m-sticky-top',
+        `calc(var(--nav-h) + ${Math.round(prog.offsetHeight) + 20}px)`
+      )
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(prog)
+    return () => ro.disconnect()
+  }, [])
 
   // An Instructions question can't be checked off until every one of its
   // answer boxes has at least this many (trimmed) characters.
@@ -274,8 +299,11 @@ export function MachineLessonView({
   }
 
   return (
-    <div className="m-lesson">
-      <div className={'m-progress' + (isComplete ? ' is-complete' : '')}>
+    <div className="m-lesson" ref={rootRef}>
+      <div
+        className={'m-progress' + (isComplete ? ' is-complete' : '')}
+        ref={progressRef}
+      >
         <div className="m-progress__row">
           <span className="m-progress__label">
             {isComplete ? 'Lesson complete' : 'Your progress'}
