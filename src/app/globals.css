@@ -6778,8 +6778,12 @@ body.potd-player-active .app-main {
 }
 .m-prose p { margin: 0 0 .85rem; }
 .m-prose p:last-child { margin-bottom: 0; }
+/* Restore list markers — a global `ul { list-style: none }` reset kills them,
+   and lists need left padding so the (outside) markers render inside the box. */
 .m-prose ul,
-.m-prose ol { margin: 0 0 .85rem 1.25rem; }
+.m-prose ol { margin: 0 0 .85rem; padding-left: 1.5rem; }
+.m-prose ul { list-style: disc; }
+.m-prose ol { list-style: decimal; }
 .m-prose ul:last-child,
 .m-prose ol:last-child { margin-bottom: 0; }
 .m-prose li { margin: .15rem 0; }
@@ -7188,10 +7192,66 @@ body.potd-player-active .app-main {
 .rte__toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: .25rem;
   padding: .35rem .45rem;
   border-bottom: 1px solid var(--clr-border);
   background: #f9fafb;
+}
+.rte__btn svg { display: block; }
+/* The "A" glyph for the colour tools, with a coloured indicator bar/chip. */
+.rte__ac {
+  position: relative;
+  font-weight: 800;
+  line-height: 1;
+}
+.rte__ac::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -3px;
+  height: 3px;
+  border-radius: 2px;
+  background: #dc2626;
+}
+.rte__ac--hl {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: #fef08a;
+  color: #111827;
+}
+.rte__ac--hl::after { display: none; }
+/* Colour palette popover */
+.rte__colorwrap { position: relative; display: inline-flex; }
+.rte__palette {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  padding: 7px;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.rte__swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, .18);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform .1s ease;
+}
+.rte__swatch:hover { transform: scale(1.12); }
+/* "None" swatch: white tile with a red diagonal slash. */
+.rte__swatch--none {
+  background:
+    linear-gradient(to top left, transparent calc(50% - 1px), #dc2626 calc(50% - 1px),
+      #dc2626 calc(50% + 1px), transparent calc(50% + 1px)),
+    #fff;
 }
 .rte__btn {
   min-width: 30px;
@@ -7221,7 +7281,9 @@ body.potd-player-active .app-main {
 }
 .rte__area p { margin: 0 0 .6rem; }
 .rte__area p:last-child { margin-bottom: 0; }
-.rte__area ul, .rte__area ol { margin: 0 0 .6rem 1.25rem; }
+.rte__area ul, .rte__area ol { margin: 0 0 .6rem; padding-left: 1.5rem; }
+.rte__area ul { list-style: disc; }
+.rte__area ol { list-style: decimal; }
 
 /* Raw-HTML view */
 .rte__btn--code {
