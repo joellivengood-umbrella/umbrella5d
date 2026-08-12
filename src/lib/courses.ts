@@ -11,14 +11,14 @@
 
 import type { CSSProperties } from 'react'
 
-export type CourseSlug = 'bss' | 'eos' | 'potd' | 'machine'
+export type CourseSlug = 'mba' | 'eos' | 'potd' | 'machine'
 
 export type ContentType = CourseSlug // 1:1 for now
 
-export type BssVersion = '5hr' | '3hr' | '2hr' | '1hr'
+export type MbaVersion = '5hr' | '3hr' | '2hr' | '1hr'
 
-export const BSS_VERSIONS: ReadonlyArray<{
-  slug: BssVersion
+export const MBA_VERSIONS: ReadonlyArray<{
+  slug: MbaVersion
   label: string
   hours: number
 }> = [
@@ -96,9 +96,9 @@ export function courseThemeVars(theme: CourseTheme): CSSProperties {
 
 export const COURSES: ReadonlyArray<CourseMeta> = [
   {
-    slug: 'bss',
-    title: 'Business Success Seminar',
-    shortTitle: 'BSS',
+    slug: 'mba',
+    title: 'MBA Seminars',
+    shortTitle: 'MBA',
     blurb:
       'The hero seminar for every member of an organization. Available in four lengths so leaders can assign the right depth to the right team.',
     mediaKind: 'video',
@@ -153,7 +153,7 @@ export const UMBRELLA_PROGRAM_COURSES: ReadonlyArray<CourseMeta> =
 /**
  * POTD as a standalone metadata reference, separated from the main
  * program. Anywhere that previously iterated COURSES and treated
- * POTD identically to BSS/EOS/Machine should reach for one of:
+ * POTD identically to MBA/EOS/Machine should reach for one of:
  *   - UMBRELLA_PROGRAM_COURSES (for "the program")
  *   - POTD_META (for the bonus track)
  *   - COURSES (only when literally any course slug is valid)
@@ -168,8 +168,8 @@ export function isValidCourseSlug(value: string): value is CourseSlug {
   return COURSES.some((c) => c.slug === (value as CourseSlug))
 }
 
-export function isValidBssVersion(value: string): value is BssVersion {
-  return BSS_VERSIONS.some((v) => v.slug === (value as BssVersion))
+export function isValidMbaVersion(value: string): value is MbaVersion {
+  return MBA_VERSIONS.some((v) => v.slug === (value as MbaVersion))
 }
 
 /**

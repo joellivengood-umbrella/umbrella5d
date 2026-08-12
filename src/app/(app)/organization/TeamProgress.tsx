@@ -8,7 +8,7 @@ import type { OrgMember, TeamProgressRow } from '@/lib/org-queries'
  * same order as the roster, so the manager can scan top-to-bottom and
  * spot stragglers.
  *
- * Denominator is the Umbrella Program total (BSS + EOS + Machine),
+ * Denominator is the Umbrella Program total (MBA + EOS + Machine),
  * matching what each member sees in their own sidebar. Bonus Daily Pod
  * episodes are not counted toward program progress.
  *

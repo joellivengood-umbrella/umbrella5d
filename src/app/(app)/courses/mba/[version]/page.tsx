@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
-  BSS_VERSIONS,
-  isValidBssVersion,
+  MBA_VERSIONS,
+  isValidMbaVersion,
   courseThemeVars,
-  type BssVersion,
+  type MbaVersion,
 } from '@/lib/courses'
 import { fetchCourse } from '@/lib/course-queries'
 import {
@@ -25,18 +25,18 @@ export async function generateMetadata({
   params: Promise<RouteParams>
 }) {
   const { version } = await params
-  return { title: `BSS ${version}` }
+  return { title: `MBA ${version}` }
 }
 
-export default async function BssVersionPage({
+export default async function MbaVersionPage({
   params,
 }: {
   params: Promise<RouteParams>
 }) {
   const { version } = await params
-  if (!isValidBssVersion(version)) notFound()
+  if (!isValidMbaVersion(version)) notFound()
 
-  const versionMeta = BSS_VERSIONS.find((v) => v.slug === version)!
+  const versionMeta = MBA_VERSIONS.find((v) => v.slug === version)!
 
   const supabase = await createClient()
   const {
@@ -44,11 +44,11 @@ export default async function BssVersionPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const course = await fetchCourse(supabase, 'bss')
+  const course = await fetchCourse(supabase, 'mba')
   if (!course) notFound()
 
   const [items, completed, settings, assignments] = await Promise.all([
-    fetchContentItems(supabase, 'bss', version as BssVersion),
+    fetchContentItems(supabase, 'mba', version as MbaVersion),
     fetchCompletedItemIds(supabase, user.id),
     fetchUserSettings(supabase, user.id),
     fetchMemberAssignments(supabase, user.id),
@@ -64,7 +64,7 @@ export default async function BssVersionPage({
     <>
       <BodyClass className="page-dashboard" />
       <main className="courses-main" style={courseThemeVars(course.theme)}>
-        <Link href="/courses/bss" className="lesson-back-btn">
+        <Link href="/courses/mba" className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -94,7 +94,7 @@ export default async function BssVersionPage({
           {visibleItems.map((item) => (
             <ContentItemTile
               key={item.id}
-              href={`/courses/bss/${version}/${item.sequence_num}`}
+              href={`/courses/mba/${version}/${item.sequence_num}`}
               number={item.sequence_num}
               title={item.title ?? `Segment ${item.sequence_num}`}
               durationMins={item.duration_mins}

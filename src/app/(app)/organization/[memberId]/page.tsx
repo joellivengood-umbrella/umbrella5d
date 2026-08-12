@@ -70,7 +70,7 @@ export default async function ManageMemberPage({
     assignments,
     totals,
     programSlugs,
-    bssItems,
+    mbaItems,
     eosItems,
     potdItems,
     machineItems,
@@ -83,7 +83,7 @@ export default async function ManageMemberPage({
     fetchMemberAssignments(supabase, memberId),
     fetchTotalsByType(supabase),
     fetchProgramSlugs(supabase),
-    fetchContentItems(supabase, 'bss'),
+    fetchContentItems(supabase, 'mba'),
     fetchContentItems(supabase, 'eos'),
     fetchContentItems(supabase, 'potd'),
     fetchContentItems(supabase, 'machine'),
@@ -190,7 +190,7 @@ export default async function ManageMemberPage({
             memberUserId={memberId}
             currentUserId={user.id}
             allItems={{
-              bss: bssItems,
+              mba: mbaItems,
               eos: eosItems,
               potd: potdItems,
               machine: machineItems,

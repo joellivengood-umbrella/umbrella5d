@@ -6,7 +6,7 @@ import type { ResumeTarget } from '@/lib/content-queries'
  * "Pick up where you left off" card on the dashboard.
  *
  * Takes a ResumeTarget (raw data from content-queries) plus the resolved
- * course (for label + theme) and builds the route href here. BSS keeps its
+ * course (for label + theme) and builds the route href here. MBA keeps its
  * extra /[version]/ segment; every other course routes at /courses/{slug}/{n}.
  */
 export function ResumeCard({
@@ -16,25 +16,25 @@ export function ResumeCard({
   target: ResumeTarget
   course: Course
 }) {
-  // BSS routes require a version segment. If we somehow received a BSS
+  // MBA routes require a version segment. If we somehow received a MBA
   // target without one, render nothing rather than a broken link. The
   // helper that produces ResumeTarget already guards against this; this
   // is belt-and-suspenders.
-  if (target.courseSlug === 'bss' && !target.bssVersion) return null
+  if (target.courseSlug === 'mba' && !target.mbaVersion) return null
 
-  // Build the link. Only BSS has the extra version segment.
+  // Build the link. Only MBA has the extra version segment.
   const href =
-    target.courseSlug === 'bss' && target.bssVersion
-      ? `/courses/bss/${target.bssVersion}/${target.sequenceNum}`
+    target.courseSlug === 'mba' && target.mbaVersion
+      ? `/courses/mba/${target.mbaVersion}/${target.sequenceNum}`
       : `/courses/${target.courseSlug}/${target.sequenceNum}`
 
-  // Course label, with version appended for BSS.
+  // Course label, with version appended for MBA.
   const courseLabel =
-    target.courseSlug === 'bss' && target.bssVersion
-      ? `${course.shortTitle} ${target.bssVersion}`
+    target.courseSlug === 'mba' && target.mbaVersion
+      ? `${course.shortTitle} ${target.mbaVersion}`
       : course.shortTitle
 
-  // Fallback to "POTD 4" / "BSS 5hr 12" if a row is missing its title.
+  // Fallback to "POTD 4" / "MBA 5hr 12" if a row is missing its title.
   const itemLabel =
     target.itemTitle ?? `${courseLabel} ${target.sequenceNum}`
 

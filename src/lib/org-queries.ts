@@ -131,7 +131,7 @@ export async function fetchOrgMembers(
 
 /**
  * Per-member completed-item count for the Team Progress section on the
- * My Organization page. Counts only Umbrella Program items (BSS + EOS + Machine);
+ * My Organization page. Counts only Umbrella Program items (MBA + EOS + Machine);
  * bonus Daily Pod episodes are excluded, matching each member's own
  * sidebar/dashboard progress.
  */
@@ -220,16 +220,16 @@ export async function fetchTeamProgress(
 export type AssignmentEntry = {
   id: string
   contentItemId: string
-  type: 'bss' | 'eos' | 'potd' | 'machine'
+  type: 'mba' | 'eos' | 'potd' | 'machine'
   sequenceNum: number
   title: string | null
-  metadataVersion: string | null // BSS version slug, otherwise null
+  metadataVersion: string | null // MBA version slug, otherwise null
   assignedAt: string
 }
 
 /**
  * All assignments for a single member, joined to content_items so the
- * UI can show "BSS 5hr · Segment 4: Title" without a second round-trip.
+ * UI can show "MBA 5hr · Segment 4: Title" without a second round-trip.
  *
  * RLS: managers can read these via "managers read team assignments";
  * the assignee themselves can read via "users read own assignments".
@@ -272,8 +272,8 @@ export async function fetchMemberAssignments(
     }).content_items
     const item = Array.isArray(rawItem) ? rawItem[0] : rawItem
 
-    const type = (item?.type ?? 'bss') as
-      | 'bss'
+    const type = (item?.type ?? 'mba') as
+      | 'mba'
       | 'eos'
       | 'potd'
       | 'machine'
@@ -285,7 +285,7 @@ export async function fetchMemberAssignments(
       type,
       sequenceNum: item?.sequence_num ?? 0,
       title: item?.title ?? null,
-      metadataVersion: type === 'bss' ? (meta.version ?? null) : null,
+      metadataVersion: type === 'mba' ? (meta.version ?? null) : null,
       assignedAt: (row as { assigned_at: string }).assigned_at,
     }
   })
@@ -366,7 +366,7 @@ export async function fetchTeamMemberships(
 
 /**
  * One team<->course assignment edge, camel-cased. courseSlug is a course
- * slug from the src/lib/courses.ts registry (e.g. "bss", "machine").
+ * slug from the src/lib/courses.ts registry (e.g. "mba", "machine").
  */
 export type TeamCourseAssignment = {
   teamId: string

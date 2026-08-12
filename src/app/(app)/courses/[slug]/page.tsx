@@ -15,7 +15,7 @@ import { ContentItemTile } from '@/components/courses/ContentItemTile'
 /**
  * Generic landing page for a flat course (a list of video/audio lessons),
  * driven entirely by the courses table. The four built-in courses
- * (bss/eos/potd/machine) have their own bespoke folders, which take
+ * (mba/eos/potd/machine) have their own bespoke folders, which take
  * precedence over this dynamic [slug] segment — so this only ever serves
  * admin-created courses.
  */

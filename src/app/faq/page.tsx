@@ -32,7 +32,7 @@ const FAQS: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: 'What is the bonus content?',
-    a: 'Alongside the 5D Machine you get the Business Success Seminars, Employee Opportunity Seminars, Business in Five Dimensions, and Pod of the Day. It is short, sharp business content that teaches the fundamentals and keeps your team coming back.',
+    a: 'Alongside the 5D Machine you get the MBA Seminars, Employee Opportunity Seminars, Business in Five Dimensions, and Pod of the Day. It is short, sharp business content that teaches the fundamentals and keeps your team coming back.',
   },
   {
     q: 'How long does it take?',

@@ -1,31 +1,31 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { BSS_VERSIONS, courseThemeVars } from '@/lib/courses'
+import { MBA_VERSIONS, courseThemeVars } from '@/lib/courses'
 import { fetchCourse } from '@/lib/course-queries'
 import { fetchContentItems, fetchCompletedItemIds } from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 
 export const metadata = {
-  title: 'Business Success Seminar',
+  title: 'MBA Seminars',
 }
 
-export default async function BssHubPage() {
+export default async function MbaHubPage() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const course = await fetchCourse(supabase, 'bss')
+  const course = await fetchCourse(supabase, 'mba')
   if (!course) notFound()
 
   // Count segments per version + user's completions, in parallel.
   const [items5, items3, items2, items1, completed] = await Promise.all([
-    fetchContentItems(supabase, 'bss', '5hr'),
-    fetchContentItems(supabase, 'bss', '3hr'),
-    fetchContentItems(supabase, 'bss', '2hr'),
-    fetchContentItems(supabase, 'bss', '1hr'),
+    fetchContentItems(supabase, 'mba', '5hr'),
+    fetchContentItems(supabase, 'mba', '3hr'),
+    fetchContentItems(supabase, 'mba', '2hr'),
+    fetchContentItems(supabase, 'mba', '1hr'),
     fetchCompletedItemIds(supabase, user.id),
   ])
 
@@ -66,8 +66,8 @@ export default async function BssHubPage() {
           </p>
         </div>
 
-        <div className="bss-version-grid">
-          {BSS_VERSIONS.map((v) => {
+        <div className="mba-version-grid">
+          {MBA_VERSIONS.map((v) => {
             const items = itemsByVersion[v.slug]
             const total = items.length
             const done = items.filter((i) => completed.has(i.id)).length
@@ -75,8 +75,8 @@ export default async function BssHubPage() {
             return (
               <Link
                 key={v.slug}
-                href={`/courses/bss/${v.slug}`}
-                className="course-card course-theme-bss"
+                href={`/courses/mba/${v.slug}`}
+                className="course-card course-theme-mba"
               >
                 <div className="course-card__header">
                   <span className="course-card__eyebrow">

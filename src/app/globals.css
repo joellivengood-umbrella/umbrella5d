@@ -4275,7 +4275,7 @@ body.potd-player-active .app-main {
    Course theme tokens — one class on the <main> or .course-card
    controls every coloured element inside that course.
    ══════════════════════════════════════════════════════════════════ */
-.course-theme-bss {
+.course-theme-mba {
   --ct-from:      #5b4fff;
   --ct-to:        #7c3aed;
   --ct-text:      #5b4fff;
@@ -4448,8 +4448,8 @@ body.potd-player-active .app-main {
   color: var(--clr-muted);
 }
 
-/* ── BSS version hub grid ── */
-.bss-version-grid {
+/* ── MBA version hub grid ── */
+.mba-version-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.1rem;
@@ -4795,7 +4795,7 @@ body.potd-player-active .app-main {
   .content-tile { padding: .75rem .85rem; gap: .75rem; }
   .content-tile__number { width: 34px; height: 34px; font-size: .85rem; }
   .courses-grid { grid-template-columns: 1fr; }
-  .bss-version-grid { grid-template-columns: 1fr; }
+  .mba-version-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Settings ── */
@@ -5305,7 +5305,7 @@ body.potd-player-active .app-main {
 }
 
 /* Course-themed tags. Tints come from existing course-theme tokens. */
-.course-tag-bss {
+.course-tag-mba {
   color: #5b4fff;
   background: rgba(91, 79, 255, .12);
 }
@@ -5351,7 +5351,7 @@ body.potd-player-active .app-main {
   margin-bottom: 1rem;
 }
 
-/* When BSS is the course, version + item live alongside it: 3 columns */
+/* When MBA is the course, version + item live alongside it: 3 columns */
 .assignment-form__row:has(label:nth-of-type(3)) {
   grid-template-columns: 130px 130px 1fr;
 }

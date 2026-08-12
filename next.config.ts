@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
         destination: "/organization/:path*",
         permanent: false,
       },
+      // The "Business Success Seminars" (BSS) course was renamed to
+      // "MBA Seminars" and its slug moved from bss to mba, so its route moved
+      // from /courses/bss/... to /courses/mba/.... Keep old links working.
+      { source: "/courses/bss", destination: "/courses/mba", permanent: false },
+      {
+        source: "/courses/bss/:path*",
+        destination: "/courses/mba/:path*",
+        permanent: false,
+      },
     ];
   },
 };
