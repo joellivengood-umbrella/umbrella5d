@@ -3,21 +3,21 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { BSS_VERSIONS, type BssVersion, type ContentItem } from '@/lib/courses'
+import { MBA_VERSIONS, type MbaVersion, type ContentItem } from '@/lib/courses'
 
 type AllItems = {
-  bss: ContentItem[]
+  mba: ContentItem[]
   eos: ContentItem[]
   potd: ContentItem[]
   machine: ContentItem[]
 }
 
-type Course = 'bss' | 'eos' | 'potd' | 'machine'
+type Course = 'mba' | 'eos' | 'potd' | 'machine'
 
 /**
  * Inline form for assigning a single content_item to a member.
  *
- * Three-step shape: pick a course, then (for BSS only) pick a version,
+ * Three-step shape: pick a course, then (for MBA only) pick a version,
  * then pick the specific item. Items already assigned to this member
  * are filtered out of the dropdown so we don't suggest duplicates —
  * the underlying UNIQUE (user_id, content_item_id) would reject the
@@ -43,25 +43,25 @@ export function AssignmentForm({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [course, setCourse] = useState<Course>('bss')
-  const [bssVersion, setBssVersion] = useState<BssVersion>('5hr')
+  const [course, setCourse] = useState<Course>('mba')
+  const [mbaVersion, setMbaVersion] = useState<MbaVersion>('5hr')
   const [contentItemId, setContentItemId] = useState<string>('')
 
-  // Eligible items for the currently selected course (and BSS version),
+  // Eligible items for the currently selected course (and MBA version),
   // minus anything already assigned to this member.
   const eligibleItems = useMemo<ContentItem[]>(() => {
     let items: ContentItem[]
-    if (course === 'bss') {
-      items = allItems.bss.filter(
+    if (course === 'mba') {
+      items = allItems.mba.filter(
         (it) =>
-          (it.metadata as { version?: BssVersion } | null)?.version ===
-          bssVersion
+          (it.metadata as { version?: MbaVersion } | null)?.version ===
+          mbaVersion
       )
     } else {
       items = allItems[course]
     }
     return items.filter((it) => !alreadyAssignedIds.has(it.id))
-  }, [course, bssVersion, allItems, alreadyAssignedIds])
+  }, [course, mbaVersion, allItems, alreadyAssignedIds])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -123,24 +123,24 @@ export function AssignmentForm({
               setContentItemId('')
             }}
           >
-            <option value="bss">BSS</option>
+            <option value="mba">MBA</option>
             <option value="eos">EOS</option>
             <option value="potd">POTD</option>
             <option value="machine">5D Machine</option>
           </select>
         </label>
 
-        {course === 'bss' && (
+        {course === 'mba' && (
           <label className="settings-field">
             <span>Version</span>
             <select
-              value={bssVersion}
+              value={mbaVersion}
               onChange={(e) => {
-                setBssVersion(e.target.value as BssVersion)
+                setMbaVersion(e.target.value as MbaVersion)
                 setContentItemId('')
               }}
             >
-              {BSS_VERSIONS.map((v) => (
+              {MBA_VERSIONS.map((v) => (
                 <option key={v.slug} value={v.slug}>
                   {v.label}
                 </option>

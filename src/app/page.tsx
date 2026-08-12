@@ -213,7 +213,7 @@ export default function LandingPage() {
 
             <ul className="mkt-bonus__list">
               <li>
-                <span className="mkt-bonus__name">Business Success Seminars</span>
+                <span className="mkt-bonus__name">MBA Seminars</span>
                 <span className="mkt-bonus__desc">
                   The flagship seminar, available in four lengths so leaders can
                   assign the right depth to the right team.

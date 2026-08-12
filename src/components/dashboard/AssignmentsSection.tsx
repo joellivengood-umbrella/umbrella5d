@@ -77,19 +77,19 @@ export function AssignmentsSection({
 }
 
 function buildHref(a: AssignmentEntry): string {
-  if (a.type === 'bss' && a.metadataVersion) {
-    return `/courses/bss/${a.metadataVersion}/${a.sequenceNum}`
+  if (a.type === 'mba' && a.metadataVersion) {
+    return `/courses/mba/${a.metadataVersion}/${a.sequenceNum}`
   }
   return `/courses/${a.type}/${a.sequenceNum}`
 }
 
 function formatCourseLabel(
-  type: 'bss' | 'eos' | 'potd' | 'machine',
+  type: 'mba' | 'eos' | 'potd' | 'machine',
   version: string | null
 ): string {
   switch (type) {
-    case 'bss':
-      return version ? `BSS ${version}` : 'BSS'
+    case 'mba':
+      return version ? `MBA ${version}` : 'MBA'
     case 'eos':
       return 'EOS'
     case 'potd':

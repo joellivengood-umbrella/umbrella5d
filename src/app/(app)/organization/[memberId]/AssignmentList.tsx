@@ -95,12 +95,12 @@ export function AssignmentList({
 }
 
 function formatCourseLabel(
-  type: 'bss' | 'eos' | 'potd' | 'machine',
+  type: 'mba' | 'eos' | 'potd' | 'machine',
   version: string | null
 ): string {
   switch (type) {
-    case 'bss':
-      return version ? `BSS ${version}` : 'BSS'
+    case 'mba':
+      return version ? `MBA ${version}` : 'MBA'
     case 'eos':
       return 'EOS'
     case 'potd':

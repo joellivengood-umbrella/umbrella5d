@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 /**
  * Small square-ish tile used in content-item lists (EOS videos, POTD
- * episodes, Machine segments, BSS segments). Shows a number, a short
+ * episodes, Machine segments, MBA segments). Shows a number, a short
  * title, a done/locked badge, and optional duration.
  */
 export function ContentItemTile({

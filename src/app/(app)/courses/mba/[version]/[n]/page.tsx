@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
-  isValidBssVersion,
-  BSS_VERSIONS,
+  isValidMbaVersion,
+  MBA_VERSIONS,
   courseThemeVars,
-  type BssVersion,
+  type MbaVersion,
 } from '@/lib/courses'
 import { fetchCourse } from '@/lib/course-queries'
 import { fetchContentItem } from '@/lib/content-queries'
@@ -21,10 +21,10 @@ export async function generateMetadata({
   params: Promise<RouteParams>
 }) {
   const { version, n } = await params
-  return { title: `BSS ${version} — Segment ${n}` }
+  return { title: `MBA ${version} — Segment ${n}` }
 }
 
-export default async function BssSegmentPage({
+export default async function MbaSegmentPage({
   params,
 }: {
   params: Promise<RouteParams>
@@ -32,11 +32,11 @@ export default async function BssSegmentPage({
   const { version, n: nStr } = await params
   const n = parseInt(nStr, 10)
 
-  if (!isValidBssVersion(version) || !Number.isFinite(n) || n < 1) {
+  if (!isValidMbaVersion(version) || !Number.isFinite(n) || n < 1) {
     notFound()
   }
 
-  const versionMeta = BSS_VERSIONS.find((v) => v.slug === version)!
+  const versionMeta = MBA_VERSIONS.find((v) => v.slug === version)!
 
   const supabase = await createClient()
   const {
@@ -44,10 +44,10 @@ export default async function BssSegmentPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const course = await fetchCourse(supabase, 'bss')
+  const course = await fetchCourse(supabase, 'mba')
   if (!course) notFound()
 
-  const item = await fetchContentItem(supabase, 'bss', n, version as BssVersion)
+  const item = await fetchContentItem(supabase, 'mba', n, version as MbaVersion)
   if (!item) notFound()
 
   const { data: progress } = await supabase
@@ -66,7 +66,7 @@ export default async function BssSegmentPage({
         className="courses-main courses-main--narrow"
         style={courseThemeVars(course.theme)}
       >
-        <Link href={`/courses/bss/${version}`} className="lesson-back-btn">
+        <Link href={`/courses/mba/${version}`} className="lesson-back-btn">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -94,7 +94,7 @@ export default async function BssSegmentPage({
           <ContentPlayer
             mediaUrl={item.media_url}
             mediaKind={course.mediaKind}
-            title={item.title ?? `BSS ${version} Segment ${item.sequence_num}`}
+            title={item.title ?? `MBA ${version} Segment ${item.sequence_num}`}
             bumperEligible={course.slug !== 'machine'}
           />
           {item.description && (

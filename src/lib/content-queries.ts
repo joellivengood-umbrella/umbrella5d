@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { ContentItem, ContentType, BssVersion } from './courses'
+import type { ContentItem, ContentType, MbaVersion } from './courses'
 import { fetchProgramSlugs } from './course-queries'
 
 /**
@@ -14,12 +14,12 @@ const ITEM_COLUMNS =
 
 /**
  * Fetch all published content_items of a given type, ordered by sequence_num.
- * If `bssVersion` is provided, filters BSS rows by metadata.version.
+ * If `mbaVersion` is provided, filters MBA rows by metadata.version.
  */
 export async function fetchContentItems(
   supabase: MaybeClient,
   type: string,
-  bssVersion?: BssVersion
+  mbaVersion?: MbaVersion
 ): Promise<ContentItem[]> {
   let query = supabase
     .from('content_items')
@@ -28,9 +28,9 @@ export async function fetchContentItems(
     .eq('is_published', true)
     .order('sequence_num', { ascending: true })
 
-  if (type === 'bss' && bssVersion) {
+  if (type === 'mba' && mbaVersion) {
     // metadata is jsonb; Supabase supports `->>` filters via `.eq`.
-    query = query.eq('metadata->>version', bssVersion)
+    query = query.eq('metadata->>version', mbaVersion)
   }
 
   const { data, error } = await query
@@ -42,14 +42,14 @@ export async function fetchContentItems(
 }
 
 /**
- * Fetch a single content item by type, sequence_num, and (optionally) bss version.
+ * Fetch a single content item by type, sequence_num, and (optionally) mba version.
  * Returns null if not found.
  */
 export async function fetchContentItem(
   supabase: MaybeClient,
   type: string,
   sequenceNum: number,
-  bssVersion?: BssVersion
+  mbaVersion?: MbaVersion
 ): Promise<ContentItem | null> {
   let query = supabase
     .from('content_items')
@@ -58,8 +58,8 @@ export async function fetchContentItem(
     .eq('sequence_num', sequenceNum)
     .eq('is_published', true)
 
-  if (type === 'bss' && bssVersion) {
-    query = query.eq('metadata->>version', bssVersion)
+  if (type === 'mba' && mbaVersion) {
+    query = query.eq('metadata->>version', mbaVersion)
   }
 
   // NOT .maybeSingle(): two published items can share a (type,
@@ -126,7 +126,7 @@ export async function fetchCompletedItemIds(
 
 /**
  * Count totals per course type for the dashboard / index tiles.
- * Returns a map keyed by course slug, e.g. { bss: 72, eos: 9, machine: 28 }.
+ * Returns a map keyed by course slug, e.g. { mba: 72, eos: 9, machine: 28 }.
  *
  * Keyed by `string` (not the legacy 4-slug union) and accumulated for every
  * type encountered — a new course's items must never be silently dropped
@@ -154,7 +154,7 @@ export async function fetchTotalsByType(
 
 /**
  * Count completed items per course type for the given user.
- * Returns a map keyed by course slug, e.g. { bss: 3, eos: 1, machine: 5 }.
+ * Returns a map keyed by course slug, e.g. { mba: 3, eos: 1, machine: 5 }.
  *
  * Like fetchTotalsByType, keyed by `string` and accumulated for every type —
  * a new course's completions must never be dropped. Callers default to 0.
@@ -193,7 +193,7 @@ export async function fetchCompletedCountsByType(
  */
 export type ResumeTarget = {
   courseSlug: ContentType
-  bssVersion: BssVersion | null
+  mbaVersion: MbaVersion | null
   itemTitle: string | null
   sequenceNum: number
 }
@@ -208,7 +208,7 @@ export type ResumeTarget = {
  * Returns null when:
  *   - the user has no program-course completions,
  *   - the most-recent course is finished (no next item exists),
- *   - the most-recent completion was BSS but missing metadata.version
+ *   - the most-recent completion was MBA but missing metadata.version
  *     (would produce a broken URL).
  */
 export async function fetchResumeTarget(
@@ -261,19 +261,19 @@ export async function fetchResumeTarget(
 
   const courseSlug = lastItem.type
   const lastSeq = lastItem.sequence_num
-  const lastMeta = lastItem.metadata as { version?: BssVersion } | null
-  const bssVersion: BssVersion | null =
-    courseSlug === 'bss' ? (lastMeta?.version ?? null) : null
+  const lastMeta = lastItem.metadata as { version?: MbaVersion } | null
+  const mbaVersion: MbaVersion | null =
+    courseSlug === 'mba' ? (lastMeta?.version ?? null) : null
 
-  // BSS items must carry a metadata.version — every BSS route lives at
-  // /courses/bss/[version]/[n]. If the row is missing the version we
+  // MBA items must carry a metadata.version — every MBA route lives at
+  // /courses/mba/[version]/[n]. If the row is missing the version we
   // can't build a valid URL, so refuse to suggest it rather than ship
   // a broken link to the user.
-  if (courseSlug === 'bss' && !bssVersion) return null
+  if (courseSlug === 'mba' && !mbaVersion) return null
 
   const nextSeq = lastSeq + 1
 
-  // 2. Find the next published item in the same course (and, for BSS,
+  // 2. Find the next published item in the same course (and, for MBA,
   //    the same version).
   let nextQuery = supabase
     .from('content_items')
@@ -282,8 +282,8 @@ export async function fetchResumeTarget(
     .eq('sequence_num', nextSeq)
     .eq('is_published', true)
 
-  if (courseSlug === 'bss' && bssVersion) {
-    nextQuery = nextQuery.eq('metadata->>version', bssVersion)
+  if (courseSlug === 'mba' && mbaVersion) {
+    nextQuery = nextQuery.eq('metadata->>version', mbaVersion)
   }
 
   // NOT .maybeSingle(): published items can share a (type, sequence_num)
@@ -303,7 +303,7 @@ export async function fetchResumeTarget(
 
   return {
     courseSlug,
-    bssVersion,
+    mbaVersion,
     itemTitle: (nextItem.title as string | null) ?? null,
     sequenceNum: nextItem.sequence_num as number,
   }

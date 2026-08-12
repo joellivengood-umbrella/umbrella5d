@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { BSS_VERSIONS, type BssVersion } from '@/lib/courses'
+import { MBA_VERSIONS, type MbaVersion } from '@/lib/courses'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
 
@@ -17,7 +17,7 @@ type FormValues = {
   media_url: string
   duration_mins: string
   is_published: boolean
-  bss_version: BssVersion | ''
+  mba_version: MbaVersion | ''
   part_id: string
   part_sort_index: string
 }
@@ -51,11 +51,11 @@ export function ContentItemForm({
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<Status>(null)
 
-  const initialVersion: BssVersion | '' =
-    courseSlug === 'bss' &&
+  const initialVersion: MbaVersion | '' =
+    courseSlug === 'mba' &&
     initial.metadata &&
     typeof initial.metadata === 'object'
-      ? ((initial.metadata as Record<string, unknown>).version as BssVersion) ??
+      ? ((initial.metadata as Record<string, unknown>).version as MbaVersion) ??
         ''
       : ''
 
@@ -66,7 +66,7 @@ export function ContentItemForm({
     media_url: initial.media_url ?? '',
     duration_mins: initial.duration_mins?.toString() ?? '',
     is_published: initial.is_published,
-    bss_version: initialVersion,
+    mba_version: initialVersion,
     part_id: initial.part_id ?? '',
     part_sort_index: initial.part_sort_index?.toString() ?? '',
   })
@@ -104,8 +104,8 @@ export function ContentItemForm({
       }
     }
 
-    if (courseSlug === 'bss' && !values.bss_version) {
-      setStatus({ type: 'error', msg: 'BSS items require a version' })
+    if (courseSlug === 'mba' && !values.mba_version) {
+      setStatus({ type: 'error', msg: 'MBA items require a version' })
       return
     }
 
@@ -136,8 +136,8 @@ export function ContentItemForm({
     }
 
     const metadata: Record<string, unknown> | null =
-      courseSlug === 'bss'
-        ? { ...(initial.metadata ?? {}), version: values.bss_version }
+      courseSlug === 'mba'
+        ? { ...(initial.metadata ?? {}), version: values.mba_version }
         : initial.metadata
 
     const payload: Record<string, unknown> = {
@@ -262,18 +262,18 @@ export function ContentItemForm({
           </label>
         )}
 
-        {courseSlug === 'bss' && (
+        {courseSlug === 'mba' && (
           <label className="settings-field">
-            <span>BSS version</span>
+            <span>MBA version</span>
             <select
-              value={values.bss_version}
+              value={values.mba_version}
               onChange={(e) =>
-                update('bss_version', e.target.value as BssVersion | '')
+                update('mba_version', e.target.value as MbaVersion | '')
               }
               required
             >
               <option value="">Choose version…</option>
-              {BSS_VERSIONS.map((v) => (
+              {MBA_VERSIONS.map((v) => (
                 <option key={v.slug} value={v.slug}>
                   {v.label}
                 </option>
