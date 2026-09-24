@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/analytics'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { DEFAULT_SECTION_TITLES } from '@/lib/courses'
 import { sanitizeLessonHtml } from '@/lib/sanitize-html'
@@ -173,6 +174,12 @@ export function MachineLessonView({
       return
     }
 
+    // Block check/uncheck succeeded — record the engagement event.
+    track(userId, willCheck ? 'machine_block_checked' : 'machine_block_unchecked', {
+      blockId,
+      lessonId,
+    })
+
     // Roll completion up to content_progress only on a true transition,
     // so we don't spam the table on every click.
     const nextComplete =
@@ -193,6 +200,11 @@ export function MachineLessonView({
           .eq('content_item_id', lessonId)
       }
       completeRef.current = nextComplete
+      // Mirror the content_completed/uncompleted events other courses emit,
+      // so a machine lesson counts the same as any other completion.
+      track(userId, nextComplete ? 'content_completed' : 'content_uncompleted', {
+        contentItemId: lessonId,
+      })
     }
 
     setPending((p) => {
@@ -217,6 +229,11 @@ export function MachineLessonView({
         { user_id: userId, content_item_id: lessonId },
         { onConflict: 'user_id,content_item_id' }
       )
+    // A checkpoint-free lesson never toggled, so its completion is recorded
+    // here; checkpoint lessons already fired on the completion transition.
+    if (totalCheckpoints === 0) {
+      track(userId, 'content_completed', { contentItemId: lessonId })
+    }
     router.push('/courses/machine')
   }
 
@@ -594,6 +611,7 @@ function AnswerBox({
     } else {
       lastSaved.current = value
       setStatus('saved')
+      track(userId, 'machine_activity_saved', { blockId, promptIndex })
     }
   }
 

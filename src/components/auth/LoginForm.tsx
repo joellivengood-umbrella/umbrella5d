@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/analytics'
 
 export function LoginForm() {
   const router = useRouter()
@@ -35,6 +36,11 @@ export function LoginForm() {
       )
       return
     }
+
+    // Sign-in succeeded — record the session start. Fire-and-forget: the
+    // profile lookup below keeps the page mounted long enough for it to send,
+    // and the client-side redirect won't abort an in-flight request.
+    track(data.session.user.id, 'login')
 
     // Check if user has completed onboarding
     const { data: profile } = await supabase
