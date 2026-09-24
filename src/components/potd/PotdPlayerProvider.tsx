@@ -10,6 +10,8 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+// aliased: the POTD `play(track)` param already binds the name `track`.
+import { track as trackEvent } from '@/lib/analytics'
 import { usePartnerBumper } from '@/components/app/PartnerBumperContext'
 import { useBumperedAudio } from '@/components/courses/useBumperedAudio'
 
@@ -128,8 +130,12 @@ export function PotdPlayerProvider({
       setDuration(0)
       setCurrent(track)
       startFresh(track.mediaUrl)
+      trackEvent(userId, 'potd_played', {
+        itemId: track.itemId,
+        episodeNum: track.episodeNum,
+      })
     },
-    [current, startFresh]
+    [current, startFresh, userId]
   )
 
   const toggle = useCallback(() => {
@@ -228,6 +234,7 @@ export function PotdPlayerProvider({
       autoCompletedRef.current.delete(current.itemId)
       return
     }
+    trackEvent(userId, 'potd_completed', { itemId: current.itemId })
     // Refresh server components so "heard" counts + done states update.
     router.refresh()
   }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/analytics'
 
 /**
  * Toggles completion state for a single content_item.
@@ -40,6 +41,7 @@ export function MarkCompleteButton({
             { onConflict: 'user_id,content_item_id' }
           )
         if (error) setIsDone(!nextDone)
+        else track(userId, 'content_completed', { contentItemId })
       } else {
         const { error } = await supabase
           .from('content_progress')
@@ -47,6 +49,7 @@ export function MarkCompleteButton({
           .eq('user_id', userId)
           .eq('content_item_id', contentItemId)
         if (error) setIsDone(!nextDone)
+        else track(userId, 'content_uncompleted', { contentItemId })
       }
     })
   }
