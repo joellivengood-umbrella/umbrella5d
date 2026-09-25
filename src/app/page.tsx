@@ -93,7 +93,7 @@ export default function LandingPage() {
             <div className="mkt-split__lead">
               <p className="mkt-eyebrow">The problem</p>
               <h2 className="mkt-h2"> 
-				Your company isn't aligned. Profits suffer.
+				Your company isn&apos;t aligned. Profits suffer.
               </h2>
             </div>
             <ul className="mkt-problem__list">
