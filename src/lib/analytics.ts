@@ -21,6 +21,7 @@ export type AnalyticsEvent =
   | 'potd_completed'
   | 'machine_block_checked'
   | 'machine_block_unchecked'
+  | 'machine_activity_saved'
   | 'course_opened'
   | 'login'
 
