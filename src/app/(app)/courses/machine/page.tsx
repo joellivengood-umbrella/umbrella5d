@@ -12,6 +12,7 @@ import {
 import { fetchMachineLanding, partOrdinal } from '@/lib/machine-queries'
 import { fetchMemberAssignments } from '@/lib/org-queries'
 import { BodyClass } from '@/components/app/BodyClass'
+import { TrackView } from '@/components/app/TrackView'
 import { ContentItemTile } from '@/components/courses/ContentItemTile'
 
 export const metadata = { title: 'The 5D Machine' }
@@ -65,6 +66,7 @@ export default async function MachineIndexPage() {
   return (
     <>
       <BodyClass className="page-dashboard" />
+      <TrackView userId={user.id} event="course_opened" props={{ slug: course.slug }} />
       <main className="courses-main" style={courseThemeVars(course.theme)}>
         <Link href="/courses" className="lesson-back-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" aria-hidden="true">
