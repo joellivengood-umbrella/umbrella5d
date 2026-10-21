@@ -5,6 +5,7 @@ import { MBA_VERSIONS, courseThemeVars } from '@/lib/courses'
 import { fetchCourse } from '@/lib/course-queries'
 import { fetchContentItems, fetchCompletedItemIds } from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
+import { TrackView } from '@/components/app/TrackView'
 
 export const metadata = {
   title: 'MBA Seminars',
@@ -39,6 +40,7 @@ export default async function MbaHubPage() {
   return (
     <>
       <BodyClass className="page-dashboard" />
+      <TrackView userId={user.id} event="course_opened" props={{ slug: course.slug }} />
       <main className="courses-main" style={courseThemeVars(course.theme)}>
         <Link href="/courses" className="lesson-back-btn">
           <svg
