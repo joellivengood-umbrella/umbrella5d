@@ -8439,6 +8439,53 @@ body.potd-player-active .app-main {
 .wiz-alt a { color: #a9b6ff; font-weight: 600; }
 .wiz-alt a:hover { color: #c7d0ff; }
 
+/* Terms / Privacy agreement (signup form + /consent) */
+.legal-agree { margin: .25rem 0 1.25rem; }
+.legal-agree__row {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  font-size: .9rem;
+  line-height: 1.5;
+  color: var(--mkt-text);
+  cursor: pointer;
+}
+.legal-agree__row input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: .15rem 0 0;
+  accent-color: #6d5cff;
+  cursor: pointer;
+}
+.legal-agree__row a { color: #a9b6ff; font-weight: 600; }
+.legal-agree__row a:hover { color: #c7d0ff; }
+.legal-agree__note {
+  margin: .5rem 0 0 calc(18px + .6rem);
+  font-size: .78rem;
+  line-height: 1.5;
+  color: var(--mkt-muted);
+}
+.legal-error {
+  margin: 0 0 .75rem;
+  font-size: .875rem;
+  text-align: center;
+  color: #f87171;
+}
+
+/* Public legal pages (/terms, /privacy) */
+.legal-doc {
+  max-width: 760px;
+  margin-inline: auto;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--mkt-text);
+}
+.legal-doc h2 { margin: 2rem 0 .6rem; font-size: 1.25rem; }
+.legal-doc p,
+.legal-doc ul { margin: 0 0 1rem; }
+.legal-doc a { color: #a9b6ff; }
+
 .wiz-back {
   display: inline-flex;
   align-items: center;

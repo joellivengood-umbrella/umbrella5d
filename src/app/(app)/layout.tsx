@@ -11,6 +11,7 @@ import {
   fetchUserPartner,
   fetchMyPartnerBranding,
 } from '@/lib/org-queries'
+import { CONSENT_PATH, hasAcceptedCurrentTerms } from '@/lib/legal'
 
 export default async function AppLayout({
   children,
@@ -24,7 +25,7 @@ export default async function AppLayout({
 
   if (!user) redirect('/login')
 
-  const [{ data: profile }, partner, partnerBranding] = await Promise.all([
+  const [{ data: profile }, partner, partnerBranding, accepted] = await Promise.all([
     supabase
       .from('profiles')
       .select(
@@ -37,7 +38,13 @@ export default async function AppLayout({
     // for the "Provided by …" co-brand strip. Null for individuals and for
     // the partner owner themselves.
     fetchMyPartnerBranding(supabase),
+    hasAcceptedCurrentTerms(supabase, user.id),
   ])
+
+  // Everyone must have accepted the current Terms and Privacy Policy (new
+  // members do it on the signup form; this catches everyone else, and
+  // everyone again after a document's version is bumped in lib/legal.ts).
+  if (!accepted) redirect(CONSENT_PATH)
 
   // Route to onboarding if this user hasn't set up their account yet.
   // Partners (who may own no org of their own) are already set up.

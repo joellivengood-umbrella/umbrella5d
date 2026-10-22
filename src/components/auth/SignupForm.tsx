@@ -3,6 +3,8 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { recordAcceptance } from '@/lib/legal'
+import { LegalAgreement } from './LegalAgreement'
 
 export function SignupForm() {
   const router = useRouter()
@@ -10,6 +12,7 @@ export function SignupForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
+  const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -19,6 +22,10 @@ export function SignupForm() {
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters.')
+      return
+    }
+    if (!agreed) {
+      setError('Please agree to the Terms of Service and Privacy Policy to continue.')
       return
     }
 
@@ -54,6 +61,10 @@ export function SignupForm() {
       setError(signInError.message)
       return
     }
+
+    // 3) Record their acceptance (analytics on by default). If this write
+    //    fails, the app's consent check simply asks them again later.
+    if (body?.userId) await recordAcceptance(supabase, body.userId, true)
 
     router.push('/onboarding')
     router.refresh()
@@ -131,6 +142,8 @@ export function SignupForm() {
           </button>
         </div>
       </div>
+
+      <LegalAgreement checked={agreed} onChange={setAgreed} />
 
       {error && (
         <p

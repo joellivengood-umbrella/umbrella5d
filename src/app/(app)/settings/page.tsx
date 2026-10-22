@@ -5,6 +5,8 @@ import { ProfileSection } from './ProfileSection'
 import { PreferencesSection } from './PreferencesSection'
 import { OrganizationSection } from './OrganizationSection'
 import { AccountSection } from './AccountSection'
+import { DataPrivacySection } from './DataPrivacySection'
+import { fetchUsageAnalyticsChoice } from '@/lib/legal'
 import { PersonalProfileReveal } from './PersonalProfileReveal'
 import { JoinOrganizationSection } from './JoinOrganizationSection'
 import { PartnerProfileEditor } from '../partner/PartnerProfileEditor'
@@ -18,13 +20,16 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select(
-      'full_name, role_title, avatar_url, show_completed_items, timezone, org_id'
-    )
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, usageAnalytics] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select(
+        'full_name, role_title, avatar_url, show_completed_items, timezone, org_id'
+      )
+      .eq('id', user.id)
+      .single(),
+    fetchUsageAnalyticsChoice(supabase, user.id),
+  ])
 
   // Partner accounts lead with their partner profile (branding). The
   // personal profile is then collapsed behind a reveal, so Settings stays
@@ -106,6 +111,8 @@ export default async function SettingsPage() {
         />
 
         <AccountSection />
+
+        <DataPrivacySection userId={user.id} initialUsageAnalytics={usageAnalytics} />
       </main>
     </>
   )
