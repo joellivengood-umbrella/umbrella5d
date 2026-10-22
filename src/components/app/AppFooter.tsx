@@ -15,7 +15,7 @@ export function AppFooter() {
       <nav className="app-footer__links" aria-label="Legal and support">
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>
-        <a href="mailto:support@bz5d.com">Support</a>
+        <a href="mailto:info@umbrella5d.com">Support</a>
       </nav>
     </footer>
   )

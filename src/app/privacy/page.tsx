@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         In the meantime, questions about your information can go to{' '}
-        <a href="mailto:support@bz5d.com">support@bz5d.com</a>.
+        <a href="mailto:info@umbrella5d.com">info@umbrella5d.com</a>.
       </p>
     </LegalDocument>
   )

@@ -68,8 +68,8 @@ export default function FaqPage() {
             <p className="mkt-hero__sub mkt-hero__sub--wide">
               Everything you might want to know before you start. Still stuck?
               Reach us at{' '}
-              <a href="mailto:hello@bz5d.com" className="mkt-inlinelink">
-                hello@bz5d.com
+              <a href="mailto:info@umbrella5d.com" className="mkt-inlinelink">
+                info@umbrella5d.com
               </a>
               .
             </p>

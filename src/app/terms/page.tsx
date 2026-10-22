@@ -18,7 +18,7 @@ export default function TermsPage() {
       </p>
       <p>
         Questions in the meantime can go to{' '}
-        <a href="mailto:support@bz5d.com">support@bz5d.com</a>.
+        <a href="mailto:info@umbrella5d.com">info@umbrella5d.com</a>.
       </p>
     </LegalDocument>
   )
