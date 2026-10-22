@@ -458,6 +458,8 @@ export type Partner = {
   inviteCode: string
   avatarUrl: string | null
   description: string | null
+  /** Their "Brought to you by" audio pre-roll (set by Umbrella admins). */
+  bumperUrl: string | null
 }
 
 /**
@@ -472,7 +474,7 @@ export async function fetchUserPartner(
 ): Promise<Partner | null> {
   const { data, error } = await supabase
     .from('partners')
-    .select('id, name, invite_code, avatar_url, description')
+    .select('id, name, invite_code, avatar_url, description, bumper_url')
     .eq('owner_id', userId)
     .order('created_at', { ascending: true })
     .limit(1)
@@ -488,6 +490,7 @@ export async function fetchUserPartner(
         invite_code: string
         avatar_url: string | null
         description: string | null
+        bumper_url: string | null
       }
     | undefined
   if (!row) return null
@@ -497,6 +500,7 @@ export async function fetchUserPartner(
     inviteCode: row.invite_code,
     avatarUrl: row.avatar_url,
     description: row.description,
+    bumperUrl: row.bumper_url,
   }
 }
 

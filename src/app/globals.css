@@ -5601,6 +5601,19 @@ body.potd-player-active .app-main {
   height: 36px;
   max-width: 260px;
 }
+/* Partner Dashboard: listen to your own bumper (read-only). */
+.partner-bumper-preview__player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 12px;
+  background: #fafbfd;
+}
+.partner-bumper-preview__label { font-size: .85rem; font-weight: 700; color: var(--clr-text); }
+.partner-bumper-preview__player audio { width: min(100%, 360px); height: 40px; }
 .partner-bumper__actions {
   display: flex;
   align-items: center;
