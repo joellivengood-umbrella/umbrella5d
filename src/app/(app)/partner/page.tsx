@@ -8,6 +8,8 @@ import {
 } from '@/lib/org-queries'
 import { PartnerInviteCode } from './PartnerInviteCode'
 import { PartnerMemberPreview } from './PartnerMemberPreview'
+import { fetchPartnerUsage } from '@/lib/partner-usage'
+import { MachineProgress, OrgUsageTable, UsageTiles } from './PartnerUsage'
 
 export const metadata = { title: 'Partner' }
 export const dynamic = 'force-dynamic'
@@ -28,9 +30,12 @@ export default async function PartnerPage() {
   const partner = await fetchUserPartner(supabase, user.id)
   if (!partner) notFound()
 
-  const [orgs, impact] = await Promise.all([
+  const [orgs, impact, usage] = await Promise.all([
     fetchPartnerOrgs(supabase),
     fetchPartnerImpact(supabase),
+    // Null until the get_partner_usage migration runs; the page then falls
+    // back to the all-time reach tiles and the plain org list.
+    fetchPartnerUsage(supabase),
   ])
 
   return (
@@ -81,9 +86,16 @@ export default async function PartnerPage() {
 
         <section className="settings-section partner-impact">
           <header className="settings-section__header">
-            <h2>Your reach</h2>
-            <p>The impact of your partnership so far.</p>
+            <h2>{usage ? 'Last 30 days' : 'Your reach'}</h2>
+            <p>
+              {usage
+                ? 'How members across your organizations are using the program.'
+                : 'The impact of your partnership so far.'}
+            </p>
           </header>
+          {usage ? (
+            <UsageTiles usage={usage} />
+          ) : (
           <div className="partner-impact__grid">
             <div className="partner-impact__stat">
               <svg className="partner-impact__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -124,6 +136,7 @@ export default async function PartnerPage() {
               <span className="partner-impact__label">Lessons completed</span>
             </div>
           </div>
+          )}
           {impact.memberCount > 0 && (
             <p className="partner-impact__headline">
               <svg className="partner-impact__headline-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -135,6 +148,16 @@ export default async function PartnerPage() {
             </p>
           )}
         </section>
+
+        {usage && (
+          <section className="settings-section">
+            <header className="settings-section__header">
+              <h2>5D Machine progress</h2>
+              <p>How far your members are through the core program.</p>
+            </header>
+            <MachineProgress usage={usage} />
+          </section>
+        )}
 
         <section className="settings-section">
           <header className="settings-section__header">
@@ -174,11 +197,13 @@ export default async function PartnerPage() {
             <p>
               {orgs.length === 0
                 ? 'No organizations have joined under your code yet.'
-                : `${orgs.length} organization${orgs.length === 1 ? '' : 's'} under your partnership.`}
+                : `${orgs.length} organization${orgs.length === 1 ? '' : 's'} under your partnership.${usage ? ' Active and lessons cover the last 30 days; “Quiet” means no activity in 14+ days.' : ''}`}
             </p>
           </header>
 
-          {orgs.length > 0 && (
+          {usage && usage.orgs.length > 0 ? (
+            <OrgUsageTable usage={usage} orgs={orgs} />
+          ) : orgs.length > 0 && (
             <ul className="partner-orgs__list">
               {orgs.map((o) => (
                 <li key={o.id} className="partner-orgs__row">
