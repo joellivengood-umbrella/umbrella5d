@@ -260,16 +260,30 @@ export function AppSidebar({
         </Link>
 
         {profile?.is_platform_admin && (
-          <Link
-            href="/admin"
-            className={`sidebar-link${isActive('/admin') ? ' is-active' : ''}`}
-            aria-current={isActive('/admin') ? 'page' : undefined}
-          >
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6z" />
-            </svg>
-            <span>Admin</span>
-          </Link>
+          <>
+            <Link
+              href="/admin"
+              className={`sidebar-link${isActive('/admin') && !isActive('/admin/analytics') ? ' is-active' : ''}`}
+              aria-current={isActive('/admin') && !isActive('/admin/analytics') ? 'page' : undefined}
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6z" />
+              </svg>
+              <span>Admin</span>
+            </Link>
+            <Link
+              href="/admin/analytics"
+              className={`sidebar-link${isActive('/admin/analytics') ? ' is-active' : ''}`}
+              aria-current={isActive('/admin/analytics') ? 'page' : undefined}
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              <span>Analytics</span>
+            </Link>
+          </>
         )}
       </nav>
 

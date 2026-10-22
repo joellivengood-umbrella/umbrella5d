@@ -43,6 +43,9 @@ export default async function AdminIndexPage() {
             course. Choose a course to manage its lessons.
           </p>
           <div className="admin-quicklinks">
+            <Link href="/admin/analytics" className="btn btn--secondary btn--sm">
+              Analytics →
+            </Link>
             <Link href="/admin/partners" className="btn btn--secondary btn--sm">
               Partner bumpers →
             </Link>

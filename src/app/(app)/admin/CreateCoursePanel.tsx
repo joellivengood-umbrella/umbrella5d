@@ -9,6 +9,9 @@ import { CourseCard } from '@/components/courses/CourseCard'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
 
+/** Slugs taken by static /admin/* pages (they win over /admin/[slug]). */
+const RESERVED_SLUGS = new Set(['analytics', 'partners'])
+
 function slugify(s: string): string {
   return s
     .toLowerCase()
@@ -75,6 +78,14 @@ export function CreateCoursePanel() {
       return setStatus({
         type: 'error',
         msg: 'URL slug must be lowercase letters, numbers, and hyphens.',
+      })
+    }
+    // Static admin pages sit beside /admin/[slug] and would shadow a course
+    // with the same slug, making its admin page unreachable.
+    if (RESERVED_SLUGS.has(sl)) {
+      return setStatus({
+        type: 'error',
+        msg: `“${sl}” is reserved for an admin page. Please choose another URL slug.`,
       })
     }
 
