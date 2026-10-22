@@ -151,6 +151,23 @@ export default async function PartnerPage() {
           <PartnerMemberPreview partner={partner} />
         </section>
 
+        <section className="settings-section partner-bumper-preview">
+          <header className="settings-section__header">
+            <h2>Your bumper</h2>
+            <p>
+              {partner.bumperUrl
+                ? 'This short “brought to you by” clip plays before content audio for every member under your partnership.'
+                : 'Your “brought to you by” audio clip will appear here once we’ve added it. It plays before content audio for every member under your partnership.'}
+            </p>
+          </header>
+          {partner.bumperUrl ? (
+            <div className="partner-bumper-preview__player">
+              <span className="partner-bumper-preview__label">Audio bumper</span>
+              <audio src={partner.bumperUrl} controls preload="none" />
+            </div>
+          ) : null}
+        </section>
+
         <section className="settings-section partner-orgs">
           <header className="settings-section__header">
             <h2>Your organizations</h2>
