@@ -340,10 +340,10 @@ export function MachineLessonView({
       </div>
 
       {/* ── Read sections (Essential Prerequisites, Objectives) ── */}
-      {readSections.map(({ section, groups }) => (
-        <div key={section} className="m-content">
-          <h2 className="m-sectitle">{titleFor(section)}</h2>
-          {groups.map((g, gi) => (
+      {readSections.map(({ section, groups }) => {
+        const renderStep = (g: Group, gi: number) => {
+          const title = stepTitle(g.checkpoint?.data.text)
+          return (
             <section
               key={g.checkpoint?.id ?? `${section}-lead-${gi}`}
               className={
@@ -362,17 +362,42 @@ export function MachineLessonView({
                 ) : null}
               </div>
               <div className="m-item__body">
-                {g.checkpoint?.data.text ? (
-                  <h3 className="m-item__heading">{g.checkpoint.data.text}</h3>
-                ) : null}
+                {title ? <h3 className="m-item__heading">{title}</h3> : null}
                 {g.body.map((b) => (
                   <BlockBody key={b.id} block={b} />
                 ))}
               </div>
             </section>
-          ))}
-        </div>
-      ))}
+          )
+        }
+
+        // A titled step keeps its own card. Back-to-back UNTITLED steps
+        // (short one-liners) share one checklist card, a row each, so a
+        // run of single sentences reads like a to-do list rather than a
+        // stack of near-empty boxes.
+        const runs: { list: boolean; items: { g: Group; gi: number }[] }[] = []
+        groups.forEach((g, gi) => {
+          const list = Boolean(g.checkpoint) && !stepTitle(g.checkpoint?.data.text)
+          const last = runs[runs.length - 1]
+          if (list && last?.list) last.items.push({ g, gi })
+          else runs.push({ list, items: [{ g, gi }] })
+        })
+
+        return (
+          <div key={section} className="m-content">
+            <h2 className="m-sectitle">{titleFor(section)}</h2>
+            {runs.map((run) =>
+              run.list ? (
+                <div key={run.items[0].g.checkpoint!.id} className="m-checklist">
+                  {run.items.map(({ g, gi }) => renderStep(g, gi))}
+                </div>
+              ) : (
+                run.items.map(({ g, gi }) => renderStep(g, gi))
+              )
+            )}
+          </div>
+        )
+      })}
 
       {/* ── Instructions (the interactive to-do) ── */}
       {instructionBlocks.length > 0 && (
@@ -522,15 +547,32 @@ function CheckPill({
   )
 }
 
+/**
+ * A step's display title. Scripts with one-line steps often get the bare
+ * step number typed as the heading ("1", "2."), which only repeats the
+ * number pill — treat that the same as no title.
+ */
+function stepTitle(text: string | undefined): string {
+  const t = (text ?? '').trim()
+  return /^\d+[.)]?$/.test(t) ? '' : t
+}
+
+/**
+ * Lesson HTML without blank paragraphs: empty rows pasted from a script
+ * arrive as <p><br></p> / <p>&nbsp;</p> and would show as big gaps.
+ */
+function lessonHtml(html: string | undefined): string {
+  return sanitizeLessonHtml(html)
+    .replace(/<p[^>]*>(?:\s|&nbsp;|&#160;|<br\s*\/?>)*<\/p>/gi, '')
+    .trim()
+}
+
 /** Renders one non-heading block (rich text or media). */
 function BlockBody({ block }: { block: LessonBlock }) {
   if (block.blockType === 'rich_text') {
-    return (
-      <div
-        className="m-prose"
-        dangerouslySetInnerHTML={{ __html: sanitizeLessonHtml(block.data.html) }}
-      />
-    )
+    const html = lessonHtml(block.data.html)
+    if (!html) return null
+    return <div className="m-prose" dangerouslySetInnerHTML={{ __html: html }} />
   }
   if (block.blockType === 'audio' || block.blockType === 'video') {
     return (

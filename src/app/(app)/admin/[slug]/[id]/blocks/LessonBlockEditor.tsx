@@ -411,7 +411,9 @@ function BlockCard({
               value={block.text}
               onChange={(e) => onUpdate(section, block.id, { text: e.target.value })}
               placeholder={
-                section === 'instructions' ? 'Sub-heading' : 'Step heading'
+                section === 'instructions'
+                  ? 'Sub-heading'
+                  : 'Step title (optional — leave blank for a short checklist row)'
               }
             />
             {section !== 'instructions' && (
