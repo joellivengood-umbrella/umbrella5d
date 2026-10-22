@@ -51,8 +51,8 @@ export function MarketingFooter() {
         <div className="footer-bottom">
           <p>&copy; 2026 Umbrella. All rights reserved.</p>
           <div className="footer-legal">
-            <Link href="#">Privacy Policy</Link>
-            <Link href="#">Terms of Service</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
           </div>
         </div>
       </div>
