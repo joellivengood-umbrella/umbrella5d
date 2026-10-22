@@ -41,8 +41,7 @@ export function MarketingFooter() {
             <div className="footer-col">
               <h4>Contact</h4>
               <ul>
-                <li><a href="mailto:hello@bz5d.com">hello@bz5d.com</a></li>
-                <li><a href="mailto:support@bz5d.com">support@bz5d.com</a></li>
+                <li><a href="mailto:info@umbrella5d.com">info@umbrella5d.com</a></li>
               </ul>
             </div>
           </div>
