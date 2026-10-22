@@ -8590,6 +8590,463 @@ body.potd-player-active .app-main {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   Admin analytics dashboard (/admin/analytics)
+   Chart marks follow the dataviz specs: one brand-violet series, 2px
+   line + 10% wash, hairline grid, 4px rounded bar ends, 2px gaps between
+   heat cells, values/labels in ink (never in the series color).
+   ══════════════════════════════════════════════════════════════════ */
+.analytics-main {
+  /* width:100% — a flex child of .app-main shrink-wraps without it. */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 4rem;
+}
+
+.analytics-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Filter row — one row above everything it scopes. */
+.analytics-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1rem;
+  margin: 0 0 1.25rem;
+}
+@media (min-width: 769px) {
+  .analytics-filters {
+    position: sticky;
+    top: calc(var(--nav-h) + .5rem);
+    z-index: 6;
+    margin: 0 -.5rem 1.25rem;
+    padding: .5rem;
+    border-radius: 14px;
+    /* Solid canvas color (not a translucent blur): content scrolling under
+       the pinned bar must never show through it. */
+    background: var(--clr-app-bg);
+    box-shadow: 0 8px 14px -10px rgba(17, 24, 39, .18);
+  }
+}
+.analytics-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+}
+.analytics-seg__btn {
+  border: 0;
+  background: none;
+  padding: .45rem .95rem;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--clr-muted);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.analytics-seg__btn:hover { background: rgba(91, 79, 255, .07); color: var(--clr-primary); }
+.analytics-seg__btn.is-active { background: var(--clr-primary); color: #fff; }
+.analytics-seg__btn:focus-visible,
+.analytics-filter__select:focus-visible,
+.analytics-chart__plot:focus-visible,
+.analytics-link:focus-visible,
+.analytics-tableview summary:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+}
+/* The breakdown heading receives focus after a drill-down link navigates. */
+.analytics-focus-target:focus { outline: none; }
+.analytics-focus-target:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.analytics-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.analytics-filter__label {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #5b6270; /* 5.6:1 on the gray canvas (--clr-muted is 4.4:1 there) */
+}
+.analytics-filter__select {
+  max-width: 260px;
+  padding: .5rem 2rem .5rem .8rem;
+  font: inherit;
+  font-size: .9rem;
+  color: var(--clr-text);
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.analytics-filters__status {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--clr-primary);
+}
+
+/* Refetch keeps the frame: the previous slice stays, dimmed, until the
+   next one arrives — no skeleton flash, no layout jump. */
+.analytics-body { transition: opacity .15s var(--ease); }
+.analytics-body.is-pending { opacity: .5; }
+
+.analytics-notice {
+  margin: 0 0 1rem;
+  padding: .85rem 1rem;
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--clr-text);
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-left: 3px solid var(--clr-primary);
+  border-radius: 10px;
+}
+.analytics-notice--error { background: #fef2f2; border-color: #fecaca; border-left-color: #dc2626; }
+.analytics-notice code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .82em;
+  padding: .05rem .3rem;
+  background: rgba(17, 24, 39, .06);
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+.analytics-link { color: var(--clr-primary); font-weight: 600; text-decoration: none; }
+.analytics-link:hover { text-decoration: underline; }
+/* Beat `.admin-table a { color: inherit }` (0,1,1) so drill-down links
+   inside the tables still look like links. */
+.analytics-table a.analytics-link,
+.analytics-table a.analytics-link:hover { color: var(--clr-primary); font-weight: 600; }
+
+/* KPI tiles */
+.analytics-section { margin-bottom: 1.25rem; }
+.analytics-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .25rem 1rem;
+  margin-bottom: .75rem;
+}
+.analytics-section__head h2 { margin: 0; font-size: 1.05rem; color: var(--clr-text); }
+.analytics-section__head p { margin: 0; font-size: .85rem; color: #5b6270; } /* 5.6:1 on the canvas */
+.analytics-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+}
+.analytics-kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  min-width: 0;
+  padding: 1.2rem 1.25rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.analytics-kpi::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(100deg, #5fc6ff, #8a7bff, #b56bff);
+}
+.analytics-kpi__label {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--clr-muted);
+}
+.analytics-kpi__value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.03em;
+  color: var(--clr-text);
+}
+.analytics-kpi__hint { font-size: .8rem; color: var(--clr-muted); }
+.analytics-delta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem;
+  font-size: .82rem;
+  font-weight: 700;
+}
+.analytics-delta svg { flex-shrink: 0; }
+.analytics-delta__vs { font-weight: 500; color: var(--clr-muted); }
+.analytics-delta--up { color: #15803d; }
+.analytics-delta--down { color: #b91c1c; }
+.analytics-delta--new { color: var(--clr-primary); }
+.analytics-delta--muted { font-weight: 500; color: var(--clr-muted); }
+
+/* Section cards */
+.analytics-card {
+  position: relative;
+  min-width: 0;
+  margin-bottom: 1.25rem;
+  padding: 1.4rem 1.5rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--clr-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.analytics-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(100deg, #5fc6ff, #8a7bff, #b56bff);
+}
+.analytics-card__head { margin-bottom: 1rem; }
+.analytics-card__head h2 { margin: 0 0 .25rem; font-size: 1.1rem; color: var(--clr-text); }
+.analytics-card__head p { margin: 0; max-width: 70ch; font-size: .88rem; line-height: 1.5; color: var(--clr-muted); }
+.analytics-card__head--split {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+}
+/* Stacked full-width by default: these 3–4 column tables only sit
+   side by side once each half has room for them without scrolling. */
+.analytics-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.analytics-pair > .analytics-card { margin-bottom: 0; }
+@media (min-width: 1500px) {
+  .analytics-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.analytics-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--clr-muted);
+  background: #fafbfd;
+  border: 1px solid var(--clr-border);
+  border-radius: 10px;
+}
+.analytics-footnote { margin: .75rem 0 0; font-size: .8rem; line-height: 1.5; color: var(--clr-muted); }
+.analytics-footnote--top { margin: -.25rem 0 .9rem; }
+
+/* Tables */
+.analytics-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.analytics-table th.analytics-num,
+.analytics-table td.analytics-num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.analytics-table td { font-size: .88rem; }
+/* Names keep a readable width; on narrow cards the table scrolls sideways
+   instead of wrapping names one word per line. */
+.analytics-table th.analytics-namecol { min-width: 10rem; }
+.analytics-name { font-weight: 600; }
+.analytics-name + .admin-pill { margin-left: .45rem; vertical-align: 1px; }
+.analytics-hint { display: block; margin-top: .1rem; font-size: .78rem; font-weight: 400; color: var(--clr-muted); }
+.analytics-row--remainder td { background: #fafbfd; }
+.analytics-barcol { width: 38%; min-width: 150px; }
+
+/* Thin single-hue bar, square at the baseline, 4px rounded data end, its
+   value at the tip (margin-right keeps room for the label at 100%). */
+.analytics-bar { position: relative; height: 1.3rem; margin-right: 3.4rem; }
+.analytics-bar__track { position: absolute; inset: 0; }
+.analytics-bar__fill {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  min-width: 4px; /* tiny non-zero values stay a visible nub, not a sliver */
+  height: 8px;
+  transform: translateY(-50%);
+  background: #5b4fff;
+  border-radius: 0 4px 4px 0;
+}
+.analytics-bar__value {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--clr-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Line chart */
+.analytics-chart { position: relative; min-width: 0; }
+.analytics-chart__plot { position: relative; border-radius: 8px; }
+.analytics-chart__svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+.analytics-chart__grid { stroke: #eceef2; stroke-width: 1; shape-rendering: crispEdges; }
+.analytics-chart__baseline { stroke: #d1d5db; stroke-width: 1; shape-rendering: crispEdges; }
+.analytics-chart__crosshair { stroke: #9ca3af; stroke-width: 1; shape-rendering: crispEdges; }
+.analytics-chart__ytick,
+.analytics-chart__xtick {
+  font-size: 11px;
+  fill: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+.analytics-chart__ytick { text-anchor: end; }
+.analytics-chart__endlabel { font-size: 12px; font-weight: 700; fill: var(--clr-text); }
+
+/* Tooltip — values lead, labels follow; a short line key, not a box. */
+.analytics-tip {
+  position: absolute;
+  top: .25rem;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .1rem .4rem;
+  width: max-content;
+  max-width: min(230px, 100%); /* never wider than its chart */
+  padding: .45rem .65rem;
+  font-size: .8rem;
+  line-height: 1.35;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  background: #111827;
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+}
+/* `left` is set in px by the chart once the tip is measured, keeping it
+   inside the card; a retention tip sits just above its cell. */
+.analytics-tip--cell { transform: translateY(calc(-100% - 6px)); }
+.analytics-tip__key { width: 12px; height: 2px; border-radius: 2px; }
+.analytics-tip__value { font-size: .95rem; font-weight: 800; }
+.analytics-tip__label { color: rgba(255, 255, 255, .85); }
+.analytics-tip__sub { flex-basis: 100%; font-size: .75rem; color: rgba(255, 255, 255, .7); }
+
+/* "View as table" twin */
+.analytics-tableview { margin-top: .75rem; }
+.analytics-tableview summary {
+  display: inline-block;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--clr-primary);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.analytics-tableview__scroll {
+  max-height: 320px;
+  margin-top: .6rem;
+  overflow: auto;
+  border: 1px solid var(--clr-border);
+  border-radius: 10px;
+}
+
+/* Retention heat-grid: 2px surface gaps separate the cells. The five
+   steps are a validated one-hue ordinal ramp; 0% is a neutral gray. */
+.analytics-retention__frame { position: relative; }
+.analytics-cohort {
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: .82rem;
+}
+.analytics-cohort th {
+  padding: .35rem .5rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--clr-muted);
+  white-space: nowrap;
+}
+.analytics-cohort__corner,
+.analytics-cohort__label { text-align: left; }
+.analytics-cohort__label { font-size: .82rem !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--clr-text) !important; }
+.analytics-cohort__wk { text-align: center; }
+.analytics-cohort td.analytics-num { padding: 0 .6rem; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.analytics-heat {
+  min-width: 56px;
+  height: 38px;
+  padding: 0 .35rem;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border-radius: 4px;
+  cursor: default;
+}
+.analytics-heat--0 { background: #f1f2f6; color: #4b5563; } /* 6.8:1 */
+.analytics-heat--1 { background: #a3adfb; color: #111827; }
+.analytics-heat--2 { background: #8690f5; color: #111827; }
+.analytics-heat--3 { background: #7178ef; color: #111827; }
+.analytics-heat--4 { background: #5550e6; color: #fff; }
+.analytics-heat--5 { background: #4424da; color: #fff; }
+.analytics-heat--future { background: transparent; }
+.analytics-heat.is-partial { font-style: italic; }
+/* Hover + keyboard focus: a navy outer band over a white inner band, so the
+   indicator clears 3:1 on every step of the ramp, light or dark. */
+.analytics-heat.is-hot,
+.analytics-heat:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 4px #fff;
+}
+.analytics-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  margin-top: .85rem;
+  font-size: .8rem;
+  color: var(--clr-muted);
+}
+.analytics-legend__item { display: inline-flex; align-items: center; gap: .4rem; }
+.analytics-legend__swatch { width: 14px; height: 14px; border-radius: 3px; }
+.analytics-legend__note { font-style: italic; }
+
+@media (max-width: 768px) {
+  .analytics-seg__btn { min-height: 40px; }
+  .analytics-filter__select { min-height: 40px; font-size: 16px; } /* iOS no-zoom */
+  .analytics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+  .analytics-kpi__value { font-size: 1.65rem; }
+  .analytics-card { padding: 1.15rem 1rem 1rem; }
+  .analytics-table th.analytics-namecol { min-width: 9rem; }
+  .analytics-barcol { min-width: 120px; }
+}
+@media (max-width: 640px) {
+  .analytics-main { padding: 1.5rem 1rem 4rem; }
+  /* One row of three equal buttons, even at 320px. */
+  .analytics-seg { display: flex; flex-wrap: nowrap; width: 100%; box-sizing: border-box; }
+  .analytics-seg__btn { flex: 1 1 0; min-width: 0; white-space: nowrap; padding-inline: .5rem; text-align: center; }
+  .analytics-filter { width: 100%; }
+  /* min-width:0 lets the select shrink below its longest option. */
+  .analytics-filter__select { flex: 1; min-width: 0; max-width: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
    Mobile fixes (≤768px) — from the mobile UX audit.
    Kept in one block (appended last so it wins on source order) so the
    mobile-only rules are easy to find and reason about.
