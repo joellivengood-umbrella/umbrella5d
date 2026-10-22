@@ -6655,6 +6655,31 @@ body.potd-player-active .app-main {
   gap: 1rem;
   min-width: 0;
 }
+/* Untitled steps (one-liners) share one checklist card, a row each: the
+   card chrome moves from each step to the list, and rows are split by a
+   hairline instead. Titled steps keep their own cards. */
+.m-checklist {
+  display: flex;
+  flex-direction: column;
+  padding: .35rem 1.6rem;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  background: var(--clr-surface);
+  box-shadow: var(--shadow-sm);
+}
+.m-checklist > .m-item:has(.m-item__gutter > *) {
+  padding: 1.05rem 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.m-checklist > .m-item + .m-item {
+  border-top: 1px solid var(--clr-border);
+}
+/* No title above the text: nudge it so its first line sits level with
+   the number pill. */
+.m-checklist .m-item__body { padding-top: .3rem; }
 .m-item__heading {
   font-size: 1.12rem;
   font-weight: 800;
@@ -6951,6 +6976,10 @@ body.potd-player-active .app-main {
   /* Stacked layout: the pill sits above its content in its own row, so there's
      no side gutter to stick-scroll through — keep it in normal flow. */
   .m-item__gutter .m-check { position: static; }
+  /* Checklist rows stack like every other step on a phone (pill above
+     its text), so the text keeps the full card width. */
+  .m-checklist { padding: .25rem 1.1rem; }
+  .m-checklist .m-item__body { padding-top: 0; }
   .m-part__grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
   /* Full-width finish button — bigger tap target on phones. */
   .m-finish__btn { width: 100%; min-width: 0; }
