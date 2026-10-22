@@ -4878,6 +4878,73 @@ body.potd-player-active .app-main {
 }
 .settings-field--toggle > span { font-weight: 500; }
 
+/* A settings section that starts collapsed (Data & privacy). */
+.settings-disclosure { padding-block: 0; }
+.settings-disclosure__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 0;
+  list-style: none;
+  cursor: pointer;
+}
+.settings-disclosure__summary::-webkit-details-marker { display: none; }
+.settings-disclosure__summary > span { display: flex; flex-direction: column; gap: .2rem; }
+.settings-disclosure__title { font-size: 1.15rem; font-weight: 700; color: var(--clr-text, #111); }
+.settings-disclosure__sub { font-size: .9rem; color: var(--clr-muted, #6b7280); }
+.settings-disclosure__chevron {
+  flex: none;
+  color: var(--clr-muted, #6b7280);
+  transition: transform var(--dur) var(--ease);
+}
+.settings-disclosure[open] .settings-disclosure__chevron { transform: rotate(180deg); }
+.settings-disclosure__summary:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.settings-disclosure__body { padding-bottom: 1.25rem; }
+
+/* Confirmation pop-up (native <dialog>, opened with showModal). */
+.confirm-dialog {
+  width: min(440px, calc(100vw - 2rem));
+  margin: auto; /* the global margin reset un-centers a modal dialog */
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--clr-text, #111);
+  box-shadow: 0 24px 60px rgba(17, 24, 39, .25);
+}
+.confirm-dialog::backdrop { background: rgba(17, 24, 39, .45); }
+.confirm-dialog__panel { padding: 1.5rem 1.5rem 1.25rem; }
+.confirm-dialog h2 { margin: 0 0 .75rem; font-size: 1.2rem; }
+.confirm-dialog p {
+  margin: 0 0 .75rem;
+  font-size: .92rem;
+  line-height: 1.6;
+  color: var(--clr-muted, #4b5563);
+}
+.confirm-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1.25rem;
+  margin-top: 1.25rem;
+}
+.confirm-dialog__secondary {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .85rem;
+  color: var(--clr-muted, #6b7280);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.confirm-dialog__secondary:hover { color: var(--clr-text, #111); }
+
 .settings-hint {
   display: block;
   font-size: .8rem;
