@@ -88,23 +88,55 @@ export function mediaPathFromUrl(url: string | null | undefined): string | null 
   }
 }
 
-function friendlyError(err: unknown): string {
-  const raw = err instanceof Error ? err.message : String(err)
-  if (/413|too large|maximum allowed size|exceeded/i.test(raw)) {
-    return 'This file is larger than your storage plan currently allows. Raise the upload size limit in Supabase (Storage → Settings), then try again.'
+/** Status code + server message from a failed TUS request, when there is one. */
+function tusDetail(err: unknown): { status: number | null; text: string } {
+  const res = (err as { originalResponse?: { getStatus(): number; getBody(): string } | null })
+    ?.originalResponse
+  let text = ''
+  try {
+    const body = res?.getBody() ?? ''
+    // Storage answers with JSON like {"statusCode":"403","error":…,"message":…}.
+    const parsed = body ? (JSON.parse(body) as { message?: string; error?: string }) : null
+    text = parsed?.message || parsed?.error || body
+  } catch {
+    text = res?.getBody() ?? ''
   }
-  if (/401|403|unauthori|row-level security|not allowed/i.test(raw)) {
-    return 'Upload was refused — make sure you’re signed in with an admin account.'
+  return { status: res?.getStatus() ?? null, text: text || (err instanceof Error ? err.message : String(err)) }
+}
+
+/** A plain-English reason, always followed by Storage's own words. */
+function friendlyError(status: number | null, text: string): string {
+  const detail = ` (Storage said: ${status ? `${status} ` : ''}${text.slice(0, 200)})`
+  if (status === 413 || /too large|maximum allowed size|exceeded/i.test(text)) {
+    return `This file is larger than your storage plan currently allows. Raise the upload size limit in Supabase (Storage → Settings), then try again.${detail}`
   }
-  if (/network|failed to fetch|offline/i.test(raw)) {
-    return 'The connection dropped and the upload couldn’t resume. Please try again.'
+  if (status === 415 || /mime|content type/i.test(text)) {
+    return `This file type isn’t allowed in the media bucket.${detail}`
   }
-  return `Upload failed: ${raw}`
+  if (status === 401 || status === 403) {
+    return `Storage refused the upload.${detail}`
+  }
+  if (status == null && /network|failed to fetch|offline|ProgressEvent/i.test(text)) {
+    return `The connection dropped and the upload couldn’t finish. Please try again.${detail}`
+  }
+  return `Upload failed.${detail}`
 }
 
 /**
- * Upload a file into `folder` (resumable, chunked). Resolves with its public
- * URL; `onProgress` gets 0–100.
+ * Supabase recommends its dedicated storage host for large uploads:
+ * https://<ref>.supabase.co → https://<ref>.storage.supabase.co
+ */
+function resumableEndpoint(): string {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/+$/, '')
+  const direct = base.replace(/^https:\/\/([a-z0-9]+)\.supabase\.co$/i, 'https://$1.storage.supabase.co')
+  return `${direct}/storage/v1/upload/resumable`
+}
+
+/**
+ * Upload a file into `folder`. Resumable and chunked (TUS) with progress
+ * 0–100; if Storage refuses the chunked upload, retries once as a plain
+ * single-request upload (no live progress) before giving up. Resolves with
+ * the public URL; rejects with a message that includes Storage's reason.
  */
 export function uploadLessonMedia(opts: {
   supabase: SupabaseClient
@@ -115,7 +147,25 @@ export function uploadLessonMedia(opts: {
 }): { promise: Promise<{ url: string; path: string }>; cancel: () => void } {
   const { supabase, file, folder, kind, onProgress } = opts
   const path = objectPath(folder, kind, file)
+  const contentType = file.type || 'application/octet-stream'
   let upload: tus.Upload | null = null
+  let cancelled = false
+
+  const publicUrl = () => supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl
+
+  // The one-request upload the editor used before chunking (same permissions).
+  async function plainUpload(): Promise<{ url: string; path: string }> {
+    onProgress?.(0)
+    const { error } = await supabase.storage
+      .from(MEDIA_BUCKET)
+      .upload(path, file, { upsert: false, contentType, cacheControl: '3600' })
+    if (error) {
+      const status = Number((error as { statusCode?: string | number }).statusCode) || null
+      throw new Error(friendlyError(status, error.message))
+    }
+    onProgress?.(100)
+    return { url: publicUrl(), path }
+  }
 
   const promise = new Promise<{ url: string; path: string }>((resolve, reject) => {
     void (async () => {
@@ -125,20 +175,19 @@ export function uploadLessonMedia(opts: {
         return
       }
       upload = new tus.Upload(file, {
-        endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
-        retryDelays: [0, 2000, 5000, 10000, 20000],
+        endpoint: resumableEndpoint(),
+        retryDelays: [0, 3000, 5000, 10000, 20000],
         chunkSize: CHUNK_SIZE,
         uploadDataDuringCreation: true,
         removeFingerprintOnSuccess: true,
         headers: {
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
           authorization: `Bearer ${data.session.access_token}`,
           'x-upsert': 'false',
         },
         metadata: {
           bucketName: MEDIA_BUCKET,
           objectName: path,
-          contentType: file.type || 'application/octet-stream',
+          contentType,
           cacheControl: '3600',
         },
         // Fresh token on every chunk, so a long upload outlives the session's
@@ -150,19 +199,30 @@ export function uploadLessonMedia(opts: {
         onProgress: (sent, total) => {
           if (total > 0) onProgress?.(Math.min(100, Math.round((sent / total) * 100)))
         },
-        onError: (err) => reject(new Error(friendlyError(err))),
-        onSuccess: () => {
-          const { data: pub } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path)
-          resolve({ url: pub.publicUrl, path })
+        onError: (err) => {
+          if (cancelled) return
+          const { status, text } = tusDetail(err)
+          console.error('Resumable upload failed', status, text, err)
+          // Too big or a dropped connection won't be fixed by retrying in one
+          // piece; anything else (e.g. a refused chunked upload) gets one try.
+          if (status === 413 || status === 415 || status == null) {
+            reject(new Error(friendlyError(status, text)))
+            return
+          }
+          plainUpload().then(resolve, (plainErr: Error) => {
+            reject(new Error(`${plainErr.message} [chunked upload: ${status ?? ''} ${text.slice(0, 120)}]`))
+          })
         },
+        onSuccess: () => resolve({ url: publicUrl(), path }),
       })
       upload.start()
-    })().catch((err) => reject(new Error(friendlyError(err))))
+    })().catch((err) => reject(new Error(friendlyError(null, err instanceof Error ? err.message : String(err)))))
   })
 
   return {
     promise,
     cancel: () => {
+      cancelled = true
       void upload?.abort(true)
     },
   }
