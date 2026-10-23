@@ -2,43 +2,33 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePartnerBumper } from '@/components/app/PartnerBumperContext'
+import { VideoPlayer } from './video/VideoPlayer'
 
 /**
- * Video player with an optional partner pre-roll. ContentPlayer (a server
- * component) classifies the URL and hands us the kind + embed URL; we render
- * the actual player here on the client so we can gate it behind the partner's
- * "Brought to you by …" bumper.
+ * Lesson video with an optional partner pre-roll. The video itself is our
+ * own VideoPlayer (uploaded files only — no Vimeo/YouTube embeds).
  *
- * The bumper is an AUDIO clip, so for video we play it over a branded card that
- * overlays the 16:9 area — one mechanism that works for native <video>, Vimeo,
- * and YouTube alike (we never reach into the iframe). Flow:
+ * The bumper is an AUDIO clip, so for video we play it over a branded card
+ * that overlays the 16:9 area. Flow:
  *   gate    → branded card with a Play button (the required user gesture)
  *   bumper  → card stays, the audio clip plays
- *   playing → card gone, the real player is mounted with autoplay
+ *   playing → card gone, the player is mounted and starts playing
  *
  * A failed/hung bumper falls through to the player (catch + safety timeout).
- * Members with no eligible bumper get the player straight away, unchanged —
- * including autoplay:false so native controls behave exactly as before.
+ * Members with no eligible bumper get the player straight away (no autoplay).
  */
-type VideoKind = 'vimeo' | 'youtube' | 'native'
-
 const SAFETY_MS = 8000
 
-function withParam(url: string, param: string): string {
-  return url + (url.includes('?') ? '&' : '?') + param
-}
-
 export function VideoContent({
-  kind,
-  embedUrl,
   mediaUrl,
   title,
+  sourceId = null,
   bumperEligible = false,
 }: {
-  kind: VideoKind
-  embedUrl?: string
   mediaUrl: string
   title: string
+  /** content_items / lesson_blocks id: saves progress and drives the 90% gate. */
+  sourceId?: string | null
   bumperEligible?: boolean
 }) {
   const partnerBumper = usePartnerBumper()
@@ -101,7 +91,11 @@ export function VideoContent({
   const autoplay = phase === 'playing' && bumper != null
 
   if (phase === 'playing') {
-    return <Player kind={kind} embedUrl={embedUrl} mediaUrl={mediaUrl} title={title} autoplay={autoplay} />
+    return (
+      <div className="lesson-video-wrap">
+        <VideoPlayer src={mediaUrl} title={title} sourceId={sourceId} autoplay={autoplay} />
+      </div>
+    )
   }
 
   return (
@@ -133,49 +127,6 @@ export function VideoContent({
             </span>
           )}
         </div>
-      </div>
-    </div>
-  )
-}
-
-function Player({
-  kind,
-  embedUrl,
-  mediaUrl,
-  title,
-  autoplay,
-}: {
-  kind: VideoKind
-  embedUrl?: string
-  mediaUrl: string
-  title: string
-  autoplay: boolean
-}) {
-  if (kind === 'native') {
-    return (
-      <div className="lesson-video-wrap">
-        <div className="video-wrapper">
-          <video controls autoPlay={autoplay} src={mediaUrl} preload="metadata" style={{ width: '100%' }}>
-            Your browser doesn&apos;t support the video element.
-          </video>
-        </div>
-      </div>
-    )
-  }
-
-  // Vimeo / YouTube iframe. autoplay=1 only after the bumper; muted is left off
-  // on purpose — it follows the user's gesture on the gate, so sound is allowed
-  // on desktop (mobile may need one more tap, which the embed surfaces itself).
-  const allow =
-    kind === 'youtube'
-      ? 'autoplay; encrypted-media; picture-in-picture'
-      : 'autoplay; fullscreen; picture-in-picture'
-  const src = autoplay && embedUrl ? withParam(embedUrl, 'autoplay=1') : embedUrl
-
-  return (
-    <div className="lesson-video-wrap">
-      <div className="video-wrapper">
-        <iframe src={src} title={title} frameBorder={0} allow={allow} allowFullScreen />
       </div>
     </div>
   )

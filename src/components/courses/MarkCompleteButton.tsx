@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/analytics'
+import { isWatched, WATCH_THRESHOLD } from '@/lib/video-progress'
+import { useWatchProgress } from './video/WatchProgress'
 
 /**
  * Toggles completion state for a single content_item.
@@ -16,13 +18,20 @@ export function MarkCompleteButton({
   userId,
   contentItemId,
   initialDone,
+  requiresWatchOf = null,
 }: {
   userId: string
   contentItemId: string
   initialDone: boolean
+  /** A video's source id that must be 90% watched before completing. */
+  requiresWatchOf?: string | null
 }) {
   const [isDone, setIsDone] = useState(initialDone)
   const [pending, startTransition] = useTransition()
+  const watch = useWatchProgress()
+  // Completing waits for the video; un-completing never does.
+  const locked =
+    !isDone && requiresWatchOf != null && !isWatched(watch?.get(requiresWatchOf))
 
   async function toggle() {
     const nextDone = !isDone
@@ -55,10 +64,12 @@ export function MarkCompleteButton({
   }
 
   return (
+    <>
     <button
       type="button"
       onClick={toggle}
-      disabled={pending}
+      disabled={pending || locked}
+      aria-describedby={locked ? `watch-gate-${contentItemId}` : undefined}
       className={
         'btn btn--primary btn--lg lesson-complete-btn' +
         (isDone ? ' lesson-complete-btn--done' : '')
@@ -79,5 +90,11 @@ export function MarkCompleteButton({
       </svg>
       <span>{isDone ? 'Completed — Click to Undo' : 'Mark Complete'}</span>
     </button>
+    {locked && (
+      <p id={`watch-gate-${contentItemId}`} className="lesson-watch-gate">
+        Watch at least {Math.round(WATCH_THRESHOLD * 100)}% of the video to mark this complete.
+      </p>
+    )}
+    </>
   )
 }
