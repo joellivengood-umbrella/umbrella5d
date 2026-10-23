@@ -76,6 +76,7 @@ export default async function AdminPartnersPage() {
                   </div>
                   <PartnerBumperManager
                     partnerId={p.id}
+                    partnerName={p.name}
                     initialBumperUrl={p.bumper_url}
                   />
                 </li>

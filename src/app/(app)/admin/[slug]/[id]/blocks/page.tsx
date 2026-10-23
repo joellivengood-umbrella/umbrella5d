@@ -5,6 +5,7 @@ import { normalizeLessonSection } from '@/lib/courses'
 import type { LessonBlock, LessonBlockType, LessonBlockData } from '@/lib/courses'
 import { fetchSectionTitles } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
+import { machineLessonFolder } from '@/lib/lesson-media'
 import { LessonBlockEditor } from './LessonBlockEditor'
 
 type RouteParams = { slug: string; id: string }
@@ -24,7 +25,7 @@ export default async function LessonBlocksPage({
 
   const { data: item, error } = await supabase
     .from('content_items')
-    .select('id, type, sequence_num, title, is_published')
+    .select('id, type, sequence_num, title, is_published, part_sort_index, machine_parts(sort_index)')
     .eq('id', id)
     .eq('type', 'machine')
     .maybeSingle()
@@ -85,6 +86,11 @@ export default async function LessonBlocksPage({
 
         <LessonBlockEditor
           lessonId={item.id}
+          mediaFolder={machineLessonFolder({
+            partNumber: partSortIndex(item.machine_parts),
+            lessonNumber: (item.part_sort_index as number | null) ?? null,
+            sequenceNum: item.sequence_num as number,
+          })}
           initialBlocks={blocks}
           initialTitles={sectionTitles}
         />
@@ -94,3 +100,10 @@ export default async function LessonBlocksPage({
 }
 
 export const dynamic = 'force-dynamic'
+
+/** The embedded Part's sort_index (PostgREST may return an object or array). */
+function partSortIndex(part: unknown): number | null {
+  const p = Array.isArray(part) ? part[0] : part
+  const v = (p as { sort_index?: unknown } | null)?.sort_index
+  return typeof v === 'number' ? v : null
+}

@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { partnerFolder, removeMediaIfUnused, slugifyPart } from '@/lib/lesson-media'
 
 /**
  * Per-partner audio bumper control for the admin panel. Uploads a short
@@ -16,9 +17,12 @@ const MAX_BYTES = 5 * 1024 * 1024 // a 4s clip is tiny; this is a generous ceili
 
 export function PartnerBumperManager({
   partnerId,
+  partnerName,
   initialBumperUrl,
 }: {
   partnerId: string
+  /** Names the partner's folder in lesson-media (partners/<name>/audio/…). */
+  partnerName: string
   initialBumperUrl: string | null
 }) {
   const supabase = createClient()
@@ -48,8 +52,9 @@ export function PartnerBumperManager({
 
     const dot = file.name.lastIndexOf('.')
     const ext = (dot > 0 ? file.name.slice(dot + 1) : 'mp3').toLowerCase()
+    const base = slugifyPart(dot > 0 ? file.name.slice(0, dot) : file.name)
     const tag = crypto.randomUUID().slice(0, 8)
-    const path = `partner-bumper/${partnerId}-${tag}.${ext}`
+    const path = `${partnerFolder(partnerName)}/audio/${base}-${tag}.${ext}`
 
     const { error: upErr } = await supabase.storage
       .from('lesson-media')
@@ -77,6 +82,8 @@ export function PartnerBumperManager({
       setStatus({ type: 'error', msg: 'Could not save the bumper. Try again.' })
       return
     }
+    // The replaced clip is no longer needed (unless used elsewhere).
+    if (bumperUrl) void removeMediaIfUnused(supabase, bumperUrl)
     setBumperUrl(publicUrl)
     setStatus({ type: 'success', msg: 'Bumper saved.' })
   }
@@ -94,6 +101,7 @@ export function PartnerBumperManager({
       setStatus({ type: 'error', msg: 'Could not remove the bumper. Try again.' })
       return
     }
+    if (bumperUrl) void removeMediaIfUnused(supabase, bumperUrl)
     setBumperUrl(null)
     setStatus({ type: 'success', msg: 'Bumper removed.' })
   }

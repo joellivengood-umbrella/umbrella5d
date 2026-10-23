@@ -10,7 +10,7 @@ import { CourseCard } from '@/components/courses/CourseCard'
 type Status = { type: 'success' | 'error'; msg: string } | null
 
 /** Slugs taken by static /admin/* pages (they win over /admin/[slug]). */
-const RESERVED_SLUGS = new Set(['analytics', 'partners'])
+const RESERVED_SLUGS = new Set(['analytics', 'media', 'partners'])
 
 function slugify(s: string): string {
   return s

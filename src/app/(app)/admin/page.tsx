@@ -49,6 +49,9 @@ export default async function AdminIndexPage() {
             <Link href="/admin/partners" className="btn btn--secondary btn--sm">
               Partner bumpers →
             </Link>
+            <Link href="/admin/media" className="btn btn--secondary btn--sm">
+              Media files →
+            </Link>
           </div>
         </div>
 

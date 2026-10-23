@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -13,7 +13,8 @@ import {
 } from '@/lib/courses'
 import { RichTextEditor } from './RichTextEditor'
 import { sanitizeLessonHtml } from '@/lib/sanitize-html'
-import { MediaUpload } from './MediaUpload'
+import { MediaUpload } from '@/components/admin/MediaUpload'
+import { removeMediaListIfUnused } from '@/lib/lesson-media'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
 
@@ -97,10 +98,13 @@ export function LessonBlockEditor({
   lessonId,
   initialBlocks,
   initialTitles,
+  mediaFolder,
 }: {
   lessonId: string
   initialBlocks: LessonBlock[]
   initialTitles: SectionTitles | null
+  /** This lesson's folder in lesson-media (e.g. machine/part-1/lesson-1-2). */
+  mediaFolder: string
 }) {
   const router = useRouter()
   const [sections, setSections] = useState<Record<LessonSection, EditBlock[]>>(
@@ -116,6 +120,17 @@ export function LessonBlockEditor({
     instructions: initialTitles?.instructions ?? '',
   })
   const savedIds = useRef(new Set(initialBlocks.map((b) => b.id)))
+  // Media URLs as last saved — on save, any that are gone get cleaned up.
+  const savedUrls = useRef(
+    initialBlocks.map((b) => b.data.url).filter((u): u is string => Boolean(u))
+  )
+  // Uploads in progress; Save waits for them so a half-uploaded file is
+  // never saved as a broken link.
+  const [uploads, setUploads] = useState(0)
+  const onUploading = useCallback(
+    (on: boolean) => setUploads((n) => Math.max(0, n + (on ? 1 : -1))),
+    []
+  )
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<Status>(null)
 
@@ -245,6 +260,13 @@ export function LessonBlockEditor({
     }
 
     savedIds.current = currentIds
+    // Delete files this save dropped or replaced (unless still used elsewhere).
+    const nowUrls = payload
+      .map((p) => (p.data as { url?: string }).url)
+      .filter((u): u is string => Boolean(u))
+    const dropped = savedUrls.current.filter((u) => !nowUrls.includes(u))
+    savedUrls.current = nowUrls
+    void removeMediaListIfUnused(supabase, dropped)
     setSaving(false)
     setStatus({ type: 'success', msg: 'Saved' })
     router.refresh()
@@ -264,6 +286,8 @@ export function LessonBlockEditor({
           onAdd={add}
           onRemove={remove}
           onMove={move}
+          mediaFolder={mediaFolder}
+          onUploading={onUploading}
         />
       ))}
 
@@ -272,9 +296,9 @@ export function LessonBlockEditor({
           type="button"
           className="btn btn--primary"
           onClick={save}
-          disabled={saving}
+          disabled={saving || uploads > 0}
         >
-          {saving ? 'Saving…' : 'Save changes'}
+          {saving ? 'Saving…' : uploads > 0 ? 'Waiting for upload…' : 'Save changes'}
         </button>
         {status ? (
           <span className={`settings-status settings-status--${status.type}`}>
@@ -296,6 +320,8 @@ function Section({
   onAdd,
   onRemove,
   onMove,
+  mediaFolder,
+  onUploading,
 }: {
   section: LessonSection
   title: string
@@ -306,6 +332,8 @@ function Section({
   onAdd: (s: LessonSection, t: LessonBlockType) => void
   onRemove: (s: LessonSection, id: string) => void
   onMove: (s: LessonSection, id: string, dir: -1 | 1) => void
+  mediaFolder: string
+  onUploading: (uploading: boolean) => void
 }) {
   return (
     <section className="lbe-section">
@@ -340,6 +368,8 @@ function Section({
               onUpdate={onUpdate}
               onRemove={onRemove}
               onMove={onMove}
+              mediaFolder={mediaFolder}
+              onUploading={onUploading}
             />
           ))}
         </div>
@@ -370,6 +400,8 @@ function BlockCard({
   onUpdate,
   onRemove,
   onMove,
+  mediaFolder,
+  onUploading,
 }: {
   block: EditBlock
   section: LessonSection
@@ -378,6 +410,8 @@ function BlockCard({
   onUpdate: (s: LessonSection, id: string, patch: Partial<EditBlock>) => void
   onRemove: (s: LessonSection, id: string) => void
   onMove: (s: LessonSection, id: string, dir: -1 | 1) => void
+  mediaFolder: string
+  onUploading: (uploading: boolean) => void
 }) {
   const TYPE_LABEL: Record<LessonBlockType, string> = {
     heading: section === 'instructions' ? 'Sub-heading' : 'Step heading',
@@ -445,7 +479,9 @@ function BlockCard({
             <MediaUpload
               kind={block.blockType}
               url={block.url}
+              folder={mediaFolder}
               onChange={(url) => onUpdate(section, block.id, { url })}
+              onUploadingChange={onUploading}
             />
             <input
               type="text"

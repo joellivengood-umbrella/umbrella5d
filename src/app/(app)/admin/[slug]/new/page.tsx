@@ -59,6 +59,7 @@ export default async function AdminNewItemPage({
         <section className="settings-section">
           <ContentItemForm
             courseSlug={course.slug}
+            mediaKind={course.mediaKind}
             parts={parts}
             initial={{
               id: null,
