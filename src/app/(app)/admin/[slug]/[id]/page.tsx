@@ -112,6 +112,7 @@ export default async function AdminEditItemPage({
         <section className="settings-section">
           <ContentItemForm
             courseSlug={course.slug}
+            mediaKind={course.mediaKind}
             initial={draft}
             parts={parts}
           />

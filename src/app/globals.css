@@ -7393,6 +7393,23 @@ body.potd-player-active .app-main {
   font-size: .8rem; font-weight: 600; cursor: pointer; text-decoration: underline;
 }
 .lbe-media__error { font-size: .8rem; color: #dc2626; }
+.lbe-media__progress { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; }
+.lbe-media__bar {
+  position: relative;
+  flex: 1 1 12rem;
+  height: 8px;
+  border-radius: 999px;
+  background: #eef0f6;
+  overflow: hidden;
+}
+.lbe-media__bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ct-from, #7c3aed), var(--ct-to, #5b4fff));
+  transition: width .2s ease;
+}
+.lbe-media__pct { font-size: .82rem; font-weight: 600; color: var(--clr-text); font-variant-numeric: tabular-nums; }
 .lbe-media__preview {
   width: 100%;
   max-width: 420px;
@@ -9487,3 +9504,10 @@ body.potd-player-active .app-main {
     padding: .25rem .35rem;
   }
 }
+
+/* Admin → Media files (organize tool) */
+.media-org__plan { margin-top: 1.25rem; font-size: .9rem; color: var(--clr-text); }
+.media-org__plan h3 { margin: 1rem 0 .4rem; font-size: .95rem; }
+.media-org__plan ul { display: flex; flex-direction: column; gap: .3rem; max-height: 22rem; overflow: auto; padding: 0; margin: 0; list-style: none; }
+.media-org__plan li { font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
+.media-org__plan code { font-size: .8rem; background: #f4f5f9; padding: .05rem .3rem; border-radius: 4px; }

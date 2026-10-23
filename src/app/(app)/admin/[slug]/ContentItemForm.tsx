@@ -1,10 +1,17 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { MBA_VERSIONS, type MbaVersion } from '@/lib/courses'
+import { MediaUpload } from '@/components/admin/MediaUpload'
+import {
+  courseLessonFolder,
+  machineLessonFolder,
+  removeMediaIfUnused,
+  removeMediaListIfUnused,
+} from '@/lib/lesson-media'
 
 type Status = { type: 'success' | 'error'; msg: string } | null
 
@@ -40,10 +47,13 @@ export function ContentItemForm({
   courseSlug,
   initial,
   parts = [],
+  mediaKind = 'video',
 }: {
   courseSlug: string
   initial: ContentItemDraft
   parts?: PartOption[]
+  /** The course's media type — what the upload button accepts. */
+  mediaKind?: 'video' | 'audio'
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -70,6 +80,26 @@ export function ContentItemForm({
     part_id: initial.part_id ?? '',
     part_sort_index: initial.part_sort_index?.toString() ?? '',
   })
+
+  // The media URL as last saved: replacing or clearing it deletes the old
+  // file on the next successful save (never before — cancelling is safe).
+  const savedMediaUrl = useRef(initial.media_url ?? '')
+  const [uploading, setUploading] = useState(false)
+
+  // Where this lesson's uploads go in lesson-media (sorted per course/lesson).
+  const partNumber = parts.find((p) => p.id === values.part_id)?.sortIndex ?? null
+  const mediaFolder =
+    courseSlug === 'machine'
+      ? machineLessonFolder({
+          partNumber,
+          lessonNumber: parseInt(values.part_sort_index, 10) || null,
+          sequenceNum: initial.sequence_num,
+        })
+      : courseLessonFolder({
+          courseSlug,
+          sequenceNum: parseInt(values.sequence_num, 10) || null,
+          mbaVersion: courseSlug === 'mba' ? values.mba_version || null : null,
+        })
 
   function update<K extends keyof FormValues>(key: K, val: FormValues[K]) {
     setValues((v) => ({ ...v, [key]: val }))
@@ -181,6 +211,13 @@ export function ContentItemForm({
       resultId = data?.id ?? null
     }
 
+    // The previous file was replaced or cleared: delete it if nothing else uses it.
+    const newUrl = values.media_url.trim()
+    if (savedMediaUrl.current && savedMediaUrl.current !== newUrl) {
+      void removeMediaIfUnused(supabase, savedMediaUrl.current)
+    }
+    savedMediaUrl.current = newUrl
+
     setSaving(false)
     setStatus({ type: 'success', msg: 'Saved' })
     startTransition(() => {
@@ -197,6 +234,16 @@ export function ContentItemForm({
     if (!confirm('Delete this item permanently? This cannot be undone.')) return
     setSaving(true)
     setStatus(null)
+    // Its files go with it: the lesson's own media plus (5D Machine) the
+    // media in its blocks, which are deleted along with the lesson.
+    const { data: blockRows } = await supabase
+      .from('lesson_blocks')
+      .select('data')
+      .eq('lesson_id', initial.id)
+    const files = [
+      savedMediaUrl.current,
+      ...(blockRows ?? []).map((b) => (b.data as { url?: string } | null)?.url),
+    ]
     const { error } = await supabase
       .from('content_items')
       .delete()
@@ -206,6 +253,7 @@ export function ContentItemForm({
       setStatus({ type: 'error', msg: error.message })
       return
     }
+    await removeMediaListIfUnused(supabase, files)
     router.push(`/admin/${courseSlug}`)
     router.refresh()
   }
@@ -313,20 +361,21 @@ export function ContentItemForm({
         />
       </label>
 
-      <label className="settings-field">
-        <span>Media URL</span>
-        <input
-          type="url"
-          value={values.media_url}
-          onChange={(e) => update('media_url', e.target.value)}
-          placeholder="https://…/lesson-media/lesson.mp4"
+      <div className="settings-field">
+        <span>{mediaKind === 'audio' ? 'Audio' : 'Video'}</span>
+        <MediaUpload
+          kind={mediaKind}
+          url={values.media_url}
+          folder={mediaFolder}
+          onChange={(url) => update('media_url', url)}
+          onUploadingChange={setUploading}
         />
         <p className="settings-hint">
-          A direct link to an uploaded .mp4 video or .mp3 audio file (Vimeo and
-          YouTube links aren&apos;t supported). Leave blank to show a
+          Upload an {mediaKind === 'audio' ? '.mp3' : '.mp4'} file — it’s stored and
+          organized automatically ({mediaFolder}/). Leave empty to show a
           &quot;coming soon&quot; placeholder.
         </p>
-      </label>
+      </div>
 
       <label className="settings-field settings-field--toggle">
         <input
@@ -341,9 +390,15 @@ export function ContentItemForm({
         <button
           type="submit"
           className="btn btn--primary"
-          disabled={saving || pending}
+          disabled={saving || pending || uploading}
         >
-          {saving ? 'Saving…' : initial.id ? 'Save changes' : 'Create item'}
+          {saving
+            ? 'Saving…'
+            : uploading
+              ? 'Waiting for upload…'
+              : initial.id
+                ? 'Save changes'
+                : 'Create item'}
         </button>
         {initial.id && (
           <button
