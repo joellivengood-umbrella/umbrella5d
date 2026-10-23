@@ -4122,6 +4122,140 @@ body.potd-player-active .app-main {
   gap: 2rem;
 }
 
+/* ── Lesson video player (our own; .vp-*) ── */
+.vp {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: #000;
+  box-shadow: var(--shadow-lg);
+  color: #fff;
+  outline: none;
+}
+.vp:focus-visible { box-shadow: var(--shadow-lg), 0 0 0 3px var(--ct-from, #7c3aed); }
+.vp--fs { border-radius: 0; aspect-ratio: auto; width: 100%; height: 100%; }
+.vp--idle { cursor: none; }
+.vp__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  cursor: pointer;
+}
+.vp__bigplay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 76px;
+  height: 76px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  padding-left: 5px;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, var(--ct-from, #7c3aed), var(--ct-to, #5b4fff));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease);
+}
+.vp__bigplay:hover { transform: translate(-50%, -50%) scale(1.06); }
+.vp__controls {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 2.25rem .9rem .55rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, 0));
+  transition: opacity .25s ease;
+}
+.vp--idle .vp__controls { opacity: 0; pointer-events: none; }
+/* Progress only — deliberately not draggable (no skipping ahead). */
+.vp__track {
+  position: relative;
+  height: 5px;
+  margin: 0 .3rem .45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .28);
+}
+.vp__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ct-from, #7c3aed), var(--ct-to, #5b4fff));
+}
+.vp__head {
+  position: absolute;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+  transform: translate(-50%, -50%);
+}
+.vp__bar { display: flex; align-items: center; gap: .2rem; }
+.vp__btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 .35rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.vp__btn:hover { background: rgba(255, 255, 255, .14); }
+.vp__btn:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.vp__rewind-num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -42%);
+  font-size: .5rem;
+  font-weight: 800;
+}
+.vp__rate { min-width: 48px; font-size: .85rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.vp__time {
+  margin-left: .4rem;
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, .9);
+}
+.vp__time-sep { opacity: .6; }
+.vp__spacer { flex: 1; }
+.vp__volume { display: flex; align-items: center; }
+.vp__volslider { width: 80px; accent-color: #fff; cursor: pointer; }
+@media (max-width: 640px) {
+  .vp { border-radius: var(--radius-md); }
+  .vp__volslider { display: none; } /* phones use their hardware volume */
+  .vp__controls { padding: 1.75rem .35rem .3rem; }
+  .vp__btn { min-width: 36px; }
+  .vp__bigplay { width: 60px; height: 60px; }
+}
+
+/* Mark Complete waiting on the video (watch 90%): the button reads as
+   unavailable and the reason sits on its own line beneath it. */
+.lesson-complete-section { flex-wrap: wrap; }
+.lesson-complete-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.lesson-watch-gate {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: .85rem;
+  color: var(--clr-muted);
+}
+
 .lesson-video-wrap .video-wrapper {
   border-radius: var(--radius-lg);
   overflow: hidden;

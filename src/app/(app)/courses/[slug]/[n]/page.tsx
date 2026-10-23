@@ -7,6 +7,8 @@ import { fetchContentItem } from '@/lib/content-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { MarkCompleteButton } from '@/components/courses/MarkCompleteButton'
+import { WatchProgressProvider } from '@/components/courses/video/WatchProgress'
+import { fetchVideoProgress, isVideoFileUrl } from '@/lib/video-progress'
 
 /**
  * Generic lesson player for a flat course. Mirrors the EOS item page but
@@ -56,6 +58,10 @@ export default async function CourseItemPage({
     .eq('content_item_id', item.id)
     .maybeSingle()
 
+  // A video lesson can only be completed after 90% of it has been watched.
+  const videoId = isVideoFileUrl(item.media_url) ? item.id : null
+  const watched = videoId ? await fetchVideoProgress(supabase, user.id, [videoId]) : {}
+
   const fallbackTitle = `${course.shortTitle} ${item.sequence_num}`
 
   return (
@@ -87,9 +93,11 @@ export default async function CourseItemPage({
           <h1>{item.title ?? fallbackTitle}</h1>
         </div>
 
+        <WatchProgressProvider initial={watched}>
         <div className="lesson-body">
           <ContentPlayer
             mediaUrl={item.media_url}
+            sourceId={item.id}
             mediaKind={course.mediaKind}
             title={item.title ?? fallbackTitle}
             bumperEligible={course.slug !== 'machine'}
@@ -101,10 +109,12 @@ export default async function CourseItemPage({
             <MarkCompleteButton
               userId={user.id}
               contentItemId={item.id}
+              requiresWatchOf={videoId}
               initialDone={!!progress}
             />
           </div>
         </div>
+        </WatchProgressProvider>
       </main>
     </>
   )

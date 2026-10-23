@@ -6,10 +6,10 @@ import { VideoContent } from './VideoContent'
  * "coming soon" placeholder if media_url is null.
  *
  * Detection rules:
- *   - media_url contains 'vimeo.com' or 'player.vimeo' → Vimeo iframe
- *   - media_url contains 'youtube.com' or 'youtu.be'    → YouTube iframe
- *   - media_url ends in .mp3/.wav/.m4a/.ogg            → <audio>
- *   - media_url ends in .mp4/.webm/.mov                → <video>
+ *   - media_url ends in .mp3/.wav/.m4a/.ogg/.aac       → LessonAudioPlayer
+ *   - media_url ends in .mp4/.webm/.mov                → our VideoPlayer
+ *   (Vimeo / YouTube links are not supported: our player must control
+ *   playback to enforce "no skipping ahead" and the 90%-watched rule.)
  *   - otherwise (or null)                              → placeholder
  *
  * `mediaKind` ("video" | "audio") is used to choose the placeholder
@@ -20,6 +20,7 @@ export function ContentPlayer({
   mediaKind,
   title,
   bumperEligible = false,
+  sourceId = null,
 }: {
   mediaUrl: string | null
   mediaKind: 'video' | 'audio'
@@ -30,52 +31,17 @@ export function ContentPlayer({
    * never leaks a bumper). Applies to both audio and video.
    */
   bumperEligible?: boolean
+  /**
+   * The content_items / lesson_blocks id this media belongs to. For video,
+   * it saves watch progress and drives the "watch 90% to complete" gate.
+   */
+  sourceId?: string | null
 }) {
   if (!mediaUrl) {
     return <ComingSoonPlaceholder mediaKind={mediaKind} />
   }
 
   const url = mediaUrl.trim()
-  const lower = url.toLowerCase()
-
-  // Vimeo — VideoContent renders the embed + optional pre-roll on the client.
-  if (lower.includes('vimeo.com') || lower.includes('player.vimeo')) {
-    const embedUrl = lower.includes('player.vimeo')
-      ? url
-      : // Convert vimeo.com/123 → player.vimeo.com/video/123
-        url.replace(
-          /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/,
-          'https://player.vimeo.com/video/$1'
-        )
-    return (
-      <VideoContent
-        kind="vimeo"
-        embedUrl={embedUrl}
-        mediaUrl={url}
-        title={title}
-        bumperEligible={bumperEligible}
-      />
-    )
-  }
-
-  // YouTube
-  if (lower.includes('youtube.com') || lower.includes('youtu.be')) {
-    const idMatch = url.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([A-Za-z0-9_-]{6,})/
-    )
-    const videoId = idMatch?.[1]
-    if (videoId) {
-      return (
-        <VideoContent
-          kind="youtube"
-          embedUrl={`https://www.youtube.com/embed/${videoId}`}
-          mediaUrl={url}
-          title={title}
-          bumperEligible={bumperEligible}
-        />
-      )
-    }
-  }
 
   // Native audio — designed inline player, themed from the lesson's colour.
   if (/\.(mp3|wav|m4a|ogg|aac)(\?|$)/i.test(url)) {
@@ -86,9 +52,9 @@ export function ContentPlayer({
   if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) {
     return (
       <VideoContent
-        kind="native"
         mediaUrl={url}
         title={title}
+        sourceId={sourceId}
         bumperEligible={bumperEligible}
       />
     )

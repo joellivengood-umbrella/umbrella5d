@@ -7,6 +7,8 @@ import { track } from '@/lib/analytics'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { DEFAULT_SECTION_TITLES } from '@/lib/courses'
 import { sanitizeLessonHtml } from '@/lib/sanitize-html'
+import { isVideoFileUrl, isWatched, WATCH_THRESHOLD, type VideoWatchMap } from '@/lib/video-progress'
+import { useWatchProgress, WatchProgressProvider } from '@/components/courses/video/WatchProgress'
 import type {
   ActivityAnswer,
   LessonBlock,
@@ -26,6 +28,20 @@ import type {
  * Progress) and a completion banner appears.
  */
 export function MachineLessonView({
+  initialWatch = {},
+  ...props
+}: Parameters<typeof LessonBody>[0] & {
+  /** Saved video progress for this lesson's video blocks (90% gate). */
+  initialWatch?: VideoWatchMap
+}) {
+  return (
+    <WatchProgressProvider initial={initialWatch}>
+      <LessonBody {...props} />
+    </WatchProgressProvider>
+  )
+}
+
+function LessonBody({
   userId,
   lessonId,
   partNumber,
@@ -47,6 +63,13 @@ export function MachineLessonView({
   initiallyComplete: boolean
 }) {
   const router = useRouter()
+  const watch = useWatchProgress()
+  // A step that contains a video can't be checked off until each of its
+  // videos has been watched to 90%.
+  const unwatchedVideo = (body: LessonBlock[]) =>
+    body.some(
+      (b) => b.blockType === 'video' && isVideoFileUrl(b.data.url) && !isWatched(watch?.get(b.id))
+    )
   const [checked, setChecked] = useState<Set<string>>(
     () => new Set(initialCheckedIds)
   )
@@ -343,6 +366,8 @@ export function MachineLessonView({
       {readSections.map(({ section, groups }) => {
         const renderStep = (g: Group, gi: number) => {
           const title = stepTitle(g.checkpoint?.data.text)
+          const videoLocked =
+            g.checkpoint != null && !checked.has(g.checkpoint.id) && unwatchedVideo(g.body)
           return (
             <section
               key={g.checkpoint?.id ?? `${section}-lead-${gi}`}
@@ -357,6 +382,8 @@ export function MachineLessonView({
                     number={g.number}
                     checked={checked.has(g.checkpoint.id)}
                     pending={pending.has(g.checkpoint.id)}
+                    locked={videoLocked}
+                    lockedText={VIDEO_GATE_TEXT}
                     onToggle={() => toggle(g.checkpoint!.id)}
                   />
                 ) : null}
@@ -366,6 +393,7 @@ export function MachineLessonView({
                 {g.body.map((b) => (
                   <BlockBody key={b.id} block={b} />
                 ))}
+                {videoLocked && <p className="m-answer-gate">{VIDEO_GATE_TEXT}</p>}
               </div>
             </section>
           )
@@ -407,7 +435,9 @@ export function MachineLessonView({
             const q = g.question
             if (q) {
               const prompts = q.data.prompts ?? []
-              const locked = !checked.has(q.id) && !isQuestionReady(q)
+              const answersLocked = !checked.has(q.id) && !isQuestionReady(q)
+              const videoLocked = !checked.has(q.id) && unwatchedVideo(g.body)
+              const locked = answersLocked || videoLocked
               return (
                 <section
                   key={q.id}
@@ -421,6 +451,7 @@ export function MachineLessonView({
                       checked={checked.has(q.id)}
                       pending={pending.has(q.id)}
                       locked={locked}
+                      lockedText={answersLocked ? undefined : VIDEO_GATE_TEXT}
                       onToggle={() => toggle(q.id)}
                     />
                   </div>
@@ -438,7 +469,7 @@ export function MachineLessonView({
                         }
                       />
                     ))}
-                    {locked && (
+                    {answersLocked && (
                       <p className="m-answer-gate">
                         Add at least {MIN_ANSWER_CHARS} characters to{' '}
                         {prompts.length > 1 ? 'each answer' : 'your answer'} to
@@ -448,6 +479,7 @@ export function MachineLessonView({
                     {g.body.map((b) => (
                       <BlockBody key={b.id} block={b} />
                     ))}
+                    {videoLocked && <p className="m-answer-gate">{VIDEO_GATE_TEXT}</p>}
                   </div>
                 </section>
               )
@@ -497,6 +529,8 @@ export function MachineLessonView({
   )
 }
 
+const VIDEO_GATE_TEXT = `Watch at least ${Math.round(WATCH_THRESHOLD * 100)}% of the video to check this off.`
+
 /** A numbered pill that doubles as the checkbox for a step/item. */
 function CheckPill({
   number,
@@ -504,12 +538,15 @@ function CheckPill({
   pending,
   onToggle,
   locked = false,
+  lockedText = 'Answer every box (50+ characters) to check off',
 }: {
   number: string
   checked: boolean
   pending: boolean
   onToggle: () => void
   locked?: boolean
+  /** Why it's locked (answers by default; a video's 90% gate otherwise). */
+  lockedText?: string
 }) {
   return (
     <button
@@ -519,14 +556,14 @@ function CheckPill({
       aria-pressed={checked}
       aria-label={
         locked
-          ? `${number} — answer every box (50+ characters) to check off`
+          ? `${number} — ${lockedText}`
           : checked
             ? `${number} — done, click to undo`
             : `Mark ${number} done`
       }
       title={
         locked
-          ? 'Answer every box (50+ characters) to check off'
+          ? lockedText
           : checked
             ? 'Done — click to undo'
             : 'Click to check off'
@@ -583,6 +620,8 @@ function BlockBody({ block }: { block: LessonBlock }) {
           title={block.data.title ?? ''}
           // 5D Machine is deliberately excluded from the partner audio bumper.
           bumperEligible={false}
+          // Saves watch progress for a video block (its step's 90% gate).
+          sourceId={block.id}
         />
         {block.data.title ? (
           <p className="m-media__caption">{block.data.title}</p>

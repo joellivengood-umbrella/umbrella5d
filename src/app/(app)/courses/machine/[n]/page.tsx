@@ -13,6 +13,8 @@ import { BodyClass } from '@/components/app/BodyClass'
 import { ContentPlayer } from '@/components/courses/ContentPlayer'
 import { MarkCompleteButton } from '@/components/courses/MarkCompleteButton'
 import { MachineLessonView } from '@/components/courses/machine/MachineLessonView'
+import { WatchProgressProvider } from '@/components/courses/video/WatchProgress'
+import { fetchVideoProgress, isVideoFileUrl } from '@/lib/video-progress'
 
 type RouteParams = { n: string }
 
@@ -54,7 +56,16 @@ export default async function MachineItemPage({
 
   // Per-user state (rich lessons only).
   const blockIds = lesson.blocks.map((b) => b.id)
-  const [checkedIds, answers, progress] = await Promise.all([
+  // Videos whose watch progress gates completion: video blocks in a rich
+  // lesson, or the lesson's own media in the legacy single-media view.
+  const videoIds = hasBlocks
+    ? lesson.blocks
+        .filter((b) => b.blockType === 'video' && isVideoFileUrl(b.data.url))
+        .map((b) => b.id)
+    : isVideoFileUrl(lesson.mediaUrl)
+      ? [lesson.id]
+      : []
+  const [checkedIds, answers, progress, watched] = await Promise.all([
     hasBlocks
       ? fetchBlockChecks(supabase, user.id, blockIds)
       : Promise.resolve(new Set<string>()),
@@ -67,6 +78,7 @@ export default async function MachineItemPage({
       .eq('user_id', user.id)
       .eq('content_item_id', lesson.id)
       .maybeSingle(),
+    fetchVideoProgress(supabase, user.id, videoIds),
   ])
   const initiallyComplete = !!progress.data
 
@@ -109,13 +121,16 @@ export default async function MachineItemPage({
             initialCheckedIds={[...checkedIds]}
             initialAnswers={answers}
             initiallyComplete={initiallyComplete}
+            initialWatch={watched}
           />
         ) : (
           // Legacy / not-yet-authored machine lesson: the original simple
           // view (single media + description + one Mark Complete button).
+          <WatchProgressProvider initial={watched}>
           <div className="lesson-body">
             <ContentPlayer
               mediaUrl={lesson.mediaUrl}
+              sourceId={lesson.id}
               mediaKind={course.mediaKind}
               title={lesson.title ?? `5D Machine Lesson ${lesson.sequenceNum}`}
               bumperEligible={false}
@@ -128,9 +143,11 @@ export default async function MachineItemPage({
                 userId={user.id}
                 contentItemId={lesson.id}
                 initialDone={initiallyComplete}
+                requiresWatchOf={videoIds[0] ?? null}
               />
             </div>
           </div>
+          </WatchProgressProvider>
         )}
       </main>
     </>

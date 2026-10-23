@@ -319,10 +319,11 @@ export function ContentItemForm({
           type="url"
           value={values.media_url}
           onChange={(e) => update('media_url', e.target.value)}
-          placeholder="https://vimeo.com/123456789"
+          placeholder="https://…/lesson-media/lesson.mp4"
         />
         <p className="settings-hint">
-          Vimeo, YouTube, or a direct mp3/mp4 URL. Leave blank to show a
+          A direct link to an uploaded .mp4 video or .mp3 audio file (Vimeo and
+          YouTube links aren&apos;t supported). Leave blank to show a
           &quot;coming soon&quot; placeholder.
         </p>
       </label>
