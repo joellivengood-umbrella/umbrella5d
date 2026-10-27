@@ -4336,6 +4336,13 @@ body.potd-player-active .app-main {
 
 /* ── Page shell ── */
 .courses-main {
+  /* width:100% — this <main> is a flex child of .app-main (a flex column)
+     with margin:0 auto, so WITHOUT a definite width it shrink-wraps its
+     content: pages came out narrow and jumped wider when content grew
+     (e.g. opening a <details>). Fill the area and let max-width govern,
+     so every course / admin page is the same width. See .org-main. */
+  box-sizing: border-box;
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
   padding: 2.25rem 1.5rem 4rem;
