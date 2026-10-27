@@ -6727,7 +6727,8 @@ body.potd-player-active .app-main {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: .85rem;
-  max-width: 560px;
+  /* No max-width: the grid spans the page like every other course's lesson
+     grid (a cap left it stranded on the left of the full-width page). */
 }
 .m-box {
   position: relative;
