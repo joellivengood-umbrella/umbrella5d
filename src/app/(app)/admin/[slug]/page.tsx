@@ -7,6 +7,7 @@ import { fetchMachineAdminStructure } from '@/lib/machine-queries'
 import { BodyClass } from '@/components/app/BodyClass'
 import { MachineAdminList } from './MachineAdminList'
 import { CourseSettingsForm } from './CourseSettingsForm'
+import { BulkAddItems } from './BulkAddItems'
 
 type RouteParams = { slug: string }
 
@@ -124,6 +125,16 @@ export default async function AdminCoursePage({
             + New item
           </Link>
         </div>
+
+        {/* Single-list courses (e.g. Pod of the Day) can add many at once. */}
+        {!hasVersions && (
+          <BulkAddItems
+            courseSlug={course.slug}
+            courseTitle={course.title}
+            mediaKind={course.mediaKind}
+            existingNumbers={rows.map((r) => r.sequence_num)}
+          />
+        )}
 
         <div className="admin-table-wrap">
           <table className="admin-table">
