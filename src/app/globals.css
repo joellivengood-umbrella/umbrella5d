@@ -9511,3 +9511,20 @@ body.potd-player-active .app-main {
 .media-org__plan ul { display: flex; flex-direction: column; gap: .3rem; max-height: 22rem; overflow: auto; padding: 0; margin: 0; list-style: none; }
 .media-org__plan li { font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
 .media-org__plan code { font-size: .8rem; background: #f4f5f9; padding: .05rem .3rem; border-radius: 4px; }
+
+/* Admin → course: bulk add lessons from files */
+.bulk-add { margin-bottom: 1.25rem; }
+.bulk-add__summary { cursor: pointer; font-size: 1.05rem; font-weight: 700; color: var(--clr-text); }
+.bulk-add[open] .bulk-add__summary { margin-bottom: .6rem; }
+.bulk-add .settings-actions { margin: .75rem 0 .25rem; }
+.bulk-add__totals { margin: .75rem 0 .4rem; font-size: .85rem; color: var(--clr-muted); }
+.bulk-add__list { display: flex; flex-direction: column; max-height: 26rem; overflow: auto; padding: 0; margin: 0; list-style: none; border: 1px solid var(--clr-border); border-radius: var(--radius-md); }
+.bulk-add__row { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; padding: .45rem .75rem; font-size: .84rem; border-top: 1px solid #f0f0f4; }
+.bulk-add__row:first-child { border-top: none; }
+.bulk-add__num { font-weight: 700; font-variant-numeric: tabular-nums; }
+.bulk-add__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--clr-text); }
+.bulk-add__status { white-space: nowrap; color: var(--clr-muted); }
+.bulk-add__row--done .bulk-add__status { color: #047857; font-weight: 600; }
+.bulk-add__row--failed .bulk-add__status { color: #b42318; font-weight: 600; white-space: normal; }
+.bulk-add__row--uploading .bulk-add__status { color: var(--clr-text); font-weight: 600; }
+.bulk-add__row--exists, .bulk-add__row--no-number, .bulk-add__row--duplicate { opacity: .55; }
