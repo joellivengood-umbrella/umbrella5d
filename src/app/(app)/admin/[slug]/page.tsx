@@ -71,9 +71,9 @@ export default async function AdminCoursePage({
             </p>
           </div>
 
-          <MachineAdminList parts={parts} unassigned={unassigned} />
-
           <CourseSettingsForm course={course} />
+
+          <MachineAdminList parts={parts} unassigned={unassigned} />
         </main>
       </>
     )
@@ -119,6 +119,8 @@ export default async function AdminCoursePage({
             {rows.length} item{rows.length === 1 ? '' : 's'} total.
           </p>
         </div>
+
+        <CourseSettingsForm course={course} />
 
         <div className="admin-toolbar">
           <Link href={`/admin/${course.slug}/new`} className="btn btn--primary">
@@ -208,8 +210,6 @@ export default async function AdminCoursePage({
             </tbody>
           </table>
         </div>
-
-        <CourseSettingsForm course={course} />
       </main>
     </>
   )

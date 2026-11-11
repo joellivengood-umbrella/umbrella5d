@@ -16,10 +16,15 @@ type Status = { type: 'success' | 'error'; msg: string } | null
  * Edit a course's display + lifecycle flags. The slug is fixed (it's the
  * URL and what content rows reference). "Counts toward program %" is the
  * promote-from-bonus switch; "assignable" lets managers require it of teams.
+ *
+ * Sits under the course title as a "Course settings" button that opens the
+ * panel in place (closed by default), so settings are one click away however
+ * long the lesson list below gets.
  */
 export function CourseSettingsForm({ course }: { course: Course }) {
   const router = useRouter()
   const [supabase] = useState(() => createClient())
+  const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<Status>(null)
 
@@ -70,9 +75,31 @@ export function CourseSettingsForm({ course }: { course: Course }) {
   }
 
   return (
-    <section className="settings-section">
+    <div className="course-settings">
+      <button
+        type="button"
+        className="btn btn--secondary btn--sm course-settings__toggle"
+        aria-expanded={open}
+        aria-controls="course-settings-panel"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        Course settings
+        <svg className="course-settings__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      <section
+        id="course-settings-panel"
+        className="settings-section course-settings__panel"
+        aria-label="Course settings"
+        hidden={!open}
+      >
       <header className="settings-section__header">
-        <h2>Course settings</h2>
         <p>
           Display, theme, and how this course behaves across the program. Slug
           (<code>{course.slug}</code>) is fixed.
@@ -216,6 +243,7 @@ export function CourseSettingsForm({ course }: { course: Course }) {
           )}
         </div>
       </form>
-    </section>
+      </section>
+    </div>
   )
 }
