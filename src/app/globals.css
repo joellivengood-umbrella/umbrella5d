@@ -9344,3 +9344,12 @@ body.potd-player-active .app-main {
 .bulk-add__row--failed .bulk-add__status { color: #b42318; font-weight: 600; white-space: normal; }
 .bulk-add__row--uploading .bulk-add__status { color: var(--clr-text); font-weight: 600; }
 .bulk-add__row--exists, .bulk-add__row--no-number, .bulk-add__row--duplicate { opacity: .55; }
+
+/* Admin → course: "Course settings" button under the title, opening the
+   settings panel in place (closed by default). */
+.course-settings { margin: -0.5rem 0 1.5rem; }
+.course-settings__toggle { display: inline-flex; align-items: center; gap: .45rem; }
+.course-settings__chevron { transition: transform var(--dur) var(--ease); }
+.course-settings__toggle[aria-expanded="true"] .course-settings__chevron { transform: rotate(180deg); }
+.course-settings__panel { margin: .85rem 0 0; }
+.course-settings__panel[hidden] { display: none; }
